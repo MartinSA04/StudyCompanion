@@ -1,0 +1,60 @@
+---
+/**
+ * A collapsible derivation / worked steps block. Native <details>, so it works
+ * with no JS. Author the steps as slotted MDX (often a sequence of <Formula>).
+ */
+interface Props {
+  title?: string;
+  open?: boolean;
+}
+const { title = "Utledning", open = false } = Astro.props;
+---
+
+<details class="derivation" open={open}>
+  <summary>
+    <span class="derivation-chevron" aria-hidden="true">▶</span>
+    <span>{title}</span>
+  </summary>
+  <div class="derivation-body"><slot /></div>
+</details>
+
+<style>
+  .derivation {
+    margin-block: var(--space-5);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--bg-elevated);
+    overflow: hidden;
+  }
+  summary {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-4);
+    font-weight: var(--weight-medium);
+    cursor: pointer;
+    list-style: none;
+    user-select: none;
+    background: var(--card);
+  }
+  summary::-webkit-details-marker {
+    display: none;
+  }
+  summary:hover {
+    background: var(--card-hover);
+  }
+  .derivation-chevron {
+    color: var(--muted);
+    font-size: 0.7em;
+    transition: transform var(--dur-fast) var(--ease);
+  }
+  .derivation[open] .derivation-chevron {
+    transform: rotate(90deg);
+  }
+  .derivation-body {
+    padding: var(--space-2) var(--space-4) var(--space-4);
+  }
+  .derivation-body :global(> :last-child) {
+    margin-bottom: 0;
+  }
+</style>

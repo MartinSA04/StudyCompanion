@@ -1,0 +1,43 @@
+---
+import { Code } from "astro:components";
+
+/**
+ * A titled code block highlighted with Astro's built-in Shiki. Pass `code` as a
+ * string plus a `lang`. A copy button is added by the layout's global
+ * enhancement (which targets every <pre> in the content), so this component
+ * only owns the optional filename chrome.
+ *
+ * For ordinary code, authors can also just use Markdown fenced code blocks —
+ * those are highlighted by Shiki and get the same copy button automatically.
+ */
+interface Props {
+  code: string;
+  lang?: string;
+  title?: string;
+}
+const { code, lang = "text", title } = Astro.props;
+---
+
+<figure class="codeblock">
+  {title && <figcaption class="codeblock-title">{title}</figcaption>}
+  <Code code={code} lang={lang as any} />
+</figure>
+
+<style>
+  .codeblock {
+    margin-block: var(--space-5);
+  }
+  .codeblock-title {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--muted);
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-bottom: 0;
+    border-radius: var(--radius) var(--radius) 0 0;
+    padding: var(--space-2) var(--space-4);
+  }
+  .codeblock-title + :global(pre) {
+    border-radius: 0 0 var(--radius) var(--radius);
+  }
+</style>

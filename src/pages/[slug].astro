@@ -1,0 +1,168 @@
+---
+import { getCollection, render } from "astro:content";
+import type { CollectionEntry } from "astro:content";
+import CourseLayout from "../layouts/CourseLayout.astro";
+import FormulaSheet from "../components/FormulaSheet.astro";
+import Flashcards from "../components/Flashcards.astro";
+import ExamList from "../components/ExamList.astro";
+import { loadCourse } from "../lib/loadCourse.ts";
+import { mdxComponents } from "../mdx-components.ts";
+import {
+  sectionNav,
+  sectionSlug,
+  toolFlags,
+  TOOL_SLUGS,
+} from "../lib/nav.ts";
+
+type Neighbor = { slug: string; num: string } | null;
+type Props =
+  | { kind: "section"; entry: CollectionEntry<"sections">; prev: Neighbor; next: Neighbor }
+  | { kind: "formulas" | "flashcards" | "exams" };
+
+export async function getStaticPaths() {
+  const { course, sections } = await loadCourse();
+  const flashcards = course.features.flashcards
+    ? ((await getCollection("flashcards"))[0]?.data.cards ?? [])
+    : [];
+  const tools = toolFlags(course, flashcards.length);
+
+  const neighbor = (s?: CollectionEntry<"sections">): Neighbor =>
+    s ? { slug: sectionSlug(s.id), num: String(s.data.order) } : null;
+
+  const paths: { params: { slug: string }; props: Props }[] = sections.map(
+    (entry, i) => ({
+      params: { slug: sectionSlug(entry.id) },
+      props: {
+        kind: "section" as const,
+        entry,
+        prev: neighbor(sections[i - 1]),
+        next: neighbor(sections[i + 1]),
+      },
+    }),
+  );
+
+  if (tools.formulas)
+    paths.push({ params: { slug: TOOL_SLUGS.formulas }, props: { kind: "formulas" } });
+  if (tools.flashcards)
+    paths.push({ params: { slug: TOOL_SLUGS.flashcards }, props: { kind: "flashcards" } });
+  if (tools.exams)
+    paths.push({ params: { slug: TOOL_SLUGS.exams }, props: { kind: "exams" } });
+
+  return paths;
+}
+
+const props = Astro.props as Props;
+const active = Astro.params.slug;
+
+// Shared chrome data (cheap — collections are cached during the build).
+const { course, sections } = await loadCourse();
+const flashcards = course.features.flashcards
+  ? ((await getCollection("flashcards"))[0]?.data.cards ?? [])
+  : [];
+const nav = sectionNav(sections);
+const tools = toolFlags(course, flashcards.length);
+
+const importanceLabel = { core: "Kjernepensum", useful: "Pensum", extra: "Tilleggsstoff" };
+
+let pageTitle = course.title;
+let Content: Awaited<ReturnType<typeof render>>["Content"] | null = null;
+let head: { kicker: string; index: string; title: string; week: string; order: number } | null = null;
+
+if (props.kind === "section") {
+  const d = props.entry.data;
+  ({ Content } = await render(props.entry));
+  pageTitle = d.title;
+  const weekParts = [
+    d.estMinutes != null ? `~${d.estMinutes} min lesing` : null,
+    ...d.tags.slice(1),
+  ].filter(Boolean);
+  head = {
+    kicker: d.tags[0] ?? importanceLabel[d.importance],
+    index: String(d.order),
+    title: d.title,
+    week: weekParts.join(" · "),
+    order: d.order,
+  };
+} else if (props.kind === "formulas") {
+  pageTitle = course.ui.formulaSheetLabel;
+} else if (props.kind === "flashcards") {
+  pageTitle = course.ui.flashcardsLabel;
+} else {
+  pageTitle = course.ui.examsLabel;
+}
+---
+
+<CourseLayout course={course} nav={nav} tools={tools} active={active} pageTitle={pageTitle}>
+  {
+    props.kind === "section" && head && Content && (
+      <>
+        <header class="mod-head">
+          <div class="mod-index">{head.index}</div>
+          <div class="meta">
+            <div class="mod-kicker">{head.kicker}</div>
+            <h2>{head.title}</h2>
+            {head.week && <div class="week">{head.week}</div>}
+          </div>
+          {course.features.progress && (
+            <button class="done-btn" type="button" data-done-order={head.order}>
+              Marker fullført
+            </button>
+          )}
+        </header>
+
+        <article class="prose" data-pagefind-body data-section={head.order}>
+          <Content components={mdxComponents} />
+        </article>
+
+        <nav class="page-actions" aria-label="Moduler">
+          {props.prev ? (
+            <a class="page-link" href={`/${props.prev.slug}`}>← Forrige: {props.prev.num}</a>
+          ) : (
+            <span class="page-link disabled"></span>
+          )}
+          {props.next ? (
+            <a class="page-link" href={`/${props.next.slug}`}>Neste: {props.next.num} →</a>
+          ) : (
+            <a class="page-link" href="/">Til oversikt</a>
+          )}
+        </nav>
+      </>
+    )
+  }
+
+  {
+    props.kind === "formulas" && (
+      <>
+        <header class="tool-head">
+          <div class="mod-kicker">Verktøy</div>
+          <h2>{course.ui.formulaSheetLabel}</h2>
+        </header>
+        <FormulaSheet formulas={course.formulas} />
+      </>
+    )
+  }
+
+  {
+    props.kind === "flashcards" && (
+      <>
+        <header class="tool-head">
+          <div class="mod-kicker">Verktøy</div>
+          <h2>{course.ui.flashcardsLabel}</h2>
+        </header>
+        <Flashcards cards={flashcards} code={course.code} />
+      </>
+    )
+  }
+
+  {
+    props.kind === "exams" && (
+      <>
+        <header class="tool-head">
+          <div class="mod-kicker">Verktøy</div>
+          <h2>{course.ui.examsLabel}</h2>
+        </header>
+        <ExamList exams={course.exams} language={course.language} />
+      </>
+    )
+  }
+</CourseLayout>

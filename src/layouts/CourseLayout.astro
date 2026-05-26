@@ -1,0 +1,295 @@
+---
+import type { Course } from "../schema.ts";
+import type { NavItem, ToolFlags } from "../lib/nav.ts";
+import { TOOL_SLUGS } from "../lib/nav.ts";
+import ThemeToggle from "../components/ThemeToggle.astro";
+import SearchPalette from "../components/SearchPalette.astro";
+import "katex/dist/katex.min.css";
+import "../styles/tokens.css";
+import "../styles/base.css";
+import "../styles/shell.css";
+
+interface Props {
+  course: Course;
+  /** Ordered module nav items (sections only). */
+  nav: NavItem[];
+  /** Which reference-tool pages exist. */
+  tools: ToolFlags;
+  /** Active page: "top" (overview) or a section/tool slug. */
+  active: string;
+  /** Page <title>; defaults to the course title. */
+  pageTitle?: string;
+}
+const { course, nav, tools, active, pageTitle } = Astro.props;
+const { ui, features } = course;
+
+const themeKey = `sc:theme:${course.code}`;
+const progressKey = `sc:progress:${course.code}`;
+const title = pageTitle
+  ? `${pageTitle} · ${course.code}`
+  : `${course.code} · ${course.title}`;
+
+const toolNav: { slug: string; num: string; label: string; show: boolean }[] = [
+  { slug: TOOL_SLUGS.formulas, num: "∑", label: ui.formulaSheetLabel, show: tools.formulas },
+  { slug: TOOL_SLUGS.flashcards, num: "⚡", label: ui.flashcardsLabel, show: tools.flashcards },
+  { slug: TOOL_SLUGS.exams, num: "▦", label: ui.examsLabel, show: tools.exams },
+];
+const hasTools = toolNav.some((t) => t.show);
+---
+
+<!doctype html>
+<html lang={course.language} style={`--accent: ${course.accent};`}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href="/favicon.svg" />
+    <title>{title}</title>
+    {
+      course.subtitle && (
+        <meta name="description" content={`${course.title} — ${course.subtitle}`} />
+      )
+    }
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Spectral:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    {
+      features.theme && (
+        <script is:inline define:vars={{ themeKey }}>
+          // No-flash: set the theme before first paint.
+          try {
+            const saved = localStorage.getItem(themeKey);
+            const dark = saved
+              ? saved === "dark"
+              : matchMedia("(prefers-color-scheme: dark)").matches;
+            if (dark) document.documentElement.setAttribute("data-theme", "dark");
+          } catch (e) {}
+        </script>
+      )
+    }
+  </head>
+  <body data-progress-key={progressKey} data-section-total={nav.length}>
+    <a class="skip-link" href="#content">{ui.skipToContent}</a>
+
+    <div class="topbar">
+      <div class="topbar-inner">
+        <button
+          class="menu-toggle"
+          type="button"
+          aria-label="Åpne meny"
+          aria-controls="sidebar"
+          aria-expanded="false">☰</button>
+        <a class="brand" href="/">
+          <span class="prism" aria-hidden="true"></span>
+          <span>
+            {course.code} {course.title}
+            <span class="brand-sub">
+              {course.subtitle ? `${course.subtitle} · ` : ""}{course.term}
+            </span>
+          </span>
+        </a>
+        <div class="spacer"></div>
+        {
+          features.progress && (
+            <div class="progresswrap" aria-label={ui.progressLabel}>
+              <span class="lbl-txt">{ui.progressLabel}</span>
+              <div
+                class="progressbar"
+                role="progressbar"
+                aria-valuemin="0"
+                aria-valuemax="100"
+                aria-valuenow="0">
+                <div class="progressfill" data-progress-fill></div>
+              </div>
+              <span class="num" data-progress-text>0/{nav.length}</span>
+            </div>
+          )
+        }
+        {features.search && <SearchPalette label={ui.searchLabel} />}
+        {features.theme && <ThemeToggle storageKey={themeKey} />}
+        {
+          features.progress && (
+            <button class="btn-reset" type="button" data-progress-reset>
+              {ui.resetLabel}
+            </button>
+          )
+        }
+      </div>
+    </div>
+
+    <div class="scrim" data-scrim></div>
+    <div class="layout">
+      <aside class="sidebar" id="sidebar" aria-label="Moduler">
+        <div class="nav-section">Kom i gang</div>
+        <a class={`nav-link${active === "top" ? " active" : ""}`} href="/">
+          <span class="nav-num">↑</span>
+          <span class="nav-title">Oversikt</span>
+        </a>
+
+        {
+          hasTools && (
+            <>
+              <div class="nav-section">Verktøy</div>
+              {toolNav
+                .filter((t) => t.show)
+                .map((t) => (
+                  <a
+                    class={`nav-link${active === t.slug ? " active" : ""}`}
+                    href={`/${t.slug}`}>
+                    <span class="nav-num">{t.num}</span>
+                    <span class="nav-title">{t.label}</span>
+                  </a>
+                ))}
+            </>
+          )
+        }
+
+        <div class="nav-section">Moduler</div>
+        {
+          nav.map((item) => (
+            <a
+              class={`nav-link${active === item.slug ? " active" : ""}`}
+              href={`/${item.slug}`}
+              data-nav-order={item.order}>
+              <span class="nav-num">{item.num}</span>
+              <span class="nav-title">{item.shortTitle}</span>
+              <span class="nav-check" aria-hidden="true">✓</span>
+            </a>
+          ))
+        }
+
+        {
+          course.links.length > 0 && (
+            <>
+              <div class="nav-section">Lenker</div>
+              {course.links.map((l) => (
+                <a class="nav-link" href={l.url} target="_blank" rel="noopener noreferrer">
+                  <span class="nav-num">↗</span>
+                  <span class="nav-title">{l.label}</span>
+                </a>
+              ))}
+            </>
+          )
+        }
+      </aside>
+
+      <main class="content" id="content" tabindex="-1">
+        <slot />
+        <footer class="site-footer">
+          <p>{course.code} · {course.title} · {course.term}</p>
+          <p>Bygget med <span class="accent-text">study-companion</span></p>
+        </footer>
+      </main>
+    </div>
+
+    <script is:inline define:vars={{ progressKey, total: nav.length }}>
+      // ---- Reading progress (per course, localStorage) ----
+      // Stored as an array of section `order` numbers, matching lib/progress.ts.
+      const readProg = () => {
+        try {
+          const a = JSON.parse(localStorage.getItem(progressKey) || "[]");
+          return Array.isArray(a) ? a.map(Number) : [];
+        } catch {
+          return [];
+        }
+      };
+      const writeProg = (arr) => {
+        try {
+          localStorage.setItem(progressKey, JSON.stringify(arr));
+        } catch {}
+      };
+
+      const fill = document.querySelector("[data-progress-fill]");
+      const text = document.querySelector("[data-progress-text]");
+      const bar = fill ? fill.closest(".progressbar") : null;
+      const navLinks = [...document.querySelectorAll("[data-nav-order]")];
+
+      function paintProgress() {
+        const done = readProg();
+        const set = new Set(done);
+        navLinks.forEach((a) =>
+          a.classList.toggle("done", set.has(Number(a.dataset.navOrder))),
+        );
+        const count = navLinks.filter((a) =>
+          set.has(Number(a.dataset.navOrder)),
+        ).length;
+        const pct = total ? Math.round((count / total) * 100) : 0;
+        if (fill) fill.style.width = pct + "%";
+        if (bar) bar.setAttribute("aria-valuenow", String(pct));
+        if (text) text.textContent = count + "/" + total;
+      }
+
+      // The current page may carry a "mark done" button (set in [slug].astro).
+      const doneBtn = document.querySelector("[data-done-order]");
+      function paintDoneBtn() {
+        if (!doneBtn) return;
+        const order = Number(doneBtn.dataset.doneOrder);
+        const on = new Set(readProg()).has(order);
+        doneBtn.classList.toggle("done", on);
+        doneBtn.textContent = on ? "✓ Fullført" : "Marker fullført";
+      }
+      if (doneBtn) {
+        doneBtn.addEventListener("click", () => {
+          const order = Number(doneBtn.dataset.doneOrder);
+          const arr = readProg();
+          const i = arr.indexOf(order);
+          if (i >= 0) arr.splice(i, 1);
+          else arr.push(order);
+          writeProg(arr);
+          paintDoneBtn();
+          paintProgress();
+        });
+      }
+
+      const resetBtn = document.querySelector("[data-progress-reset]");
+      if (resetBtn)
+        resetBtn.addEventListener("click", () => {
+          writeProg([]);
+          paintProgress();
+          paintDoneBtn();
+        });
+
+      paintProgress();
+      paintDoneBtn();
+
+      // ---- Mobile menu ----
+      const menuBtn = document.querySelector(".menu-toggle");
+      const sidebar = document.getElementById("sidebar");
+      const scrim = document.querySelector("[data-scrim]");
+      function toggleMenu(open) {
+        const next =
+          open ?? !sidebar.classList.contains("open");
+        sidebar.classList.toggle("open", next);
+        scrim.classList.toggle("show", next);
+        if (menuBtn) menuBtn.setAttribute("aria-expanded", String(next));
+      }
+      if (menuBtn) menuBtn.addEventListener("click", () => toggleMenu());
+      if (scrim) scrim.addEventListener("click", () => toggleMenu(false));
+
+      // ---- Copy buttons on code blocks ----
+      document.querySelectorAll(".content pre").forEach((pre) => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "code-copy";
+        btn.textContent = "Kopier";
+        btn.addEventListener("click", async () => {
+          const code = pre.querySelector("code");
+          try {
+            await navigator.clipboard.writeText(
+              code ? code.innerText : pre.innerText,
+            );
+            btn.textContent = "Kopiert";
+            btn.dataset.copied = "true";
+            setTimeout(() => {
+              btn.textContent = "Kopier";
+              btn.dataset.copied = "false";
+            }, 1500);
+          } catch {}
+        });
+        pre.appendChild(btn);
+      });
+    </script>
+  </body>
+</html>

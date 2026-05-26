@@ -1,0 +1,42 @@
+{
+  "name": "study-companion",
+  "version": "1.0.0",
+  "description": "A versioned, data-driven Astro integration + component library for interactive course study guides.",
+  "type": "module",
+  "license": "MIT",
+  "author": "Martin Sundal",
+  "packageManager": "pnpm@10.33.0",
+  "exports": {
+    ".": "./src/index.ts",
+    "./content": "./src/content.ts",
+    "./schema": "./src/schema.ts",
+    "./styles": "./src/styles/tokens.css",
+    "./styles/*": "./src/styles/*",
+    "./pages/index.astro": "./src/pages/index.astro",
+    "./pages/[slug].astro": "./src/pages/[slug].astro",
+    "./components/*": "./src/components/*",
+    "./mdx-components": "./src/mdx-components.ts"
+  },
+  "files": [
+    "src"
+  ],
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "astro": "^6"
+  },
+  "dependencies": {
+    "@astrojs/mdx": "^5.0.6",
+    "katex": "^0.17.0",
+    "pagefind": "^1.5.2",
+    "rehype-katex": "^7.0.1",
+    "remark-math": "^6.0.0",
+    "yaml": "^2.9.0",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "astro": "^6.3.7",
+    "typescript": "^6.0.3"
+  }
+}

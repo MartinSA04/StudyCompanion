@@ -1,0 +1,156 @@
+---
+/**
+ * Single-answer multiple-choice question (vanilla island). `answer` is the
+ * 0-based index of the correct option. Clicking an option reveals whether it
+ * was right and shows the optional explanation. This is a study aid, not a
+ * graded test, so the answer being present in the DOM is fine.
+ */
+interface Props {
+  question: string;
+  options: string[];
+  answer: number;
+  explanation?: string;
+}
+const { question, options, answer, explanation } = Astro.props;
+import { renderMathString } from "../lib/katex.ts";
+---
+
+<form class="quiz" data-answer={answer}>
+  <fieldset>
+    <legend class="quiz-q" set:html={renderMathString(question)} />
+    <ul class="quiz-options">
+      {
+        options.map((opt, i) => (
+          <li>
+            <button type="button" class="quiz-option" data-index={i}>
+              <span class="quiz-mark" aria-hidden="true" />
+              <span set:html={renderMathString(opt)} />
+            </button>
+          </li>
+        ))
+      }
+    </ul>
+  </fieldset>
+  <p class="quiz-feedback" role="status" aria-live="polite" hidden></p>
+  {explanation && <p class="quiz-explain" set:html={renderMathString(explanation)} hidden />}
+</form>
+
+<style>
+  .quiz {
+    margin-block: var(--space-5);
+    padding: var(--space-4);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--bg-elevated);
+  }
+  .quiz fieldset {
+    border: 0;
+    padding: 0;
+    margin: 0;
+  }
+  .quiz-q {
+    font-weight: var(--weight-semibold);
+    padding: 0;
+    margin-bottom: var(--space-3);
+  }
+  .quiz-options {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+  .quiz-option {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    text-align: left;
+    padding: var(--space-3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg);
+    transition:
+      border-color var(--dur-fast) var(--ease),
+      background-color var(--dur-fast) var(--ease);
+  }
+  .quiz-option:hover:not([disabled]) {
+    border-color: var(--accent);
+  }
+  .quiz-mark {
+    flex: none;
+    width: 1.1em;
+    height: 1.1em;
+    border: 1.5px solid var(--border-strong);
+    border-radius: 50%;
+  }
+  .quiz-option[data-state="correct"] {
+    border-color: var(--tip);
+    background: var(--tip-bg);
+    color: var(--tip);
+  }
+  .quiz-option[data-state="correct"] .quiz-mark {
+    background: var(--tip);
+    border-color: var(--tip);
+  }
+  .quiz-option[data-state="wrong"] {
+    border-color: var(--core);
+    background: color-mix(in srgb, var(--core) 10%, var(--bg));
+    color: var(--core);
+  }
+  .quiz-option[data-state="wrong"] .quiz-mark {
+    border-color: var(--core);
+  }
+  .quiz-feedback {
+    margin-top: var(--space-3);
+    font-weight: var(--weight-medium);
+    font-size: var(--text-sm);
+  }
+  .quiz-feedback[data-result="correct"] {
+    color: var(--tip);
+  }
+  .quiz-feedback[data-result="wrong"] {
+    color: var(--core);
+  }
+  .quiz-explain {
+    margin-top: var(--space-3);
+    font-size: var(--text-sm);
+    color: var(--muted);
+    line-height: var(--leading-snug);
+    padding: var(--space-3) var(--space-4);
+    background: var(--accent-soft);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 var(--radius) var(--radius) 0;
+  }
+</style>
+
+<script>
+  document.querySelectorAll<HTMLFormElement>(".quiz").forEach((quiz) => {
+    const answer = Number(quiz.dataset.answer);
+    const options = [...quiz.querySelectorAll<HTMLButtonElement>(".quiz-option")];
+    const feedback = quiz.querySelector<HTMLElement>(".quiz-feedback")!;
+    const explain = quiz.querySelector<HTMLElement>(".quiz-explain");
+    let done = false;
+
+    options.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        if (done) return;
+        done = true;
+        const chosen = Number(btn.dataset.index);
+        const correct = chosen === answer;
+
+        options.forEach((b, i) => {
+          b.disabled = true;
+          if (i === answer) b.dataset.state = "correct";
+          else if (i === chosen) b.dataset.state = "wrong";
+        });
+
+        feedback.hidden = false;
+        feedback.dataset.result = correct ? "correct" : "wrong";
+        feedback.textContent = correct ? "Riktig!" : "Ikke helt — se riktig svar.";
+        if (explain) explain.hidden = false;
+      });
+    });
+  });
+</script>

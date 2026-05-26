@@ -1,0 +1,218 @@
+---
+import katex from "katex";
+import type { FormulaEntry } from "../schema.ts";
+import { renderMathString } from "../lib/katex.ts";
+
+/**
+ * A scannable reference sheet of the course's formulas, grouped by their
+ * optional `section`. Rendered from `course.formulas`. Server-side KaTeX, so
+ * zero client cost. Each row has a copy-LaTeX button (enhanced client-side).
+ */
+interface Props {
+  formulas: FormulaEntry[];
+}
+const { formulas } = Astro.props;
+
+// Group by section, preserving first-seen order of both groups and entries.
+const groups: { section: string; items: FormulaEntry[] }[] = [];
+for (const f of formulas) {
+  const key = f.section ?? "";
+  let g = groups.find((x) => x.section === key);
+  if (!g) {
+    g = { section: key, items: [] };
+    groups.push(g);
+  }
+  g.items.push(f);
+}
+
+const html = (tex: string) =>
+  katex.renderToString(tex, { displayMode: false, throwOnError: false });
+---
+
+{
+  formulas.some((f) => f.memorize) && (
+    <div class="fs-filter" role="group" aria-label="Filtrer formler">
+      <button type="button" class="fs-chip" data-filter="all" aria-pressed="true">
+        Alle
+      </button>
+      <button type="button" class="fs-chip" data-filter="sheet" aria-pressed="false">
+        På formelarket
+      </button>
+      <button type="button" class="fs-chip" data-filter="memorize" aria-pressed="false">
+        ★ Må pugges
+      </button>
+    </div>
+  )
+}
+
+<div class="formula-sheet">
+  {
+    groups.map((g) => (
+      <div class="fs-group" data-fs-group>
+        {g.section && <h3 class="fs-group-title">{g.section}</h3>}
+        <ul class="fs-list">
+          {g.items.map((f) => (
+            <li
+              class="fs-row"
+              data-onsheet={String(f.onSheet)}
+              data-memorize={String(f.memorize)}
+            >
+              <span class="fs-render" set:html={html(f.tex)} />
+              {f.label && <span class="fs-label" set:html={renderMathString(f.label)} />}
+              {f.memorize && (
+                <span class="fs-badge" title="Står ikke på formelarket – må pugges">
+                  ★ pugg
+                </span>
+              )}
+              <button
+                type="button"
+                class="fs-copy"
+                data-tex={f.tex}
+                aria-label="Kopier LaTeX"
+                title="Kopier LaTeX"
+              >
+                ⧉
+              </button>
+            </li>
+          ))}
+        </ul>
+      </div>
+    ))
+  }
+</div>
+
+<style>
+  .formula-sheet {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+  }
+  .fs-group-title {
+    font-size: var(--text-md);
+    color: var(--muted);
+    margin-bottom: var(--space-2);
+  }
+  .fs-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .fs-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    background: var(--bg);
+  }
+  .fs-render {
+    flex: none;
+  }
+  .fs-label {
+    flex: 1;
+    font-size: var(--text-sm);
+    color: var(--muted);
+  }
+  .fs-copy {
+    flex: none;
+    width: 30px;
+    height: 30px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg-elevated);
+    color: var(--muted);
+    font-size: var(--text-sm);
+  }
+  .fs-copy:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+  .fs-copy[data-copied="true"] {
+    color: var(--tip);
+    border-color: var(--tip);
+  }
+
+  .fs-filter {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin-bottom: var(--space-4);
+  }
+  .fs-chip {
+    font-size: var(--text-sm);
+    padding: 0.3em 0.8em;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-pill);
+    background: var(--bg-elevated);
+    color: var(--muted);
+  }
+  .fs-chip[aria-pressed="true"] {
+    background: var(--accent-weak);
+    border-color: var(--accent);
+    color: var(--accent);
+    font-weight: var(--weight-medium);
+  }
+  .fs-badge {
+    flex: none;
+    font-size: var(--text-xs);
+    font-weight: var(--weight-semibold);
+    color: var(--warning);
+    border: 1px solid color-mix(in srgb, var(--warning) 40%, var(--border));
+    border-radius: var(--radius-pill);
+    padding: 0.1em 0.5em;
+    white-space: nowrap;
+  }
+</style>
+
+<script>
+  document.querySelectorAll<HTMLButtonElement>(".fs-copy").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(btn.dataset.tex ?? "");
+        btn.dataset.copied = "true";
+        const prev = btn.textContent;
+        btn.textContent = "✓";
+        setTimeout(() => {
+          btn.dataset.copied = "false";
+          btn.textContent = prev;
+        }, 1200);
+      } catch {
+        /* clipboard unavailable */
+      }
+    });
+  });
+
+  // Filter: all / on the exam sheet / must-memorize.
+  const chips = document.querySelectorAll<HTMLButtonElement>(".fs-chip");
+  if (chips.length) {
+    const rows = document.querySelectorAll<HTMLElement>(".fs-row");
+    const groups = document.querySelectorAll<HTMLElement>("[data-fs-group]");
+    chips.forEach((chip) => {
+      chip.addEventListener("click", () => {
+        const mode = chip.dataset.filter;
+        chips.forEach((c) =>
+          c.setAttribute("aria-pressed", c === chip ? "true" : "false"),
+        );
+        rows.forEach((r) => {
+          const show =
+            mode === "all" ||
+            (mode === "sheet" && r.dataset.onsheet === "true") ||
+            (mode === "memorize" && r.dataset.memorize === "true");
+          r.hidden = !show;
+        });
+        // Hide groups left with no visible rows.
+        groups.forEach((g) => {
+          const any = [...g.querySelectorAll<HTMLElement>(".fs-row")].some(
+            (r) => !r.hidden,
+          );
+          g.hidden = !any;
+        });
+      });
+    });
+  }
+</script>

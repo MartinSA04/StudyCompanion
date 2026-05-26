@@ -1,0 +1,62 @@
+---
+import katex from "katex";
+import { renderMathString } from "../lib/katex.ts";
+
+/**
+ * A labelled, server-rendered KaTeX formula. Zero client JS — the TeX is
+ * rendered to HTML+MathML at build time. Use `block` (default) for a centred
+ * display formula with an optional caption, or `block={false}` for inline math.
+ * The caption may itself contain `$inline$` math.
+ */
+interface Props {
+  tex: string;
+  caption?: string;
+  block?: boolean;
+}
+const { tex, caption, block = true } = Astro.props;
+
+const html = katex.renderToString(tex, {
+  displayMode: block,
+  throwOnError: false, // render the offending TeX in red instead of failing build
+  output: "htmlAndMathml",
+});
+---
+
+{
+  block ? (
+    <figure class="formula">
+      <div class="formula-render" set:html={html} />
+      {caption && <figcaption set:html={renderMathString(caption)} />}
+    </figure>
+  ) : (
+    <span class="formula-inline" set:html={html} />
+  )
+}
+
+<style>
+  .formula {
+    margin-block: var(--space-5);
+    padding: var(--space-3) var(--space-4);
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: var(--radius);
+    overflow-x: auto;
+  }
+  .formula-render {
+    /* KaTeX adds its own .katex-display margins; trim ours. */
+    margin: 0;
+  }
+  .formula :global(.katex-display) {
+    margin: 0;
+  }
+  figcaption {
+    margin-top: var(--space-2);
+    font-size: var(--text-sm);
+    color: var(--muted);
+    text-align: center;
+  }
+  .formula-inline {
+    white-space: nowrap;
+  }
+</style>

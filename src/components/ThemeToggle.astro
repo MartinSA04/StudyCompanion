@@ -1,0 +1,105 @@
+---
+/**
+ * Light/dark theme toggle.
+ *
+ * The no-flash init script that sets `data-theme` before first paint lives in
+ * CourseLayout's <head>. This component is only the button + the click handler
+ * that flips and persists the choice. Persists to `sc:theme:<course.code>`.
+ */
+interface Props {
+  /** localStorage key, namespaced per course: `sc:theme:<code>`. */
+  storageKey: string;
+  label?: string;
+}
+const { storageKey, label = "Bytt tema" } = Astro.props;
+---
+
+<button
+  type="button"
+  class="theme-toggle"
+  data-storage-key={storageKey}
+  aria-label={label}
+  title={label}
+>
+  <svg class="icon icon-sun" viewBox="0 0 24 24" aria-hidden="true">
+    <circle cx="12" cy="12" r="4.2"></circle>
+    <g stroke-linecap="round">
+      <line x1="12" y1="2.5" x2="12" y2="5"></line>
+      <line x1="12" y1="19" x2="12" y2="21.5"></line>
+      <line x1="2.5" y1="12" x2="5" y2="12"></line>
+      <line x1="19" y1="12" x2="21.5" y2="12"></line>
+      <line x1="5.1" y1="5.1" x2="6.9" y2="6.9"></line>
+      <line x1="17.1" y1="17.1" x2="18.9" y2="18.9"></line>
+      <line x1="5.1" y1="18.9" x2="6.9" y2="17.1"></line>
+      <line x1="17.1" y1="6.9" x2="18.9" y2="5.1"></line>
+    </g>
+  </svg>
+  <svg class="icon icon-moon" viewBox="0 0 24 24" aria-hidden="true">
+    <path d="M20 14.5A8 8 0 0 1 9.5 4a7 7 0 1 0 10.5 10.5Z"></path>
+  </svg>
+</button>
+
+<style>
+  .theme-toggle {
+    display: inline-grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg-elevated);
+    color: var(--muted);
+    transition:
+      color var(--dur-fast) var(--ease),
+      background-color var(--dur-fast) var(--ease),
+      border-color var(--dur-fast) var(--ease);
+  }
+  .theme-toggle:hover {
+    color: var(--fg);
+    background: var(--card-hover);
+    border-color: var(--border-strong);
+  }
+  .icon {
+    grid-area: 1 / 1;
+    width: 19px;
+    height: 19px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+  }
+  .icon-moon {
+    fill: currentColor;
+    stroke: none;
+  }
+  /* Show the icon for the theme you'd switch TO. */
+  .icon-moon {
+    display: none;
+  }
+  :global(html:not([data-theme="dark"])) .icon-sun {
+    display: none;
+  }
+  :global(html:not([data-theme="dark"])) .icon-moon {
+    display: block;
+  }
+</style>
+
+<script>
+  // Vanilla island: flip data-theme on <html> and persist the choice.
+  document.querySelectorAll<HTMLButtonElement>(".theme-toggle").forEach((btn) => {
+    const key = btn.dataset.storageKey;
+    btn.addEventListener("click", () => {
+      const root = document.documentElement;
+      const next =
+        root.getAttribute("data-theme") === "dark" ? "light" : "dark";
+      root.setAttribute("data-theme", next);
+      try {
+        if (key) localStorage.setItem(key, next);
+      } catch {
+        /* private mode / storage disabled — fall through, no persistence */
+      }
+      // Let canvas simulations (and any other listeners) repaint with the new
+      // theme's CSS custom properties.
+      document.dispatchEvent(new CustomEvent("sc:themechange", { detail: next }));
+    });
+  });
+</script>

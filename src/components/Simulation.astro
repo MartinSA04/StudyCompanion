@@ -1,0 +1,241 @@
+---
+/**
+ * Scaffold for course-provided interactive simulations.
+ *
+ * The framework owns the chrome (title, a DPR-aware <canvas>, a controls slot,
+ * caption), lazy-mounts on scroll, and then dynamic-imports a simulation module
+ * that lives in the COURSE repo's `public/sims/`. This keeps course-specific
+ * code out of the framework — `algdat` will drop in its own modules the same way.
+ *
+ * Course module contract (e.g. course `public/sims/thin-lens.js`):
+ *
+ *     export default function init(api) {
+ *       const { ctx, controls, getSize, onResize } = api;
+ *       function draw() { const { w, h } = getSize(); ...paint with ctx... }
+ *       // build inputs into `controls`, call draw() on change
+ *       onResize(draw);   // framework calls this after DPR re-sizes
+ *       draw();
+ *     }
+ *
+ * `api` = { canvas, ctx, controls, getSize:()=>({w,h}), onResize:(cb)=>void }.
+ * Coordinates are CSS pixels (the context is pre-scaled for devicePixelRatio).
+ */
+interface Props {
+  /** Path to the course-provided ES module, e.g. "/sims/thin-lens.js". */
+  src: string;
+  title?: string;
+  caption?: string;
+  /** CSS height of the canvas in px. */
+  height?: number;
+}
+const { src, title, caption, height = 300 } = Astro.props;
+---
+
+<figure class="simulation" data-sim data-sim-src={src} data-sim-height={height}>
+  {title && <figcaption class="sim-title">{title}</figcaption>}
+  <div class="sim-stage">
+    <canvas class="sim-canvas" role="img" aria-label={title ?? "Interaktiv simulering"}
+    ></canvas>
+    <p class="sim-fallback">Interaktiv simulering krever JavaScript.</p>
+  </div>
+  <div class="sim-controls"></div>
+  {caption && <p class="sim-caption">{caption}</p>}
+</figure>
+
+<style>
+  .simulation {
+    margin-block: var(--space-5);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius);
+    background: var(--card);
+    overflow: hidden;
+  }
+  .sim-title {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    font-family: var(--font-display);
+    font-weight: var(--weight-semibold);
+    font-size: var(--text-lg);
+    padding: var(--space-3) var(--space-4);
+    border-bottom: 1px solid var(--border);
+  }
+  .sim-title::before {
+    content: "";
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--accent);
+    flex: none;
+  }
+  .sim-stage {
+    position: relative;
+    padding: var(--space-4) var(--space-4) 0;
+  }
+  .sim-canvas {
+    display: block;
+    width: 100%;
+    background: var(--canvas-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+  }
+  .sim-fallback {
+    padding: var(--space-4);
+    color: var(--muted);
+    font-size: var(--text-sm);
+  }
+  .sim-canvas:not([hidden]) + .sim-fallback {
+    display: none;
+  }
+  .sim-controls:empty {
+    display: none;
+  }
+  .sim-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-4) var(--space-6);
+    align-items: flex-end;
+    padding: var(--space-4);
+  }
+  /* Shared styling for controls the course module injects. */
+  .sim-controls :global(label) {
+    flex: 1;
+    min-width: 180px;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--muted);
+  }
+  .sim-controls :global(output) {
+    font-variant-numeric: tabular-nums;
+    color: var(--accent);
+    font-weight: var(--weight-medium);
+  }
+  .sim-controls :global(input[type="range"]) {
+    accent-color: var(--accent);
+    width: 160px;
+  }
+  .sim-controls :global(.sim-readout) {
+    flex-basis: 100%;
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    color: var(--muted);
+    line-height: var(--leading-snug);
+    padding: var(--space-3) var(--space-4);
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+  }
+  .sim-controls :global(.sim-readout b) {
+    color: var(--accent);
+    font-weight: var(--weight-semibold);
+  }
+  .sim-controls :global(.sim-btn) {
+    font-size: var(--text-sm);
+    padding: 0.3em 0.7em;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg);
+    color: var(--muted);
+  }
+  .sim-controls :global(.sim-btn:hover:not(:disabled)) {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .sim-controls :global(.sim-btn[aria-pressed="true"]) {
+    background: var(--accent-weak);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .sim-controls :global(.sim-btn:disabled) {
+    opacity: 0.4;
+  }
+  .sim-caption {
+    padding: var(--space-3) var(--space-4);
+    font-size: var(--text-sm);
+    color: var(--muted);
+  }
+</style>
+
+<script>
+  interface SimApi {
+    canvas: HTMLCanvasElement;
+    ctx: CanvasRenderingContext2D;
+    controls: HTMLElement;
+    getSize: () => { w: number; h: number };
+    onResize: (cb: () => void) => void;
+  }
+
+  const mount = (fig: HTMLElement) => {
+    const src = fig.dataset.simSrc;
+    const cssH = Number(fig.dataset.simHeight) || 300;
+    const canvas = fig.querySelector<HTMLCanvasElement>(".sim-canvas");
+    const controls = fig.querySelector<HTMLElement>(".sim-controls");
+    if (!src || !canvas || !controls) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    // DPR-aware sizing; coordinates handed to the course module are CSS px.
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    let resizeCb: (() => void) | null = null;
+    const size = () => {
+      const w = canvas.clientWidth || fig.clientWidth;
+      canvas.width = Math.round(w * dpr);
+      canvas.height = Math.round(cssH * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    };
+    canvas.style.height = cssH + "px";
+    size();
+    window.addEventListener("resize", () => {
+      size();
+      resizeCb?.();
+    });
+    // Repaint with fresh theme colours when light/dark is toggled.
+    document.addEventListener("sc:themechange", () => resizeCb?.());
+
+    const api: SimApi = {
+      canvas,
+      ctx,
+      controls,
+      getSize: () => ({ w: canvas.clientWidth || fig.clientWidth, h: cssH }),
+      onResize: (cb) => {
+        resizeCb = cb;
+      },
+    };
+
+    // The simulation lives in the COURSE repo's public/ folder, so it is a
+    // truly-external ES module that must be imported natively at runtime — not
+    // routed through Vite's module graph. A literal `import()` (even with
+    // @vite-ignore) gets a `?import` query appended in dev, and fetching that
+    // query on a public asset fails — the sim then silently never mounts.
+    // Hiding the import() inside a Function constructor keeps Vite's transform
+    // away entirely, so the browser fetches the raw URL in dev and in the build.
+    const nativeImport = new Function("u", "return import(u)") as (
+      u: string,
+    ) => Promise<{ default?: (a: SimApi) => void; init?: (a: SimApi) => void }>;
+    nativeImport(src)
+      .then((mod) => (mod.default ?? mod.init)?.(api))
+      .catch((err) => {
+        console.error(`study-companion: failed to load simulation ${src}`, err);
+      });
+  };
+
+  // Lazy-mount each simulation when it nears the viewport.
+  const figs = document.querySelectorAll<HTMLElement>("[data-sim]");
+  if (figs.length) {
+    const io = new IntersectionObserver(
+      (entries, obs) => {
+        for (const e of entries) {
+          if (e.isIntersecting) {
+            obs.unobserve(e.target);
+            mount(e.target as HTMLElement);
+          }
+        }
+      },
+      { rootMargin: "200px" },
+    );
+    figs.forEach((f) => io.observe(f));
+  }
+</script>

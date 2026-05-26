@@ -1,0 +1,291 @@
+---
+/**
+ * Search palette (vanilla island) over the Pagefind index built in
+ * `astro:build:done`. A trigger button in the header opens a native <dialog>;
+ * `/` or ⌘K/Ctrl+K also open it, Esc closes it. Pagefind is loaded lazily on
+ * first open via a runtime import of the emitted /pagefind/pagefind.js (so it
+ * is excluded from the Vite bundle). In `astro dev` the index doesn't exist
+ * yet, so the palette shows a friendly notice instead.
+ */
+interface Props {
+  label?: string;
+}
+const { label = "Søk" } = Astro.props;
+---
+
+<button type="button" class="search-trigger" aria-label={label}>
+  <svg viewBox="0 0 24 24" aria-hidden="true" class="search-icon">
+    <circle cx="11" cy="11" r="7"></circle>
+    <line x1="21" y1="21" x2="16.5" y2="16.5"></line>
+  </svg>
+  <span class="search-trigger-text">{label}</span>
+  <kbd class="search-kbd">⌘K</kbd>
+</button>
+
+<dialog class="search-dialog" aria-label={label}>
+  <form class="search-box" method="dialog" role="search">
+    <svg viewBox="0 0 24 24" aria-hidden="true" class="search-icon">
+      <circle cx="11" cy="11" r="7"></circle>
+      <line x1="21" y1="21" x2="16.5" y2="16.5"></line>
+    </svg>
+    <input
+      type="search"
+      class="search-input"
+      placeholder={`${label}…`}
+      autocomplete="off"
+      autocapitalize="off"
+      spellcheck="false"
+      aria-label={label}
+    />
+    <button type="submit" value="close" class="search-esc">Esc</button>
+  </form>
+  <div class="search-results" aria-live="polite"></div>
+</dialog>
+
+<style>
+  .search-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    height: 38px;
+    padding-inline: var(--space-3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg-elevated);
+    color: var(--muted);
+    font-size: var(--text-sm);
+  }
+  .search-trigger:hover {
+    border-color: var(--border-strong);
+    color: var(--fg);
+  }
+  .search-icon {
+    width: 17px;
+    height: 17px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    flex: none;
+  }
+  .search-kbd {
+    font-family: var(--font-sans);
+    font-size: var(--text-xs);
+    color: var(--muted);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 0 0.35em;
+    background: var(--card);
+  }
+
+  .search-dialog {
+    width: min(620px, calc(100vw - 2 * var(--space-4)));
+    margin-top: 12vh;
+    margin-inline: auto;
+    padding: 0;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--bg-elevated);
+    color: var(--fg);
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+  }
+  .search-dialog::backdrop {
+    background: color-mix(in srgb, #0b1020 55%, transparent);
+    backdrop-filter: blur(2px);
+  }
+  .search-box {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-4);
+    border-bottom: 1px solid var(--border);
+  }
+  .search-box .search-icon {
+    width: 20px;
+    height: 20px;
+    color: var(--muted);
+  }
+  .search-input {
+    flex: 1;
+    border: 0;
+    background: none;
+    color: inherit;
+    font-size: var(--text-md);
+    outline: none;
+  }
+  .search-esc {
+    font-size: var(--text-xs);
+    color: var(--muted);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 0.15em 0.5em;
+    background: var(--card);
+  }
+  .search-results {
+    max-height: min(60vh, 480px);
+    overflow-y: auto;
+    padding: var(--space-2);
+  }
+  .search-results:empty {
+    display: none;
+  }
+  :global(.search-result) {
+    display: block;
+    padding: var(--space-3);
+    border-radius: var(--radius-sm);
+    text-decoration: none;
+    color: var(--fg);
+  }
+  :global(.search-result:hover),
+  :global(.search-result:focus-visible) {
+    background: var(--accent-weak);
+  }
+  :global(.search-result-title) {
+    font-weight: var(--weight-semibold);
+    margin-bottom: 2px;
+  }
+  :global(.search-result-excerpt) {
+    font-size: var(--text-sm);
+    color: var(--muted);
+    line-height: var(--leading-snug);
+  }
+  :global(.search-result-excerpt mark) {
+    background: var(--accent-weak);
+    color: var(--accent);
+    border-radius: 3px;
+    padding: 0 2px;
+  }
+  :global(.search-empty) {
+    padding: var(--space-4);
+    color: var(--muted);
+    font-size: var(--text-sm);
+    text-align: center;
+  }
+
+  @media (max-width: 600px) {
+    .search-trigger-text,
+    .search-kbd {
+      display: none;
+    }
+    .search-trigger {
+      width: 38px;
+      justify-content: center;
+      padding-inline: 0;
+    }
+  }
+</style>
+
+<script>
+  type PagefindSubResult = { title: string; url: string; excerpt: string };
+  type PagefindData = {
+    url: string;
+    meta: { title?: string };
+    excerpt: string;
+    sub_results?: PagefindSubResult[];
+  };
+  type PagefindResult = { data: () => Promise<PagefindData> };
+  type Pagefind = {
+    options?: (o: Record<string, unknown>) => Promise<void>;
+    search: (q: string) => Promise<{ results: PagefindResult[] }>;
+  };
+
+  const trigger = document.querySelector<HTMLButtonElement>(".search-trigger");
+  const dialog = document.querySelector<HTMLDialogElement>(".search-dialog");
+  const input = document.querySelector<HTMLInputElement>(".search-input");
+  const results = document.querySelector<HTMLDivElement>(".search-results");
+
+  if (trigger && dialog && input && results) {
+    let pagefind: Pagefind | null = null;
+    let loadFailed = false;
+
+    const loadPagefind = async (): Promise<Pagefind | null> => {
+      if (pagefind || loadFailed) return pagefind;
+      try {
+        // Runtime import of the static bundle. The specifier is a variable so
+        // Rollup can't statically resolve it at build time (the index is only
+        // emitted later, in astro:build:done); @vite-ignore silences the dev
+        // analyzer warning.
+        const bundle = "/pagefind/pagefind.js";
+        const mod = (await import(/* @vite-ignore */ bundle)) as Pagefind;
+        await mod.options?.({ excerptLength: 24 });
+        pagefind = mod;
+      } catch {
+        loadFailed = true;
+      }
+      return pagefind;
+    };
+
+    const open = async () => {
+      if (!dialog.open) dialog.showModal();
+      input.focus();
+      input.select();
+      const pf = await loadPagefind();
+      if (!pf && !results.childElementCount) {
+        results.innerHTML =
+          '<p class="search-empty">Søk er tilgjengelig i det bygde nettstedet (ikke i dev-modus).</p>';
+      }
+    };
+
+    trigger.addEventListener("click", open);
+
+    document.addEventListener("keydown", (e) => {
+      const typing =
+        document.activeElement instanceof HTMLInputElement ||
+        document.activeElement instanceof HTMLTextAreaElement;
+      if ((e.key === "k" && (e.metaKey || e.ctrlKey)) || (e.key === "/" && !typing)) {
+        e.preventDefault();
+        void open();
+      }
+    });
+
+    const render = (items: PagefindSubResult[]) => {
+      if (!items.length) {
+        results.innerHTML = '<p class="search-empty">Ingen treff.</p>';
+        return;
+      }
+      results.innerHTML = items
+        .map(
+          (r) =>
+            `<a class="search-result" href="${r.url}">` +
+            `<div class="search-result-title">${r.title}</div>` +
+            `<div class="search-result-excerpt">${r.excerpt}</div></a>`,
+        )
+        .join("");
+      // Close the dialog when a result is chosen.
+      results.querySelectorAll("a").forEach((a) =>
+        a.addEventListener("click", () => dialog.close()),
+      );
+    };
+
+    let token = 0;
+    const runSearch = async (q: string) => {
+      const mine = ++token;
+      const pf = await loadPagefind();
+      if (!pf) return;
+      const search = await pf.search(q);
+      if (mine !== token) return; // a newer query superseded this one
+      const flat: PagefindSubResult[] = [];
+      for (const r of search.results.slice(0, 5)) {
+        const data = await r.data();
+        const subs = data.sub_results?.length
+          ? data.sub_results
+          : [{ title: data.meta.title ?? "Treff", url: data.url, excerpt: data.excerpt }];
+        flat.push(...subs);
+        if (flat.length >= 8) break;
+      }
+      render(flat.slice(0, 8));
+    };
+
+    let debounce: ReturnType<typeof setTimeout>;
+    input.addEventListener("input", () => {
+      clearTimeout(debounce);
+      const q = input.value.trim();
+      if (!q) {
+        results.innerHTML = "";
+        return;
+      }
+      debounce = setTimeout(() => void runSearch(q), 160);
+    });
+  }
+</script>

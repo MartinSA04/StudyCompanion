@@ -1,0 +1,301 @@
+---
+import type { Flashcards } from "../schema.ts";
+import { renderMathString } from "../lib/katex.ts";
+
+/**
+ * Flashcard deck (vanilla island) with a flip animation and a tiny
+ * spaced-repetition scheme: rating a card "Kan" raises its level (it surfaces
+ * later), "Øv" resets it (it surfaces sooner). Levels persist in localStorage
+ * under `sc:flashcards:<code>`. Card text may contain $inline$ / $$display$$
+ * math, rendered to KaTeX at build time.
+ */
+interface Props {
+  cards: Flashcards["cards"];
+  code: string;
+  ui?: { known?: string; review?: string; flip?: string };
+}
+const { cards, code, ui } = Astro.props;
+const labels = {
+  known: ui?.known ?? "Kan",
+  review: ui?.review ?? "Øv",
+  flip: ui?.flip ?? "Snu",
+};
+const storageKey = `sc:flashcards:${code}`;
+
+const rendered = cards.map((c) => ({
+  front: renderMathString(c.front),
+  back: renderMathString(c.back),
+  section: c.section ?? "",
+}));
+---
+
+<div class="flashcards" data-storage-key={storageKey} data-total={rendered.length}>
+  <div class="fc-head">
+    <p class="fc-progress">
+      <strong data-fc-known>0</strong> / <span>{rendered.length}</span> kan
+    </p>
+    <button type="button" class="fc-reset" data-fc-reset hidden>Nullstill</button>
+  </div>
+
+  <div class="fc-stage">
+    {
+      rendered.map((card, i) => (
+        <button
+          type="button"
+          class="fc-card"
+          data-fc-card
+          data-index={i}
+          hidden={i !== 0}
+          aria-label={labels.flip}
+        >
+          <span class="fc-inner">
+            <span class="fc-face fc-front">
+              {card.section && <span class="fc-section">{card.section}</span>}
+              <span class="fc-text" set:html={card.front} />
+              <span class="fc-hint">{labels.flip}</span>
+            </span>
+            <span class="fc-face fc-back">
+              <span class="fc-text" set:html={card.back} />
+            </span>
+          </span>
+        </button>
+      ))
+    }
+  </div>
+
+  <div class="fc-controls">
+    <button type="button" class="fc-btn" data-fc-prev aria-label="Forrige">‹</button>
+    <div class="fc-rate">
+      <button type="button" class="fc-btn fc-review" data-fc-rate="0">
+        {labels.review}
+      </button>
+      <button type="button" class="fc-btn fc-known" data-fc-rate="1">
+        {labels.known}
+      </button>
+    </div>
+    <button type="button" class="fc-btn" data-fc-next aria-label="Neste">›</button>
+  </div>
+  <p class="fc-counter"><span data-fc-pos>1</span> / {rendered.length}</p>
+</div>
+
+<style>
+  .flashcards {
+    margin-block: var(--space-5);
+  }
+  .fc-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-3);
+  }
+  .fc-progress {
+    font-size: var(--text-sm);
+    color: var(--muted);
+  }
+  .fc-progress strong {
+    color: var(--tip);
+  }
+  .fc-reset {
+    font-size: var(--text-xs);
+    color: var(--muted);
+    background: none;
+    border: 0;
+  }
+  .fc-reset:hover {
+    color: var(--accent);
+  }
+
+  .fc-stage {
+    perspective: 1200px;
+  }
+  .fc-card {
+    display: block;
+    width: 100%;
+    min-height: 200px;
+    padding: 0;
+    border: 0;
+    background: none;
+    text-align: left;
+  }
+  /* `.fc-card { display:block }` would otherwise override the [hidden]
+     attribute (the deck shows one card at a time via `hidden`). */
+  .fc-card[hidden] {
+    display: none;
+  }
+  .fc-inner {
+    position: relative;
+    display: block;
+    width: 100%;
+    min-height: 200px;
+    transition: transform var(--dur) var(--ease);
+    transform-style: preserve-3d;
+  }
+  .fc-card[data-flipped="true"] .fc-inner {
+    transform: rotateY(180deg);
+  }
+  .fc-face {
+    position: absolute;
+    inset: 0;
+    backface-visibility: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: var(--space-3);
+    text-align: center;
+    padding: var(--space-6) var(--space-5);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--card);
+    box-shadow: var(--shadow-sm);
+  }
+  .fc-back {
+    transform: rotateY(180deg);
+    background: var(--bg-elevated);
+    border-color: var(--accent);
+  }
+  .fc-text {
+    font-size: var(--text-lg);
+    line-height: var(--leading-snug);
+  }
+  .fc-section {
+    font-size: var(--text-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--accent);
+    font-weight: var(--weight-semibold);
+  }
+  .fc-hint {
+    position: absolute;
+    bottom: var(--space-3);
+    font-size: var(--text-xs);
+    color: var(--muted);
+  }
+
+  .fc-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    margin-top: var(--space-4);
+  }
+  .fc-rate {
+    display: flex;
+    gap: var(--space-2);
+  }
+  .fc-btn {
+    padding: var(--space-2) var(--space-4);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg-elevated);
+    font-weight: var(--weight-medium);
+  }
+  .fc-btn:hover {
+    border-color: var(--border-strong);
+  }
+  .fc-review:hover {
+    border-color: var(--warning);
+    color: var(--warning);
+  }
+  .fc-known:hover {
+    border-color: var(--tip);
+    color: var(--tip);
+  }
+  .fc-counter {
+    text-align: center;
+    margin-top: var(--space-2);
+    font-size: var(--text-sm);
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+</style>
+
+<script>
+  type Levels = Record<number, number>;
+  const deck = document.querySelector<HTMLElement>(".flashcards");
+  if (deck) {
+    const key = deck.dataset.storageKey!;
+    const total = Number(deck.dataset.total);
+    const cards = [...deck.querySelectorAll<HTMLButtonElement>("[data-fc-card]")];
+    const knownOut = deck.querySelector<HTMLElement>("[data-fc-known]")!;
+    const posOut = deck.querySelector<HTMLElement>("[data-fc-pos]")!;
+    const resetBtn = deck.querySelector<HTMLButtonElement>("[data-fc-reset]")!;
+
+    const load = (): Levels => {
+      try {
+        return JSON.parse(localStorage.getItem(key) || "{}") as Levels;
+      } catch {
+        return {};
+      }
+    };
+    const save = (l: Levels) => {
+      try {
+        localStorage.setItem(key, JSON.stringify(l));
+      } catch {}
+    };
+
+    let levels = load();
+    let queue: number[] = [];
+    let pos = 0;
+
+    const buildQueue = () => {
+      queue = [...Array(total).keys()].sort(
+        (a, b) => (levels[a] ?? 0) - (levels[b] ?? 0) || a - b,
+      );
+    };
+
+    const renderProgress = () => {
+      const known = Object.values(levels).filter((v) => v >= 2).length;
+      knownOut.textContent = String(known);
+      resetBtn.hidden = Object.keys(levels).length === 0;
+    };
+
+    const show = () => {
+      const idx = queue[pos];
+      cards.forEach((c) => {
+        c.hidden = Number(c.dataset.index) !== idx;
+        c.dataset.flipped = "false";
+      });
+      posOut.textContent = String(pos + 1);
+    };
+
+    const advance = (delta: number) => {
+      pos = (pos + delta + total) % total;
+      if (pos === 0) buildQueue();
+      show();
+    };
+
+    const rate = (known: boolean) => {
+      const idx = queue[pos];
+      levels[idx] = known ? Math.min(2, (levels[idx] ?? 0) + 1) : 0;
+      save(levels);
+      renderProgress();
+      advance(1);
+    };
+
+    cards.forEach((c) =>
+      c.addEventListener("click", () => {
+        c.dataset.flipped = c.dataset.flipped === "true" ? "false" : "true";
+      }),
+    );
+    deck.querySelector("[data-fc-prev]")!.addEventListener("click", () => advance(-1));
+    deck.querySelector("[data-fc-next]")!.addEventListener("click", () => advance(1));
+    deck
+      .querySelectorAll<HTMLButtonElement>("[data-fc-rate]")
+      .forEach((b) =>
+        b.addEventListener("click", () => rate(b.dataset.fcRate === "1")),
+      );
+    resetBtn.addEventListener("click", () => {
+      levels = {};
+      save(levels);
+      buildQueue();
+      pos = 0;
+      renderProgress();
+      show();
+    });
+
+    buildQueue();
+    renderProgress();
+    show();
+  }
+</script>

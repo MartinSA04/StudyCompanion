@@ -1,0 +1,167 @@
+/*
+ * Design tokens for the study-companion shell.
+ *
+ * A single editorial design — warm ink on a soft paper ground, a serif reading
+ * face (Spectral), a display face for headings (Fraunces) and a mono face for
+ * labels/figures (IBM Plex Mono). Themed per course only via --accent (set
+ * inline from course.accent) plus the light/dark sets below.
+ *
+ * The token NAMES are a contract: every component's scoped CSS and the course
+ * simulations read these custom properties, so retuning values here reskins the
+ * whole site without touching component markup.
+ */
+
+:root {
+  color-scheme: light;
+
+  /* --- Brand / accent (overridden per course via inline style on <html>) --- */
+  --accent: #1f5f8b;
+  --accent-contrast: #ffffff; /* text on top of --accent */
+  --accent-weak: color-mix(in srgb, var(--accent) 12%, transparent);
+  --accent-soft: color-mix(in srgb, var(--accent) 10%, var(--bg-elevated));
+  --accent-ring: color-mix(in srgb, var(--accent) 45%, transparent);
+
+  /* --- Surfaces & text (light) --- */
+  --bg: #f5f7fa; /* page ground */
+  --bg-elevated: #ffffff; /* raised panels / cards */
+  --fg: #1e2835; /* ink */
+  --muted: #526171; /* ink-dim */
+  --faint: #6b7787; /* ink-faint: nav numbers, captions */
+  --card: #f8fafc; /* subtle inset (code, headers, concept cards) */
+  --card-hover: #edf1f5;
+  --border: #d9e0e8; /* line */
+  --border-strong: #c4ccd7; /* line2 */
+  --selection: color-mix(in srgb, var(--accent) 22%, transparent);
+  --on-strong: #ffffff; /* text on a filled categorical chip */
+
+  /* --- Categorical hues (figures + semantic block accents) --- */
+  --indigo: #1f5f8b;
+  --cyan: #087d79;
+  --green: #2f855a;
+  --yellow: #9a6a00;
+  --orange: #b45f06;
+  --red: #b42318;
+  --violet: #5f558f;
+
+  /* Semantic roles map onto the categorical hues. */
+  --note: var(--accent);
+  --tip: var(--green);
+  --warning: var(--orange);
+  --core: var(--red);
+  --useful: var(--accent);
+  --extra: var(--muted);
+  --note-bg: color-mix(in srgb, var(--note) 8%, var(--bg-elevated));
+  --tip-bg: color-mix(in srgb, var(--tip) 9%, var(--bg-elevated));
+  --warning-bg: color-mix(in srgb, var(--warning) 9%, var(--bg-elevated));
+
+  /* Block-tint surfaces (learning goals, exam focus, worked answers, quiz). */
+  --goals-bg: #f6fbfa;
+  --exam-bg: #fff8f1;
+  --answer-bg: #eff8f2;
+  --wrong-bg: #fff1f0;
+  --canvas-bg: #ffffff;
+
+  /* --- Typography --- */
+  --font-display: "Fraunces", "Georgia", "Times New Roman", serif;
+  --font-body: "Spectral", "Georgia", "Times New Roman", serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-sans:
+    ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+
+  /* Modular scale, ratio ~1.2 (minor third), base 1rem (= 17px on <html>) */
+  --text-xs: 0.72rem;
+  --text-sm: 0.84rem;
+  --text-base: 1rem;
+  --text-md: 1.1rem;
+  --text-lg: 1.26rem;
+  --text-xl: 1.5rem;
+  --text-2xl: 1.95rem;
+  --text-3xl: 2.7rem;
+
+  --leading-tight: 1.12;
+  --leading-snug: 1.4;
+  --leading-normal: 1.65;
+
+  --weight-normal: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+
+  /* --- Spacing scale (8px base, a few half-steps) --- */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+  --space-8: 4rem;
+
+  /* --- Radii, shadows, layout --- */
+  --radius-sm: 6px;
+  --radius: 8px;
+  --radius-lg: 12px;
+  --radius-pill: 999px;
+
+  --shadow-sm: 0 1px 2px color-mix(in srgb, #0b1020 7%, transparent);
+  --shadow:
+    0 4px 12px color-mix(in srgb, #0b1020 8%, transparent),
+    0 1px 3px color-mix(in srgb, #0b1020 6%, transparent);
+  --shadow-lg: 0 24px 60px color-mix(in srgb, #0b1020 22%, transparent);
+
+  --maxw: 820px; /* readable content measure */
+  --sidebar-w: 264px;
+  --header-h: 60px;
+
+  /* --- Motion --- */
+  --ease: cubic-bezier(0.32, 0.72, 0, 1);
+  --dur-fast: 120ms;
+  --dur: 200ms;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --accent-contrast: #10151c;
+  --on-strong: #10151c;
+
+  --bg: #11161d;
+  --bg-elevated: #1d2530;
+  --fg: #f0eee8;
+  --muted: #c1c8d0;
+  --faint: #8d98a6;
+  --card: #242e3a;
+  --card-hover: #171e27;
+  --border: #364151;
+  --border-strong: #4a5667;
+
+  --indigo: #8bb9d8;
+  --cyan: #6bc7c3;
+  --green: #79c79b;
+  --yellow: #d7aa45;
+  --orange: #e0a15f;
+  --red: #e47770;
+  --violet: #b6a7f0;
+
+  --note-bg: color-mix(in srgb, var(--note) 16%, var(--bg-elevated));
+  --tip-bg: color-mix(in srgb, var(--tip) 15%, var(--bg-elevated));
+  --warning-bg: color-mix(in srgb, var(--warning) 16%, var(--bg-elevated));
+
+  --goals-bg: #172820;
+  --exam-bg: #2b2118;
+  --answer-bg: #173023;
+  --wrong-bg: #331e1d;
+  --canvas-bg: #10151c;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --shadow:
+    0 4px 14px rgba(0, 0, 0, 0.5), 0 1px 3px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 24px 60px rgba(0, 0, 0, 0.62);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-fast: 0ms;
+    --dur: 0ms;
+  }
+}

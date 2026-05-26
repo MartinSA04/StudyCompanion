@@ -1,0 +1,81 @@
+---
+/**
+ * A "check yourself" prompt with the answer hidden behind a native <details>
+ * reveal. Works with no JS. Answer is slotted MDX (may contain math, lists…).
+ */
+interface Props {
+  question: string;
+  revealLabel?: string;
+}
+const { question, revealLabel = "Vis svar" } = Astro.props;
+import { renderMathString } from "../lib/katex.ts";
+---
+
+<div class="selfcheck">
+  <p class="selfcheck-q">
+    <span class="selfcheck-tag" aria-hidden="true">?</span>
+    <span set:html={renderMathString(question)} />
+  </p>
+  <details class="selfcheck-a">
+    <summary>{revealLabel}</summary>
+    <div class="selfcheck-body"><slot /></div>
+  </details>
+</div>
+
+<style>
+  .selfcheck {
+    margin-block: var(--space-5);
+    padding: var(--space-4);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--card);
+  }
+  .selfcheck-q {
+    display: flex;
+    gap: var(--space-3);
+    font-weight: var(--weight-medium);
+    margin-bottom: var(--space-3);
+  }
+  .selfcheck-tag {
+    flex: none;
+    width: 1.5em;
+    height: 1.5em;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--accent);
+    color: var(--accent-contrast);
+    font-weight: var(--weight-bold);
+    font-size: 0.85em;
+  }
+  summary {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    cursor: pointer;
+    width: fit-content;
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+    color: var(--accent);
+    list-style: none;
+  }
+  summary::-webkit-details-marker {
+    display: none;
+  }
+  summary::before {
+    content: "▶";
+    font-size: 0.7em;
+    transition: transform var(--dur-fast) var(--ease);
+  }
+  .selfcheck-a[open] summary::before {
+    transform: rotate(90deg);
+  }
+  .selfcheck-body {
+    margin-top: var(--space-3);
+    padding-top: var(--space-3);
+    border-top: 1px dashed var(--border-strong);
+  }
+  .selfcheck-body :global(> :last-child) {
+    margin-bottom: 0;
+  }
+</style>
