@@ -188,9 +188,15 @@ const { src, title, caption, height = 300 } = Astro.props;
     };
     canvas.style.height = cssH + "px";
     size();
+    // Throttle resize to one re-size + repaint per animation frame.
+    let raf = 0;
     window.addEventListener("resize", () => {
-      size();
-      resizeCb?.();
+      if (raf) return;
+      raf = requestAnimationFrame(() => {
+        raf = 0;
+        size();
+        resizeCb?.();
+      });
     });
     // Repaint with fresh theme colours when light/dark is toggled.
     document.addEventListener("sc:themechange", () => resizeCb?.());

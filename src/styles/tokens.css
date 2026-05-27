@@ -116,6 +116,30 @@
 
   --maxw: 820px; /* readable content measure */
   --sidebar-w: 264px;
+  --layout-max: 1280px; /* topbar + layout outer width */
+
+  /* --- Layout spacing (fixed px, 4/8 grid) ---
+     Governs chrome density: topbar, sidebar, hero, cards, page gutters. Kept
+     distinct from the rem --space-* scale (content reading rhythm) — chrome
+     stays a fixed size regardless of the reading font size. Element sizes
+     (logo, progress bar, number columns) stay literal; this is for gaps,
+     padding and margins. */
+  --gap-1: 4px;
+  --gap-2: 8px;
+  --gap-3: 12px;
+  --gap-4: 16px;
+  --gap-5: 20px;
+  --gap-6: 24px;
+  --gap-7: 32px;
+  --gap-8: 40px;
+  --gap-9: 48px;
+  --gap-10: 64px;
+  --gap-11: 80px;
+  --gap-12: 96px;
+
+  --gutter: var(--gap-6); /* page horizontal padding */
+  --topbar-h: 60px; /* derives the sticky sidebar offset */
+  --control-h: 38px; /* header buttons / page-link min height */
 
   /* --- Motion --- */
   --ease: cubic-bezier(0.32, 0.72, 0, 1);

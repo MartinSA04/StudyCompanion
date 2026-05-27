@@ -13,6 +13,7 @@ interface Props {
 }
 const { question, options, answer, explanation } = Astro.props;
 import { renderMathString } from "../lib/katex.ts";
+import Icon from "./Icon.astro";
 ---
 
 <form class="quiz" data-answer={answer}>
@@ -23,7 +24,10 @@ import { renderMathString } from "../lib/katex.ts";
         options.map((opt, i) => (
           <li>
             <button type="button" class="quiz-option" data-index={i}>
-              <span class="quiz-mark" aria-hidden="true" />
+              <span class="quiz-mark" aria-hidden="true">
+                <Icon name="check" size={13} class="i-correct" />
+                <Icon name="x" size={13} class="i-wrong" />
+              </span>
               <span set:html={renderMathString(opt)} />
             </button>
           </li>
@@ -80,10 +84,18 @@ import { renderMathString } from "../lib/katex.ts";
   }
   .quiz-mark {
     flex: none;
-    width: 1.1em;
-    height: 1.1em;
+    display: grid;
+    place-items: center;
+    width: 1.3em;
+    height: 1.3em;
     border: 1.5px solid var(--border-strong);
     border-radius: 50%;
+  }
+  /* Both result glyphs are present but hidden until the option is graded, so
+     correct/wrong reads from the shape (check / cross), not colour alone. */
+  .quiz-mark :global(.i-correct),
+  .quiz-mark :global(.i-wrong) {
+    display: none;
   }
   .quiz-option[data-state="correct"] {
     border-color: var(--tip);
@@ -94,6 +106,10 @@ import { renderMathString } from "../lib/katex.ts";
     background: var(--tip);
     border-color: var(--tip);
   }
+  .quiz-option[data-state="correct"] .quiz-mark :global(.i-correct) {
+    display: block;
+    color: var(--on-strong);
+  }
   .quiz-option[data-state="wrong"] {
     border-color: var(--core);
     background: color-mix(in srgb, var(--core) 10%, var(--bg));
@@ -101,6 +117,10 @@ import { renderMathString } from "../lib/katex.ts";
   }
   .quiz-option[data-state="wrong"] .quiz-mark {
     border-color: var(--core);
+  }
+  .quiz-option[data-state="wrong"] .quiz-mark :global(.i-wrong) {
+    display: block;
+    color: var(--core);
   }
   .quiz-feedback {
     margin-top: var(--space-3);

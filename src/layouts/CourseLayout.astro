@@ -142,7 +142,10 @@ const hasTools = toolNav.some((t) => t.show);
     <div class="layout">
       <aside class="sidebar" id="sidebar" aria-label="Moduler">
         <div class="nav-section">Kom i gang</div>
-        <a class={`nav-link${active === "top" ? " active" : ""}`} href="/">
+        <a
+          class={`nav-link${active === "top" ? " active" : ""}`}
+          href="/"
+          aria-current={active === "top" ? "page" : undefined}>
           <span class="nav-num nav-ico"><Icon name="grid" /></span>
           <span class="nav-title">Oversikt</span>
         </a>
@@ -156,7 +159,8 @@ const hasTools = toolNav.some((t) => t.show);
                 .map((t) => (
                   <a
                     class={`nav-link${active === t.slug ? " active" : ""}`}
-                    href={`/${t.slug}`}>
+                    href={`/${t.slug}`}
+                    aria-current={active === t.slug ? "page" : undefined}>
                     <span class="nav-num nav-ico">
                       <Icon name={t.icon} />
                     </span>
@@ -173,7 +177,8 @@ const hasTools = toolNav.some((t) => t.show);
             <a
               class={`nav-link${active === item.slug ? " active" : ""}`}
               href={`/${item.slug}`}
-              data-nav-order={item.order}>
+              data-nav-order={item.order}
+              aria-current={active === item.slug ? "page" : undefined}>
               <span class="nav-num">{item.num}</span>
               <span class="nav-title">{item.shortTitle}</span>
               <span class="nav-check" aria-hidden="true"><Icon name="check" size={12} /></span>
@@ -280,14 +285,20 @@ const hasTools = toolNav.some((t) => t.show);
       const sidebar = document.getElementById("sidebar");
       const scrim = document.querySelector("[data-scrim]");
       function toggleMenu(open) {
-        const next =
-          open ?? !sidebar.classList.contains("open");
+        const next = open ?? !sidebar.classList.contains("open");
         sidebar.classList.toggle("open", next);
         scrim.classList.toggle("show", next);
         if (menuBtn) menuBtn.setAttribute("aria-expanded", String(next));
+        // Move focus into the drawer on open; return it to the toggle on close.
+        if (next) sidebar.querySelector("a")?.focus();
+        else if (menuBtn) menuBtn.focus();
       }
       if (menuBtn) menuBtn.addEventListener("click", () => toggleMenu());
       if (scrim) scrim.addEventListener("click", () => toggleMenu(false));
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && sidebar.classList.contains("open"))
+          toggleMenu(false);
+      });
 
       // ---- Copy buttons on code blocks ----
       document.querySelectorAll(".content pre").forEach((pre) => {
