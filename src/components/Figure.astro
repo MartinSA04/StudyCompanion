@@ -1,0 +1,89 @@
+---
+import { renderMathString } from "../lib/katex.ts";
+
+/**
+ * The framework's image primitive: a captioned, optionally numbered figure.
+ * Reserves space from `width`/`height` (set `aspect-ratio`) to avoid layout
+ * shift, lazy-loads off-screen, and frames the image on the paper ground so it
+ * reads in both themes.
+ *
+ * Numbering is EXPLICIT (`number` prop) rather than auto-derived — same stance
+ * as section/formula numbering, so reordering content never silently renumbers
+ * a figure, and a future <FigureRef> (ROADMAP 2.4) has a stable label to target.
+ * `caption` may contain `$inline$` math.
+ */
+interface Props {
+  src: string;
+  alt: string;
+  caption?: string;
+  /** Figure label, e.g. `3` → "Figur 3". Omit for an unnumbered figure. */
+  number?: number | string;
+  /** Intrinsic px — used only to reserve aspect-ratio (no layout shift). */
+  width?: number;
+  height?: number;
+  /** Fill the content measure instead of sitting at the image's natural size. */
+  full?: boolean;
+}
+const { src, alt, caption, number, width, height, full = false } = Astro.props;
+const label = number != null && number !== "" ? `Figur ${number}` : null;
+const ratio = width && height ? `${width} / ${height}` : undefined;
+---
+
+<figure class:list={["figure", { "figure-full": full }]}>
+  <div class="figure-frame">
+    <img
+      src={src}
+      alt={alt}
+      width={width}
+      height={height}
+      loading="lazy"
+      decoding="async"
+      style={ratio ? `aspect-ratio: ${ratio}` : undefined}
+    />
+  </div>
+  {
+    (label || caption) && (
+      <figcaption class="figure-cap">
+        {label && <span class="figure-num">{label}.</span>}
+        {caption && <span set:html={renderMathString(caption)} />}
+      </figcaption>
+    )
+  }
+</figure>
+
+<style>
+  .figure {
+    margin-block: var(--space-5);
+  }
+  .figure-frame {
+    display: flex;
+    justify-content: center;
+    padding: var(--space-3);
+    background: var(--canvas-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .figure-frame img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    border-radius: var(--radius-xs);
+  }
+  .figure-full .figure-frame img {
+    width: 100%;
+  }
+  .figure-cap {
+    margin-top: var(--space-2);
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+    color: var(--faint);
+    text-align: center;
+  }
+  .figure-num {
+    margin-right: 0.4ch;
+    color: var(--accent);
+    font-weight: var(--weight-semibold);
+  }
+</style>

@@ -1,0 +1,19 @@
+---
+/**
+ * A numbered procedure / method — a vertical ribbon of steps, visually distinct
+ * from a prose `<ol>`. Wrap `<Step>` children; the markup is a real ordered list
+ * so it stays semantic and screen-reader friendly. Numbering is a scoped CSS
+ * counter (reset here), so multiple `<Steps>` blocks on a page each start at 1.
+ */
+---
+
+<ol class="steps"><slot /></ol>
+
+<style>
+  .steps {
+    counter-reset: step;
+    margin-block: var(--space-5);
+    padding: 0;
+    list-style: none;
+  }
+</style>

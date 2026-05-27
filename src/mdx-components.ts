@@ -10,6 +10,12 @@ import Solution from "./components/Solution.astro";
 import Answer from "./components/Answer.astro";
 import LearningGoals from "./components/LearningGoals.astro";
 import ExamFocus from "./components/ExamFocus.astro";
+import Figure from "./components/Figure.astro";
+import Steps from "./components/Steps.astro";
+import Step from "./components/Step.astro";
+import KeyTakeaways from "./components/KeyTakeaways.astro";
+import Hints from "./components/Hints.astro";
+import Hint from "./components/Hint.astro";
 
 /**
  * Components made available to every MDX section by name, without the author
@@ -32,6 +38,12 @@ export const mdxComponents = {
   Answer,
   LearningGoals,
   ExamFocus,
+  Figure,
+  Steps,
+  Step,
+  KeyTakeaways,
+  Hints,
+  Hint,
 };
 
 export default mdxComponents;

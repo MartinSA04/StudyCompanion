@@ -1,0 +1,71 @@
+---
+import { renderMathString } from "../lib/katex.ts";
+
+/**
+ * One rung of a <Steps> ribbon. The number node + connector line are drawn from
+ * the parent's CSS counter; `title` is optional and may contain `$inline$` math.
+ * Body is slotted MDX.
+ */
+interface Props {
+  title?: string;
+}
+const { title } = Astro.props;
+---
+
+<li class="step">
+  {title && <p class="step-title" set:html={renderMathString(title)} />}
+  <div class="step-body"><slot /></div>
+</li>
+
+<style>
+  .step {
+    counter-increment: step;
+    position: relative;
+    padding-left: var(--space-7);
+    padding-bottom: var(--space-5);
+  }
+  .step:last-child {
+    padding-bottom: 0;
+  }
+  /* Numbered node. */
+  .step::before {
+    content: counter(step);
+    position: absolute;
+    inset-block-start: 0;
+    inset-inline-start: 0;
+    display: grid;
+    place-items: center;
+    width: 1.9rem;
+    height: 1.9rem;
+    border-radius: var(--radius-pill);
+    background: var(--accent);
+    color: var(--accent-contrast);
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+    font-variant-numeric: tabular-nums;
+  }
+  /* Connector line down to the next node. */
+  .step::after {
+    content: "";
+    position: absolute;
+    inset-block: 1.9rem 0;
+    inset-inline-start: 0.95rem;
+    width: 2px;
+    transform: translateX(-1px);
+    background: var(--border);
+  }
+  .step:last-child::after {
+    display: none;
+  }
+  .step-title {
+    margin: 0 0 var(--space-2);
+    padding-top: 0.25rem;
+    font-family: var(--font-display);
+    font-weight: var(--weight-semibold);
+    color: var(--fg);
+  }
+  .step-body :global(> :last-child) {
+    margin-bottom: 0;
+  }
+</style>

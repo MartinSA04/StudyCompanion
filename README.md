@@ -47,6 +47,7 @@ content/
     └── 02-...mdx
 public/
 ├── favicon.svg          # courses provide their own favicon
+├── figures/             # optional images/diagrams referenced by <Figure src="/figures/…">
 └── sims/                # optional course-owned simulation modules (see below)
 ```
 
@@ -103,6 +104,7 @@ $$ \Delta y \approx \frac{\lambda L}{d} $$ render server-side via KaTeX.
 | Component | Props | Purpose |
 |---|---|---|
 | `<Formula>` | `tex`, `caption?`, `block?`, `memorize?` | Server-rendered KaTeX. `memorize` adds a "må pugges" badge. |
+| `<Figure>` | `src`, `alt`, `caption?`, `number?`, `width?`, `height?`, `full?` | Captioned image/diagram. `width`+`height` reserve the aspect-ratio (no layout shift); lazy-loaded. `caption` may contain `$…$`; `number` → "Figur N". |
 | `<Example>` | `label?`, `title?` | Worked example ("regneeksempel"); default slot is the problem, then a `<Solution>`. `title` may contain `$…$`. |
 | `<Solution>` | `label?`, `open?` | Collapsible worked solution, used inside `<Example>`. Put `<Answer>` inside it so it stays hidden until revealed. |
 | `<Answer>` | `label?` | Highlighted final answer; place inside `<Solution>`. |
@@ -110,6 +112,9 @@ $$ \Delta y \approx \frac{\lambda L}{d} $$ render server-side via KaTeX.
 | `<ExamFocus>` | `title?` | Exam-priority block ("eksamensfokus"); slotted MDX. |
 | `<Callout>` | `type` = note\|tip\|warning, `title?` | Admonition box; slotted MDX body. |
 | `<Derivation>` | `title?`, `open?` | Collapsible worked steps (`<details>`). |
+| `<Steps>` / `<Step>` | `<Step title?>` | Numbered procedure as a vertical ribbon (a real `<ol>`). `title` may contain `$…$`. |
+| `<KeyTakeaways>` | `title?` | End-of-module recap; the slotted bullet list renders as a checklist. |
+| `<Hints>` / `<Hint>` | `<Hint solution? label? open?>` | Progressive hint ladder — auto "Hint 1", "Hint 2", …; `solution` makes the "Løsning" closer. Works with no JS. |
 | `<CodeBlock>` | `code`, `lang?`, `title?` | Shiki-highlighted block (+ auto copy button). |
 | `<SelfCheck>` | `question` | Prompt with answer behind a reveal. |
 | `<Quiz>` | `question`, `options[]`, `answer` (0-based), `explanation?` | Single-answer MCQ; text may contain `$…$`. |

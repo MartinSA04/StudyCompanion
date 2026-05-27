@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 300" width="480" height="300" font-family="Georgia, 'Times New Roman', serif">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="context-stroke"/>
+    </marker>
+  </defs>
+  <rect x="0" y="0" width="480" height="300" fill="#ffffff"/>
+  <!-- media tint: denser medium below -->
+  <rect x="40" y="150" width="400" height="110" fill="#1f5f8b" opacity="0.06"/>
+  <!-- interface -->
+  <line x1="40" y1="150" x2="440" y2="150" stroke="#c4ccd7" stroke-width="2"/>
+  <!-- normal -->
+  <line x1="240" y1="40" x2="240" y2="260" stroke="#8d98a6" stroke-width="1.5" stroke-dasharray="5 5"/>
+  <!-- incident ray -->
+  <line x1="120" y1="60" x2="240" y2="150" stroke="#1f5f8b" stroke-width="3" marker-end="url(#arrow)"/>
+  <!-- refracted ray (bends toward the normal entering the denser medium) -->
+  <line x1="240" y1="150" x2="300" y2="255" stroke="#b45f06" stroke-width="3" marker-end="url(#arrow)"/>
+  <!-- angle arcs -->
+  <path d="M 240 110 A 40 40 0 0 0 213 124" fill="none" stroke="#1f5f8b" stroke-width="1.5"/>
+  <path d="M 240 195 A 45 45 0 0 0 261 191" fill="none" stroke="#b45f06" stroke-width="1.5"/>
+  <!-- labels -->
+  <text x="206" y="108" font-size="18" fill="#1f5f8b" font-style="italic">θ₁</text>
+  <text x="255" y="205" font-size="18" fill="#b45f06" font-style="italic">θ₂</text>
+  <text x="58" y="100" font-size="17" fill="#526171" font-style="italic">n₁</text>
+  <text x="58" y="200" font-size="17" fill="#526171" font-style="italic">n₂</text>
+</svg>

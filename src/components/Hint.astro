@@ -1,0 +1,88 @@
+---
+import Icon from "./Icon.astro";
+
+/**
+ * One rung of a <Hints> ladder. With no props it auto-labels "Hint N" from the
+ * parent counter; `solution` makes it the green "Løsning" closer (not numbered);
+ * `label` sets an explicit summary instead. Body is slotted MDX. No JS — native
+ * `<details>`.
+ */
+interface Props {
+  /** Final rung — labelled "Løsning", tinted, and left out of the numbering. */
+  solution?: boolean;
+  /** Explicit summary label, overriding the auto "Hint N". */
+  label?: string;
+  open?: boolean;
+}
+const { solution = false, label, open = false } = Astro.props;
+const auto = !solution && !label;
+---
+
+<details
+  class:list={["hint", { "hint-num": auto, "hint-solution": solution }]}
+  open={open}
+>
+  <summary>
+    <span class="hint-chev" aria-hidden="true"><Icon name="chevron-right" size={13} /></span>
+    {auto ? <span class="hint-auto"></span> : <span>{solution ? "Løsning" : label}</span>}
+  </summary>
+  <div class="hint-body"><slot /></div>
+</details>
+
+<style>
+  .hint {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--card);
+  }
+  .hint-num {
+    counter-increment: hint;
+  }
+  .hint > summary {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-3);
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    color: var(--accent);
+    cursor: pointer;
+    list-style: none;
+    user-select: none;
+  }
+  .hint > summary::-webkit-details-marker {
+    display: none;
+  }
+  .hint-auto::before {
+    content: "Hint " counter(hint);
+  }
+  .hint[open] > summary {
+    border-bottom: 1px solid var(--border);
+  }
+  .hint-chev {
+    display: inline-flex;
+    transition: transform var(--dur-fast) var(--ease);
+  }
+  .hint[open] .hint-chev {
+    transform: rotate(90deg);
+  }
+  .hint-body {
+    padding: var(--space-3);
+  }
+  .hint-body > :global(:last-child) {
+    margin-bottom: 0;
+  }
+  /* The solution rung reads like an <Answer>: green and tinted. */
+  .hint-solution {
+    border-color: color-mix(in srgb, var(--tip) 40%, var(--border));
+  }
+  .hint-solution > summary {
+    color: var(--tip);
+  }
+  .hint-solution[open] {
+    background: var(--answer-bg);
+  }
+  .hint-solution[open] > summary {
+    border-bottom-color: color-mix(in srgb, var(--tip) 30%, var(--border));
+  }
+</style>

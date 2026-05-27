@@ -1,0 +1,65 @@
+---
+order: 4
+title: Figurer, steg og hint
+summary: Bildekomponent, nummerert framgangsmåte, hint-stige og hovedpunkter.
+importance: useful
+estMinutes: 8
+tags: [Komponenter, demo]
+---
+
+De nyeste innholdskomponentene: en figur med bildetekst, en nummerert
+framgangsmåte, en hint-stige og en oppsummering.
+
+## Figur
+
+`<Figure>` rammer inn et bilde eller diagram med valgfri nummerert bildetekst.
+Bredde/høyde reserverer plassen, så layouten ikke hopper når bildet lastes.
+
+<Figure
+  src="/figures/refraction.svg"
+  alt="Lysstråle som brytes ved grenseflaten mellom to medier, målt fra normalen."
+  caption="Brytning ved en grenseflate. Vinklene $\theta_1$ og $\theta_2$ måles fra normalen."
+  number={1}
+  width={480}
+  height={300}
+/>
+
+## Framgangsmåte
+
+`<Steps>` gir en nummerert, vertikal framgangsmåte — tydelig forskjellig fra en
+vanlig punktliste:
+
+<Steps>
+<Step title="Tegn oppsettet">
+Skisser grenseflaten, normalen og den innfallende strålen, og marker $\theta_1$.
+</Step>
+<Step title="Sett opp Snells lov">
+<Formula tex="n_1\sin\theta_1 = n_2\sin\theta_2" />
+</Step>
+<Step title="Løs for det ukjente">
+Isoler $\theta_2$, sett inn tallene, og sjekk om du er over grensevinkelen.
+</Step>
+</Steps>
+
+## Hint-stige
+
+`<Hints>` lar leseren avsløre ett hint om gangen — fra et lite dytt til full
+løsning:
+
+<Hints>
+<Hint>Hva sier Snells lov om forholdet mellom de to vinklene?</Hint>
+<Hint>Løs Snells lov for $\sin\theta_2$ før du tar $\arcsin$.</Hint>
+<Hint solution>
+<Formula tex="\theta_2 = \arcsin\!\left(\tfrac{n_1}{n_2}\sin\theta_1\right)" />
+</Hint>
+</Hints>
+
+## Hovedpunkter
+
+`<KeyTakeaways>` avslutter en modul med en avkryssbar oppsummering:
+
+<KeyTakeaways>
+- Snells lov knytter vinklene til brytningsindeksene.
+- Vinkler måles alltid fra normalen, aldri fra selve flaten.
+- Over grensevinkelen oppstår totalrefleksjon.
+</KeyTakeaways>

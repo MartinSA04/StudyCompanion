@@ -98,27 +98,34 @@ example per widget.
 Each removes a real authoring repetition seen in study-guide content. All are
 additive → `minor`, available via `mdx-components.ts` with no per-file imports.
 
-### 1.1 `<Figure>` — captioned, numbered images/diagrams — `minor`, **M**
+### 1.1 `<Figure>` — captioned, numbered images/diagrams — `minor`, **M** — ✅ Done
 **Why.** There is **no image component at all**. Diagram-heavy courses (optics ray
 diagrams, algorithm illustrations) currently drop raw `<img>` with no caption,
 numbering, lazy-load, or CLS protection.
-**What.** `<Figure src alt caption? number? full?>` → `aspect-ratio` box (no
-layout shift), `loading="lazy"`, `<figcaption>` with optional auto-number
-("Figur 3"), optional click-to-zoom (lightbox island, `client:visible`), dark-mode
-aware framing. Pairs with the existing editorial panel styling.
+**Done.** `<Figure src alt caption? number? width? height? full?>` → framed on the
+paper ground (dark-mode aware), `loading="lazy"` + `decoding="async"`,
+`width`/`height` reserve the `aspect-ratio` (no CLS), `<figcaption>` with KaTeX in
+the caption. Numbering is **explicit** (`number` → "Figur N"), not auto-derived —
+same stance as section/formula numbering, so reordering never silently renumbers
+and a future `<FigureRef>` (2.4) has a stable target. **Deferred:** click-to-zoom
+lightbox — kept v1 JS-free (static-first); add when a diagram-heavy course needs
+it. Verified in both themes against the demo (`/mer`).
 
-### 1.2 `<Steps>` — numbered procedure/method — `minor`, **S**
+### 1.2 `<Steps>` — numbered procedure/method — `minor`, **S** — ✅ Done
 **Why.** "How to solve a … problem" recurs in every quantitative module and is
 currently a plain `<ol>` indistinguishable from prose lists.
-**What.** `<Steps>` wrapping `<Step title?>` children (or an `<ol>`): a vertical
-ribbon with numbered nodes, distinct from bullet lists. Subject-agnostic labels.
+**Done.** `<Steps>` (a real semantic `<ol>`) wrapping `<Step title?>` children:
+a vertical ribbon with accent numbered nodes + connector line, distinct from
+bullet lists. Numbers come from a CSS counter reset per `<Steps>` (multiple blocks
+each start at 1); `title` accepts `$inline$` math. Verified both themes.
 
-### 1.3 `<KeyTakeaways>` — end-of-module recap — `minor`, **S**
+### 1.3 `<KeyTakeaways>` — end-of-module recap — `minor`, **S** — ✅ Done
 **Why.** Nearly every module ends with a "huskeliste"/summary; authors rebuild it
 ad hoc with a Callout + list each time.
-**What.** A dedicated summary block (distinct tint from note/tip/goals/exam) with
-a checklist affordance. Reinforces retention and gives modules a consistent
-closer. Reuses the established `aside` + icon pattern (cf. `LearningGoals.astro`).
+**Done.** `<KeyTakeaways title?>` — a dedicated summary block in a distinct violet
+tint (vs note/tip/goals/exam), reusing the `aside` + `<Icon>` pattern. The slotted
+bullet list renders with check markers (an alpha-masked SVG glyph that tints with
+the block colour, so it adapts per theme). Verified both themes.
 
 ### 1.4 `<Compare>` — side-by-side concept table — `minor`, **M**
 **Why.** Comparisons ("konstruktiv vs destruktiv", "reell vs virtuell bilde") are
@@ -128,12 +135,13 @@ mobile.
 KaTeX-aware cells, optional row labels. One styled, accessible primitive instead
 of bespoke tables.
 
-### 1.5 `<Hint>` ladder — progressive disclosure for problems — `minor`, **S**
+### 1.5 `<Hint>` ladder — progressive disclosure for problems — `minor`, **S** — ✅ Done
 **Why.** `<SelfCheck>` reveals one answer; real problem-solving wants *graduated*
 hints (nudge → method → full solution) so students self-scaffold.
-**What.** `<Hint>` children inside a problem reveal one at a time ("Hint 1",
-"Hint 2", … "Løsning"). Builds on the `<details>` pattern already used in
-`Solution`/`Derivation`. Works with no JS.
+**Done.** `<Hints>` wrapping `<Hint>` children, each a native `<details>` (no JS).
+Auto-labels "Hint 1", "Hint 2", … from a counter reset per ladder; `<Hint solution>`
+is the green "Løsning" closer (tinted like `<Answer>`, left out of the numbering),
+and `label` overrides for a custom rung. Verified both themes.
 
 ### 1.6 `<Statement>` — named results (law/theorem/definition) — `minor`, **M**
 **Why.** Physics/math guides reference named results ("Snells lov", "Huygens'
@@ -293,13 +301,18 @@ canonical expression and apply it everywhere.
 5. **Ongoing:** visual-regression CI (2.6) and design-system unification
    (2.7–2.8) as capacity allows.
 
-**Status:** Release N (P0 foundations) is **complete** — dev fixture, tests,
-heading fix, print, docs all shipped and verified against the demo.
+**Status:** Releases N and N+1 are **complete**.
 
-**Do next:** Release N+1 (authoring power) — the widgets that kill the most
-repetition: `<Figure>` (1.1), `<Steps>` (1.2), `<KeyTakeaways>` (1.3),
-`<Hint>` (1.5). All additive `minor`s, each verified in both themes against the
-kitchen-sink demo.
+- **N (P0 foundations):** dev fixture, tests, heading fix, print, docs — all
+  shipped and verified against the demo.
+- **N+1 (authoring power):** `<Figure>` (1.1), `<Steps>` (1.2),
+  `<KeyTakeaways>` (1.3), `<Hint>` (1.5) — all additive `minor`s, verified in both
+  themes against the demo (`/mer`). Still open in P1 widgets: `<Compare>` (1.4),
+  `<Statement>` (1.6).
+
+**Do next:** Release N+2 (UX) — keyboard control for islands (1.7), arrow-key
+paging (1.8), overview progress (1.10), in-page TOC (1.9). Or mop up the two
+remaining P1 widgets first (`<Compare>`, `<Statement>`).
 
 ## SemVer ledger (at a glance)
 
@@ -312,11 +325,11 @@ kitchen-sink demo.
 | ✅ 0.3 Heading hierarchy | patch | S |
 | ✅ 0.4 Print stylesheet | patch | S |
 | ✅ 0.5 Docs/version reconcile | patch | S |
-| 1.1 `<Figure>` | minor | M |
-| 1.2 `<Steps>` | minor | S |
-| 1.3 `<KeyTakeaways>` | minor | S |
+| ✅ 1.1 `<Figure>` | minor | M |
+| ✅ 1.2 `<Steps>` | minor | S |
+| ✅ 1.3 `<KeyTakeaways>` | minor | S |
 | 1.4 `<Compare>` | minor | M |
-| 1.5 `<Hint>` | minor | S |
+| ✅ 1.5 `<Hint>` | minor | S |
 | 1.6 `<Statement>` | minor | M |
 | 1.7 Island keyboard control | patch | M |
 | 1.8 Arrow-key paging | patch | S |
