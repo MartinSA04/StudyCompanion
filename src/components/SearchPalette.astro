@@ -17,8 +17,22 @@ import Icon from "./Icon.astro";
 <button type="button" class="search-trigger" aria-label={label}>
   <Icon name="search" size={17} class="search-icon" />
   <span class="search-trigger-text">{label}</span>
-  <kbd class="search-kbd">⌘K</kbd>
+  <kbd class="search-kbd" data-search-kbd>⌘K</kbd>
 </button>
+
+<script is:inline>
+  // The open shortcut is ⌘K on Apple platforms and Ctrl K elsewhere. The hint
+  // can't be known at build time, so correct it at runtime. This inline script
+  // runs synchronously as the parser passes it — the kbd above is already in the
+  // DOM and gets fixed before first paint, so non-Mac users never see ⌘K flash.
+  (() => {
+    const platform = navigator.userAgentData?.platform ?? navigator.platform ?? "";
+    if (/mac|iphone|ipad|ipod/i.test(platform)) return; // default markup is correct
+    for (const el of document.querySelectorAll("[data-search-kbd]")) {
+      el.textContent = "Ctrl K";
+    }
+  })();
+</script>
 
 <dialog class="search-dialog" aria-label={label}>
   <form class="search-box" method="dialog" role="search">
