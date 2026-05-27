@@ -350,7 +350,7 @@
   color: var(--accent);
   margin-bottom: var(--gap-2);
 }
-.mod-head h2 {
+.mod-head h1 {
   font-size: var(--text-2xl);
   margin: 0 0 var(--gap-2);
   border: 0;
@@ -517,7 +517,7 @@
 .tool-head .mod-kicker {
   margin-bottom: var(--gap-2);
 }
-.tool-head h2 {
+.tool-head h1 {
   font-size: var(--text-2xl);
   margin: 0;
 }
@@ -616,6 +616,7 @@
 }
 
 @media print {
+  /* Hide chrome and interactive-only affordances — only the article prints. */
   .topbar,
   .sidebar,
   .scrim,
@@ -623,7 +624,10 @@
   .skip-link,
   .site-footer,
   .page-actions,
-  .done-btn {
+  .done-btn,
+  .code-copy,
+  .fs-copy,
+  .fs-controls {
     display: none !important;
   }
   .layout {
@@ -635,5 +639,38 @@
   body {
     background: #fff;
     color: #000;
+  }
+
+  /* Collapsed <details> (solutions, derivations, self-check answers) are forced
+     open for printing by the layout's `beforeprint` handler — CSS can't reliably
+     reveal closed-details content. Here we just drop the now-pointless chevrons. */
+  .solution-chev,
+  .derivation-chevron,
+  .selfcheck-chev {
+    display: none !important;
+  }
+
+  /* Don't split editorial panels or Q&A blocks across a page break. */
+  .formula,
+  .example,
+  .callout,
+  .selfcheck,
+  .quiz,
+  .answer,
+  .goals,
+  .examfocus,
+  .derivation,
+  .codeblock,
+  .fs-row,
+  figure {
+    break-inside: avoid;
+  }
+
+  /* Spell out external link targets (nav/sidebar links are already hidden). */
+  .content a[href^="http"]::after {
+    content: " (" attr(href) ")";
+    font-size: 0.85em;
+    color: #555;
+    word-break: break-all;
   }
 }

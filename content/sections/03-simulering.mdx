@@ -1,0 +1,24 @@
+---
+order: 3
+title: Simulering
+summary: En kurseid kanvas-simulering montert av rammeverket.
+importance: useful
+estMinutes: 6
+tags: [Interaktivt]
+---
+
+Simuleringer bor i kursrepoet (her i `public/sims/`), og rammeverket eier kun
+rammen rundt — tittel, DPR-skalert `<canvas>`, kontroll-slot og caption. Dra i
+glidebryteren:
+
+<Simulation
+  src="/sims/bolge.js"
+  title="Sinusbølge"
+  caption="Endre bølgelengden og se kurven oppdatere seg."
+  height={280}
+/>
+
+<Callout type="tip">
+Bytt tema i topplinja — simuleringen tegnes på nytt med riktig aksentfarge, fordi
+rammeverket sender et `sc:themechange`-event.
+</Callout>

@@ -87,10 +87,10 @@ const hasMemorize = formulas.some((f) => f.memorize);
     groups.map((g, i) => (
       <section class="fs-group" data-fs-group>
         {g.section && (
-          <h3 class="fs-group-title">
+          <h2 class="fs-group-title">
             <span class="fs-group-num">{String(i + 1).padStart(2, "0")}</span>
             {g.section}
-          </h3>
+          </h2>
         )}
         <ul class="fs-list">
           {g.items.map((f) => (

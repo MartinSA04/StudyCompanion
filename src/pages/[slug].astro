@@ -104,7 +104,7 @@ if (props.kind === "section") {
           <div class="mod-index">{head.index}</div>
           <div class="meta">
             <div class="mod-kicker">{head.kicker}</div>
-            <h2>{head.title}</h2>
+            <h1>{head.title}</h1>
             {head.week && <div class="week">{head.week}</div>}
           </div>
           {course.features.progress && (
@@ -148,7 +148,7 @@ if (props.kind === "section") {
       <>
         <header class="tool-head">
           <div class="mod-kicker">Verktøy</div>
-          <h2>{course.ui.formulaSheetLabel}</h2>
+          <h1>{course.ui.formulaSheetLabel}</h1>
         </header>
         <FormulaSheet formulas={course.formulas} />
       </>
@@ -160,7 +160,7 @@ if (props.kind === "section") {
       <>
         <header class="tool-head">
           <div class="mod-kicker">Verktøy</div>
-          <h2>{course.ui.flashcardsLabel}</h2>
+          <h1>{course.ui.flashcardsLabel}</h1>
         </header>
         <Flashcards cards={flashcards} code={course.code} />
       </>
@@ -172,7 +172,7 @@ if (props.kind === "section") {
       <>
         <header class="tool-head">
           <div class="mod-kicker">Verktøy</div>
-          <h2>{course.ui.examsLabel}</h2>
+          <h1>{course.ui.examsLabel}</h1>
         </header>
         <ExamList exams={course.exams} language={course.language} />
       </>

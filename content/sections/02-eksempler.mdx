@@ -1,0 +1,63 @@
+---
+order: 2
+title: Eksempler, selvtest og kode
+summary: Regneeksempel med skjult løsning, selvtest, quiz og kodeblokk.
+importance: core
+estMinutes: 15
+tags: [Eksempler]
+---
+
+## Regneeksempel
+
+`<Example>` holder oppgaven; løsningen ligger skjult i `<Solution>` til leseren
+åpner den, og `<Answer>` står innerst.
+
+<Example title="Brytning ved vann–luft">
+Lys treffer en vannflate fra vann ($n_1 = 1{,}33$) mot luft ($n_2 = 1{,}00$) med
+innfallsvinkel $\theta_1 = 40^\circ$. Finn brytningsvinkelen.
+
+<Solution>
+Snells lov løst for $\theta_2$ gir
+
+<Formula tex="\sin\theta_2 = \frac{n_1}{n_2}\sin\theta_1 = 1{,}33 \cdot \sin 40^\circ \approx 0{,}855" />
+
+slik at $\theta_2 = \arcsin(0{,}855) \approx 58{,}7^\circ$.
+
+<Answer>$\theta_2 \approx 59^\circ$</Answer>
+</Solution>
+</Example>
+
+## Selvtest
+
+<SelfCheck question="Hva skjer med brytningsvinkelen når innfallsvinkelen nærmer seg grensevinkelen?">
+Den nærmer seg $90^\circ$ — lyset bøyes mer og mer langs flaten, og ved
+grensevinkelen oppstår totalrefleksjon.
+</SelfCheck>
+
+## Quiz
+
+<Quiz
+  question="Hva skjer når lys går fra tett til tynt medium med en vinkel større enn grensevinkelen?"
+  options={["Spredning", "Totalrefleksjon", "Dispersjon", "Polarisering"]}
+  answer={1}
+  explanation="Over grensevinkelen kan lyset ikke brytes ut og reflekteres fullstendig tilbake i det tette mediet."
+/>
+
+## Eksamensfokus
+
+<ExamFocus>
+Du bør kunne bruke Snells lov begge veier og regne ut grensevinkelen $\theta_c$
+uten formelark.
+</ExamFocus>
+
+## Kode
+
+Vanlige kodeblokker får syntaksfarging (Shiki) og en kopiknapp automatisk:
+
+```python
+import numpy as np
+
+theta1 = np.deg2rad(40)
+theta2 = np.arcsin(1.33 / 1.00 * np.sin(theta1))
+print(np.rad2deg(theta2))  # ~58.7
+```

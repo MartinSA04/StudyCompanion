@@ -102,7 +102,12 @@ $$ \Delta y \approx \frac{\lambda L}{d} $$ render server-side via KaTeX.
 ### Widgets (available in every MDX section — no imports needed)
 | Component | Props | Purpose |
 |---|---|---|
-| `<Formula>` | `tex`, `caption?`, `block?` | Server-rendered KaTeX (caption may contain `$…$`). |
+| `<Formula>` | `tex`, `caption?`, `block?`, `memorize?` | Server-rendered KaTeX. `memorize` adds a "må pugges" badge. |
+| `<Example>` | `label?`, `title?` | Worked example ("regneeksempel"); default slot is the problem, then a `<Solution>`. `title` may contain `$…$`. |
+| `<Solution>` | `label?`, `open?` | Collapsible worked solution, used inside `<Example>`. Put `<Answer>` inside it so it stays hidden until revealed. |
+| `<Answer>` | `label?` | Highlighted final answer; place inside `<Solution>`. |
+| `<LearningGoals>` | `title?` | Module objectives ("læringsmål"); slotted list. |
+| `<ExamFocus>` | `title?` | Exam-priority block ("eksamensfokus"); slotted MDX. |
 | `<Callout>` | `type` = note\|tip\|warning, `title?` | Admonition box; slotted MDX body. |
 | `<Derivation>` | `title?`, `open?` | Collapsible worked steps (`<details>`). |
 | `<CodeBlock>` | `code`, `lang?`, `title?` | Shiki-highlighted block (+ auto copy button). |
@@ -111,6 +116,10 @@ $$ \Delta y \approx \frac{\lambda L}{d} $$ render server-side via KaTeX.
 | `<Simulation>` | `src`, `title?`, `caption?`, `height?` | Mounts a course-owned canvas simulation (see below). |
 
 Fenced code blocks (` ```py `) are highlighted by Shiki and get a copy button automatically.
+
+> **Captions & labels** (`<Formula caption>`, `course.yaml` formula `label`, etc.) are
+> rendered with KaTeX for `$…$` spans and pass the rest through as **inline HTML** —
+> use `<b>…</b>`/`<em>…</em>` for emphasis, not Markdown `**…**`.
 
 ---
 
@@ -145,8 +154,19 @@ export default function init({ canvas, ctx, controls, getSize, onResize }) {
 
 ## Development
 
+The framework ships a kitchen-sink **demo course** (`content/`, served via
+`srcDir: demo/`) so widgets can be developed and screenshot-verified standalone —
+it exercises every component in both themes.
+
 ```bash
 pnpm install
+pnpm dev                # serve the demo course (http://localhost:4321)
+pnpm build              # static build of the demo + Pagefind index → dist/
+pnpm preview            # preview the build (search works here, not in dev)
 pnpm typecheck          # tsc on the framework source
-# develop against a linked course repo: pnpm --dir ../course dev
 ```
+
+`dev`/`build` first self-link `node_modules/study-companion` → repo root (via
+`scripts/ensure-self-link.mjs`) so the injected routes resolve the package by
+name, exactly as a real course does. To develop against a real course instead:
+`pnpm --dir ../course dev`.

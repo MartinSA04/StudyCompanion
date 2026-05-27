@@ -333,6 +333,27 @@ const hasTools = toolNav.some((t) => t.show);
         });
         pre.appendChild(btn);
       });
+
+      // ---- Print prep ----
+      // Paper is white and has no disclosure triangles: force the light theme
+      // and expand every <details> so collapsed solutions/derivations/answers
+      // print, then restore the on-screen state afterwards. (CSS alone can't
+      // reveal closed-<details> content.)
+      let printOpened = [];
+      let printWasDark = false;
+      addEventListener("beforeprint", () => {
+        printWasDark =
+          document.documentElement.getAttribute("data-theme") === "dark";
+        if (printWasDark) document.documentElement.removeAttribute("data-theme");
+        printOpened = [...document.querySelectorAll("details:not([open])")];
+        printOpened.forEach((d) => (d.open = true));
+      });
+      addEventListener("afterprint", () => {
+        printOpened.forEach((d) => (d.open = false));
+        printOpened = [];
+        if (printWasDark)
+          document.documentElement.setAttribute("data-theme", "dark");
+      });
     </script>
   </body>
 </html>

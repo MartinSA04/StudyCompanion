@@ -1,0 +1,35 @@
+schemaVersion: 1
+code: DEMO101
+title: Demokurs
+subtitle: Kitchen-sink for study-companion
+term: V2026
+language: nb
+
+# Two explicit per-theme accents (see the "explicit over derived" principle).
+accent: "#1f5f8b"
+accentDark: "#6ea9d8"
+
+exam:
+  date: 2026-06-15
+  durationMinutes: 240
+  format: 4t skriftlig
+  aids: Godkjent kalkulator + formelsamling
+
+features: { progress: true, search: true, flashcards: true, theme: true }
+
+links:
+  - { label: "study-companion (GitHub)", url: "https://github.com/martinsundal/study-companion" }
+
+# Exercises <FormulaSheet>: grouping by `section`, plus must-memorize rows
+# (memorize + onSheet:false) that get the star badge and the off-sheet stripe.
+formulas:
+  - { tex: "n_1\\sin\\theta_1 = n_2\\sin\\theta_2", label: "<b>Snells lov</b> — brytning i en grenseflate", section: "Geometrisk optikk" }
+  - { tex: "\\frac{1}{f} = \\frac{1}{s} + \\frac{1}{s'}", label: "Tynnlinseformelen", section: "Geometrisk optikk" }
+  - { tex: "\\sin\\theta_c = \\frac{n_2}{n_1}", label: "Grensevinkel for totalrefleksjon", section: "Geometrisk optikk", memorize: true, onSheet: false }
+  - { tex: "d\\sin\\theta = m\\lambda", label: "Maksima i flerspaltinterferens", section: "Bølgeoptikk" }
+  - { tex: "\\Delta y = \\frac{\\lambda L}{d}", label: "Stripeavstand i dobbeltspalteforsøket", section: "Bølgeoptikk", memorize: true, onSheet: false }
+
+# Exercises <ExamList>: newest first, with and without a solution link.
+exams:
+  - { label: "Eksamen V2025", date: 2025-06-02, url: "https://example.com/exams/2025.pdf", solutionUrl: "https://example.com/exams/2025-losning.pdf" }
+  - { label: "Eksamen V2024", date: 2024-05-28, url: "https://example.com/exams/2024.pdf" }

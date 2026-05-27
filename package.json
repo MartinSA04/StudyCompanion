@@ -21,7 +21,10 @@
     "src"
   ],
   "scripts": {
-    "typecheck": "tsc --noEmit"
+    "dev": "node scripts/ensure-self-link.mjs && astro dev",
+    "build": "node scripts/ensure-self-link.mjs && astro build",
+    "preview": "astro preview",
+    "typecheck": "astro sync && tsc --noEmit"
   },
   "peerDependencies": {
     "astro": "^6"
@@ -36,6 +39,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@types/node": "^22.10.0",
     "astro": "^6.3.7",
     "typescript": "^6.0.3"
   }

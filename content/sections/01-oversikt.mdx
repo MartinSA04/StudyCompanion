@@ -1,0 +1,54 @@
+---
+order: 1
+title: Oversikt og grunnbegreper
+summary: En rask omvisning i rammeverkets innholdskomponenter.
+importance: core
+estMinutes: 12
+tags: [Introduksjon, demo]
+---
+
+Dette er et **demokurs** som bor inne i selve rammeverket. Hver modul viser fram
+innholdskomponentene, slik at endringer kan verifiseres visuelt i begge tema.
+
+<LearningGoals>
+- Kjenne igjen de viktigste innholdskomponentene.
+- Vite hvordan matte skrives med `$…$` (inline) og `$$…$$` (display).
+- Forstå hvordan en modul er bygd opp av frontmatter + MDX.
+</LearningGoals>
+
+## Matte i teksten
+
+Inline-matte som $E = h\nu$ flyter med setningen, mens display-matte står for seg
+selv og sentreres:
+
+$$ \nabla \times \vec{E} = -\frac{\partial \vec{B}}{\partial t} $$
+
+## Formler
+
+En enkelt `<Formula>` blir et panel; flere på rad smelter sammen til ett:
+
+<Formula tex="n_1\sin\theta_1 = n_2\sin\theta_2" caption="<b>Snells lov</b> — brytning i en grenseflate" />
+<Formula tex="\frac{1}{f} = \frac{1}{s} + \frac{1}{s'}" caption="Tynnlinseformelen" />
+<Formula tex="\sin\theta_c = \frac{n_2}{n_1}" caption="Grensevinkel for totalrefleksjon" memorize />
+
+Bruk `block={false}` for matte midt i en setning, slik som <Formula tex="c = \lambda f" block={false} />, der den hører hjemme på linja.
+
+## Notater
+
+<Callout type="note">Et vanlig notat med litt utfyllende kontekst.</Callout>
+
+<Callout type="tip">Tips: du kan ha matte som $\theta_c$ inne i callouts også.</Callout>
+
+<Callout type="warning">Pass på fortegnskonvensjonen når du bruker tynnlinseformelen.</Callout>
+
+## Utledning
+
+<Derivation title="Utledning av grensevinkelen">
+Sett $\theta_2 = 90^\circ$ i Snells lov, fordi det brutte lyset da går langs flaten:
+
+<Formula tex="n_1 \sin\theta_c = n_2 \sin 90^\circ = n_2" />
+
+og løs for $\theta_c$:
+
+<Formula tex="\sin\theta_c = \frac{n_2}{n_1}" />
+</Derivation>

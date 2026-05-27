@@ -1,0 +1,13 @@
+cards:
+  - front: "Hva sier Snells lov?"
+    back: "$n_1\\sin\\theta_1 = n_2\\sin\\theta_2$ — produktet av brytningsindeks og sinus til vinkelen er bevart over grenseflaten."
+    section: "Geometrisk optikk"
+  - front: "Når oppstår totalrefleksjon?"
+    back: "Når lys går fra tett til tynt medium med en innfallsvinkel større enn grensevinkelen $\\theta_c$."
+    section: "Geometrisk optikk"
+  - front: "Hva er betingelsen for konstruktiv interferens i et dobbeltspalteforsøk?"
+    back: "$d\\sin\\theta = m\\lambda$ for heltall $m$."
+    section: "Bølgeoptikk"
+  - front: "Hvordan endrer stripeavstanden seg når spalteavstanden $d$ øker?"
+    back: "Stripeavstanden $\\Delta y = \\lambda L / d$ minker — stripene rykker tettere sammen."
+    section: "Bølgeoptikk"
