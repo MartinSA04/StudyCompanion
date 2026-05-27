@@ -93,10 +93,11 @@ example per widget.
 
 ---
 
-## P1 — High-value new widgets
+## P1 — High-value new widgets — ✅ Complete
 
 Each removes a real authoring repetition seen in study-guide content. All are
 additive → `minor`, available via `mdx-components.ts` with no per-file imports.
+**All six shipped** — see each item's **Done** note.
 
 ### 1.1 `<Figure>` — captioned, numbered images/diagrams — `minor`, **M** — ✅ Done
 **Why.** There is **no image component at all**. Diagram-heavy courses (optics ray
@@ -127,13 +128,17 @@ tint (vs note/tip/goals/exam), reusing the `aside` + `<Icon>` pattern. The slott
 bullet list renders with check markers (an alpha-masked SVG glyph that tints with
 the block colour, so it adapts per theme). Verified both themes.
 
-### 1.4 `<Compare>` — side-by-side concept table — `minor`, **M**
+### 1.4 `<Compare>` — side-by-side concept table — `minor`, **M** — ✅ Done
 **Why.** Comparisons ("konstruktiv vs destruktiv", "reell vs virtuell bilde") are
 constant and currently hand-built as fragile Markdown tables that wrap badly on
 mobile.
-**What.** `<Compare>` with 2–3 labelled columns; responsive (stacks on mobile),
-KaTeX-aware cells, optional row labels. One styled, accessible primitive instead
-of bespoke tables.
+**Done.** `<Compare>` wrapping `<CompareCol title>` cards. An `auto-fit` grid lays
+2–3 columns side by side and **auto-stacks** on narrow screens with no declared
+column count; each cell is free MDX (lists, prose, `$…$`), and `title` is
+KaTeX-aware. Settled on **column cards** over a row-aligned table+row-labels: it's
+far more authorable (no positional cells), covers the common A-vs-B case, and the
+aspect can live inline in each bullet. Each `<section>` is `aria-label`led for
+screen readers. Verified both themes.
 
 ### 1.5 `<Hint>` ladder — progressive disclosure for problems — `minor`, **S** — ✅ Done
 **Why.** `<SelfCheck>` reveals one answer; real problem-solving wants *graduated*
@@ -143,13 +148,17 @@ Auto-labels "Hint 1", "Hint 2", … from a counter reset per ladder; `<Hint solu
 is the green "Løsning" closer (tinted like `<Answer>`, left out of the numbering),
 and `label` overrides for a custom rung. Verified both themes.
 
-### 1.6 `<Statement>` — named results (law/theorem/definition) — `minor`, **M**
+### 1.6 `<Statement>` — named results (law/theorem/definition) — `minor`, **M** — ✅ Done
 **Why.** Physics/math guides reference named results ("Snells lov", "Huygens'
 prinsipp") repeatedly; today they're bold prose with no consistent treatment and
 no anchor to link to.
-**What.** `<Statement kind="law|theorem|definition|principle" name=…>` → a labeled
-boxed result with a stable `id` (anchor for deep-links and future cross-refs, see
-2.4). Could later auto-collect into a glossary (2.3).
+**Done.** `<Statement kind="law|theorem|definition|principle" name=… id?>` → an
+accent-tinted boxed result with a mono kicker badge (Lov/Teorem/Definisjon/
+Prinsipp) and a **stable `id` anchor** with a hover `#` deep-link (`scroll-margin`
+clears the sticky topbar). `id` defaults to a slug of `name` (æ/ø/å mapped) so the
+future `<FormulaRef>`/glossary cross-refs (2.3/2.4) have a target; `name` is
+KaTeX-aware. Verified both themes; anchors confirmed (`snells-lov`,
+`huygens-prinsipp`).
 
 ---
 
@@ -305,14 +314,14 @@ canonical expression and apply it everywhere.
 
 - **N (P0 foundations):** dev fixture, tests, heading fix, print, docs — all
   shipped and verified against the demo.
-- **N+1 (authoring power):** `<Figure>` (1.1), `<Steps>` (1.2),
-  `<KeyTakeaways>` (1.3), `<Hint>` (1.5) — all additive `minor`s, verified in both
-  themes against the demo (`/mer`). Still open in P1 widgets: `<Compare>` (1.4),
-  `<Statement>` (1.6).
+- **N+1 (authoring power):** the **entire P1 widget set** — `<Figure>` (1.1),
+  `<Steps>` (1.2), `<KeyTakeaways>` (1.3), `<Compare>` (1.4), `<Hint>` (1.5),
+  `<Statement>` (1.6) — all additive `minor`s, verified in both themes against the
+  demo (`/mer`, `/sammenligning`).
 
 **Do next:** Release N+2 (UX) — keyboard control for islands (1.7), arrow-key
-paging (1.8), overview progress (1.10), in-page TOC (1.9). Or mop up the two
-remaining P1 widgets first (`<Compare>`, `<Statement>`).
+paging (1.8), overview progress (1.10), in-page TOC (1.9), flashcard
+filtering (1.11).
 
 ## SemVer ledger (at a glance)
 
@@ -328,9 +337,9 @@ remaining P1 widgets first (`<Compare>`, `<Statement>`).
 | ✅ 1.1 `<Figure>` | minor | M |
 | ✅ 1.2 `<Steps>` | minor | S |
 | ✅ 1.3 `<KeyTakeaways>` | minor | S |
-| 1.4 `<Compare>` | minor | M |
+| ✅ 1.4 `<Compare>` | minor | M |
 | ✅ 1.5 `<Hint>` | minor | S |
-| 1.6 `<Statement>` | minor | M |
+| ✅ 1.6 `<Statement>` | minor | M |
 | 1.7 Island keyboard control | patch | M |
 | 1.8 Arrow-key paging | patch | S |
 | 1.9 In-page TOC | minor | M |

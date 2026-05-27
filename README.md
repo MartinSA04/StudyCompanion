@@ -105,6 +105,7 @@ $$ \Delta y \approx \frac{\lambda L}{d} $$ render server-side via KaTeX.
 |---|---|---|
 | `<Formula>` | `tex`, `caption?`, `block?`, `memorize?` | Server-rendered KaTeX. `memorize` adds a "må pugges" badge. |
 | `<Figure>` | `src`, `alt`, `caption?`, `number?`, `width?`, `height?`, `full?` | Captioned image/diagram. `width`+`height` reserve the aspect-ratio (no layout shift); lazy-loaded. `caption` may contain `$…$`; `number` → "Figur N". |
+| `<Statement>` | `kind?` (law\|theorem\|definition\|principle), `name`, `id?` | A named, boxed result with a stable `#` anchor for deep-linking. `name` may contain `$…$`; `id` defaults to a slug of `name`. |
 | `<Example>` | `label?`, `title?` | Worked example ("regneeksempel"); default slot is the problem, then a `<Solution>`. `title` may contain `$…$`. |
 | `<Solution>` | `label?`, `open?` | Collapsible worked solution, used inside `<Example>`. Put `<Answer>` inside it so it stays hidden until revealed. |
 | `<Answer>` | `label?` | Highlighted final answer; place inside `<Solution>`. |
@@ -115,6 +116,7 @@ $$ \Delta y \approx \frac{\lambda L}{d} $$ render server-side via KaTeX.
 | `<Steps>` / `<Step>` | `<Step title?>` | Numbered procedure as a vertical ribbon (a real `<ol>`). `title` may contain `$…$`. |
 | `<KeyTakeaways>` | `title?` | End-of-module recap; the slotted bullet list renders as a checklist. |
 | `<Hints>` / `<Hint>` | `<Hint solution? label? open?>` | Progressive hint ladder — auto "Hint 1", "Hint 2", …; `solution` makes the "Løsning" closer. Works with no JS. |
+| `<Compare>` / `<CompareCol>` | `<CompareCol title>` | Side-by-side comparison of 2–3 concepts; cards auto-stack on mobile. `title` may contain `$…$`. |
 | `<CodeBlock>` | `code`, `lang?`, `title?` | Shiki-highlighted block (+ auto copy button). |
 | `<SelfCheck>` | `question` | Prompt with answer behind a reveal. |
 | `<Quiz>` | `question`, `options[]`, `answer` (0-based), `explanation?` | Single-answer MCQ; text may contain `$…$`. |

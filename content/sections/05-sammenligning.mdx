@@ -1,0 +1,44 @@
+---
+order: 5
+title: Sammenligning og begreper
+summary: Side-ved-side-sammenligning og navngitte resultater med ankerlenke.
+importance: useful
+estMinutes: 6
+tags: [Komponenter, demo]
+---
+
+De to siste komponentene: en sammenligning i kort og navngitte resultater med
+stabil ankerlenke.
+
+## Sammenligning
+
+`<Compare>` stiller to–tre begreper opp mot hverandre i kort som stables på smal
+skjerm — uten en skjør tabell som brytes stygt på mobil:
+
+<Compare>
+<CompareCol title="Reelt bilde">
+- Dannes der strålene faktisk møtes
+- Kan fanges på en skjerm
+- Bildeavstand $s' > 0$
+</CompareCol>
+<CompareCol title="Virtuelt bilde">
+- Strålenes forlengelser møtes
+- Kan ikke fanges på en skjerm
+- Bildeavstand $s' < 0$
+</CompareCol>
+</Compare>
+
+## Navngitte resultater
+
+`<Statement>` rammer inn en navngitt lov, definisjon eller et prinsipp, og får en
+stabil ankerlenke (hold musa over for `#`) for dyplenking og framtidige kryssreferanser:
+
+<Statement kind="law" name="Snells lov">
+Ved en grenseflate mellom to medier er $n_1\sin\theta_1 = n_2\sin\theta_2$, der
+vinklene måles fra normalen.
+</Statement>
+
+<Statement kind="principle" name="Huygens' prinsipp">
+Hvert punkt på en bølgefront virker som kilde til nye kulebølger; den nye
+bølgefronten er omhyllingen av disse småbølgene.
+</Statement>

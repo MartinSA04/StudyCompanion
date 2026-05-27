@@ -1,0 +1,20 @@
+---
+/**
+ * A side-by-side comparison of 2–3 concepts ("reelt vs virtuelt bilde",
+ * "konstruktiv vs destruktiv"). Wrap `<CompareCol>` children; each is a titled
+ * card. The grid auto-fits, so 2 or 3 columns sit side by side on desktop and
+ * stack on narrow screens — no fixed column count to declare, and no fragile
+ * Markdown table that wraps badly on mobile.
+ */
+---
+
+<div class="compare"><slot /></div>
+
+<style>
+  .compare {
+    display: grid;
+    gap: var(--space-3);
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+    margin-block: var(--space-5);
+  }
+</style>

@@ -16,6 +16,9 @@ import Step from "./components/Step.astro";
 import KeyTakeaways from "./components/KeyTakeaways.astro";
 import Hints from "./components/Hints.astro";
 import Hint from "./components/Hint.astro";
+import Compare from "./components/Compare.astro";
+import CompareCol from "./components/CompareCol.astro";
+import Statement from "./components/Statement.astro";
 
 /**
  * Components made available to every MDX section by name, without the author
@@ -44,6 +47,9 @@ export const mdxComponents = {
   KeyTakeaways,
   Hints,
   Hint,
+  Compare,
+  CompareCol,
+  Statement,
 };
 
 export default mdxComponents;
