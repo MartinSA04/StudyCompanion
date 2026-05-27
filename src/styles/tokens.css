@@ -26,7 +26,7 @@
   --bg-elevated: #ffffff; /* raised panels / cards */
   --fg: #1e2835; /* ink */
   --muted: #526171; /* ink-dim */
-  --faint: #6b7787; /* ink-faint: nav numbers, captions */
+  --faint: #646f7e; /* ink-faint: nav numbers, captions (≥4.5:1 on --bg) */
   --card: #f8fafc; /* subtle inset (code, headers, concept cards) */
   --card-hover: #edf1f5;
   --border: #d9e0e8; /* line */
@@ -43,10 +43,11 @@
   --red: #b42318;
   --violet: #5f558f;
 
-  /* Semantic roles map onto the categorical hues. */
+  /* Semantic roles. --tip/--warning use AA-legible shades for body-size text;
+     the categorical --green/--orange stay vivid for figures. */
   --note: var(--accent);
-  --tip: var(--green);
-  --warning: var(--orange);
+  --tip: #2f7d52;
+  --warning: #a85a00;
   --core: var(--red);
   --useful: var(--accent);
   --extra: var(--muted);
@@ -68,7 +69,9 @@
   --font-sans:
     ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 
-  /* Modular scale, ratio ~1.2 (minor third), base 1rem (= 17px on <html>) */
+  /* Type scale (rem, base 1rem = 17px on <html>). Deliberately non-uniform:
+     tight at body sizes, dramatic at display sizes. Content uses rem so it
+     scales with the reading size; the shell chrome in shell.css is fixed px. */
   --text-xs: 0.72rem;
   --text-sm: 0.84rem;
   --text-base: 1rem;
@@ -98,6 +101,7 @@
   --space-8: 4rem;
 
   /* --- Radii, shadows, layout --- */
+  --radius-xs: 4px; /* chips, inline marks, thin controls */
   --radius-sm: 6px;
   --radius: 8px;
   --radius-lg: 12px;
@@ -108,10 +112,10 @@
     0 4px 12px color-mix(in srgb, #0b1020 8%, transparent),
     0 1px 3px color-mix(in srgb, #0b1020 6%, transparent);
   --shadow-lg: 0 24px 60px color-mix(in srgb, #0b1020 22%, transparent);
+  --scrim: color-mix(in srgb, #0b1020 60%, transparent); /* modal / drawer backdrop */
 
   --maxw: 820px; /* readable content measure */
   --sidebar-w: 264px;
-  --header-h: 60px;
 
   /* --- Motion --- */
   --ease: cubic-bezier(0.32, 0.72, 0, 1);
@@ -122,7 +126,8 @@
 :root[data-theme="dark"] {
   color-scheme: dark;
 
-  --accent-contrast: #10151c;
+  /* --accent-contrast is derived from the accent inline on <html> (see
+     lib/color.ts) and is theme-independent, so it is not set here. */
   --on-strong: #10151c;
 
   --bg: #11161d;
@@ -143,6 +148,11 @@
   --red: #e47770;
   --violet: #b6a7f0;
 
+  /* Dark surfaces are dark, so the vivid categorical green/amber read fine as
+     text — point the semantic roles back at them (overriding the light literals). */
+  --tip: var(--green);
+  --warning: var(--orange);
+
   --note-bg: color-mix(in srgb, var(--note) 16%, var(--bg-elevated));
   --tip-bg: color-mix(in srgb, var(--tip) 15%, var(--bg-elevated));
   --warning-bg: color-mix(in srgb, var(--warning) 16%, var(--bg-elevated));
@@ -157,6 +167,7 @@
   --shadow:
     0 4px 14px rgba(0, 0, 0, 0.5), 0 1px 3px rgba(0, 0, 0, 0.4);
   --shadow-lg: 0 24px 60px rgba(0, 0, 0, 0.62);
+  --scrim: color-mix(in srgb, #000 72%, transparent);
 }
 
 @media (prefers-reduced-motion: reduce) {

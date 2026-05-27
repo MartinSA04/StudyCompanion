@@ -2,11 +2,14 @@
 import katex from "katex";
 import type { FormulaEntry } from "../schema.ts";
 import { renderMathString } from "../lib/katex.ts";
+import Icon from "./Icon.astro";
 
 /**
  * A scannable reference sheet of the course's formulas, grouped by their
  * optional `section`. Rendered from `course.formulas`. Server-side KaTeX, so
- * zero client cost. Each row has a copy-LaTeX button (enhanced client-side).
+ * zero client cost. A search box filters by formula/description text and the
+ * chips narrow to what's on the exam sheet vs. must-memorize; each row has a
+ * copy-LaTeX button (enhanced client-side).
  */
 interface Props {
   formulas: FormulaEntry[];
@@ -25,43 +28,82 @@ for (const f of formulas) {
   g.items.push(f);
 }
 
+// A \displaystyle prefix in *inline* mode keeps fractions full-size and lets
+// \left(…\right)/matrix delimiters stretch to their content, while emitting a
+// plain `.katex` span — not `.katex-display`, which carries the base
+// stylesheet's overflow-x rule and would add a stray horizontal scrollbar.
 const html = (tex: string) =>
-  katex.renderToString(tex, { displayMode: false, throwOnError: false });
+  katex.renderToString(`\\displaystyle ${tex}`, {
+    displayMode: false,
+    throwOnError: false,
+  });
+
+// A lowercased haystack for client-side search: raw TeX plus the plain-text
+// description (latex commands and markup stripped).
+const haystack = (f: FormulaEntry) =>
+  (
+    f.tex +
+    " " +
+    (f.label ?? "")
+      .replace(/<[^>]*>/g, "")
+      .replace(/\$/g, "")
+      .replace(/\\[a-zA-Z]+/g, " ")
+  ).toLowerCase();
+
+const hasMemorize = formulas.some((f) => f.memorize);
 ---
 
-{
-  formulas.some((f) => f.memorize) && (
-    <div class="fs-filter" role="group" aria-label="Filtrer formler">
-      <button type="button" class="fs-chip" data-filter="all" aria-pressed="true">
-        Alle
-      </button>
-      <button type="button" class="fs-chip" data-filter="sheet" aria-pressed="false">
-        På formelarket
-      </button>
-      <button type="button" class="fs-chip" data-filter="memorize" aria-pressed="false">
-        ★ Må pugges
-      </button>
-    </div>
-  )
-}
+<div class="fs-controls">
+  <div class="fs-search">
+    <Icon name="search" />
+    <input
+      type="search"
+      class="fs-search-input"
+      placeholder="Søk i formler og symboler …"
+      aria-label="Søk i formler"
+      autocomplete="off"
+    />
+  </div>
+  {
+    hasMemorize && (
+      <div class="fs-filter" role="group" aria-label="Filtrer formler">
+        <button type="button" class="fs-chip" data-filter="all" aria-pressed="true">
+          Alle
+        </button>
+        <button type="button" class="fs-chip" data-filter="sheet" aria-pressed="false">
+          På formelarket
+        </button>
+        <button type="button" class="fs-chip" data-filter="memorize" aria-pressed="false">
+          ★ Må pugges
+        </button>
+      </div>
+    )
+  }
+</div>
 
 <div class="formula-sheet">
   {
-    groups.map((g) => (
-      <div class="fs-group" data-fs-group>
-        {g.section && <h3 class="fs-group-title">{g.section}</h3>}
+    groups.map((g, i) => (
+      <section class="fs-group" data-fs-group>
+        {g.section && (
+          <h3 class="fs-group-title">
+            <span class="fs-group-num">{String(i + 1).padStart(2, "0")}</span>
+            {g.section}
+          </h3>
+        )}
         <ul class="fs-list">
           {g.items.map((f) => (
             <li
               class="fs-row"
               data-onsheet={String(f.onSheet)}
               data-memorize={String(f.memorize)}
+              data-text={haystack(f)}
             >
               <span class="fs-render" set:html={html(f.tex)} />
               {f.label && <span class="fs-label" set:html={renderMathString(f.label)} />}
               {f.memorize && (
                 <span class="fs-badge" title="Står ikke på formelarket – må pugges">
-                  ★ pugg
+                  ★ ikke på formelarket
                 </span>
               )}
               <button
@@ -71,148 +113,292 @@ const html = (tex: string) =>
                 aria-label="Kopier LaTeX"
                 title="Kopier LaTeX"
               >
-                ⧉
+                <Icon name="copy" class="i-copy" />
+                <Icon name="check" class="i-check" />
               </button>
             </li>
           ))}
         </ul>
-      </div>
+      </section>
     ))
   }
+  <p class="fs-empty" hidden>Ingen formler matcher søket.</p>
 </div>
 
 <style>
-  .formula-sheet {
+  /* Controls: a search field plus the on-sheet / must-memorize chips. */
+  .fs-controls {
     display: flex;
-    flex-direction: column;
-    gap: var(--space-5);
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: var(--space-5);
   }
-  .fs-group-title {
-    font-size: var(--text-md);
-    color: var(--muted);
-    margin-bottom: var(--space-2);
-  }
-  .fs-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: grid;
-    gap: 1px;
-    background: var(--border);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    overflow: hidden;
-  }
-  .fs-row {
+  .fs-search {
     display: flex;
     align-items: center;
-    gap: var(--space-3);
-    padding: var(--space-3) var(--space-4);
-    background: var(--bg);
-  }
-  .fs-render {
-    flex: none;
-  }
-  .fs-label {
+    gap: 8px;
     flex: 1;
-    font-size: var(--text-sm);
-    color: var(--muted);
+    min-width: 220px;
+    background: var(--card);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius);
+    padding: 9px 14px;
+    color: var(--faint);
+    transition: border-color var(--dur-fast) var(--ease);
   }
-  .fs-copy {
-    flex: none;
-    width: 30px;
-    height: 30px;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    background: var(--bg-elevated);
-    color: var(--muted);
-    font-size: var(--text-sm);
-  }
-  .fs-copy:hover {
-    color: var(--accent);
+  .fs-search:focus-within {
     border-color: var(--accent);
+    color: var(--accent);
   }
-  .fs-copy[data-copied="true"] {
-    color: var(--tip);
-    border-color: var(--tip);
+  .fs-search-input {
+    flex: 1;
+    min-width: 0;
+    border: 0;
+    background: transparent;
+    color: var(--fg);
+    font-family: var(--font-body);
+    font-size: var(--text-base);
+  }
+  .fs-search-input:focus {
+    outline: none;
+  }
+  .fs-search-input::placeholder {
+    color: var(--faint);
+  }
+  .fs-search-input::-webkit-search-cancel-button {
+    -webkit-appearance: none;
   }
 
   .fs-filter {
     display: flex;
     flex-wrap: wrap;
     gap: var(--space-2);
-    margin-bottom: var(--space-4);
   }
   .fs-chip {
+    font-family: var(--font-mono);
     font-size: var(--text-sm);
-    padding: 0.3em 0.8em;
-    border: 1px solid var(--border);
+    padding: 0.4em 0.95em;
+    border: 1px solid var(--border-strong);
     border-radius: var(--radius-pill);
-    background: var(--bg-elevated);
+    background: var(--card);
     color: var(--muted);
+    transition:
+      color var(--dur-fast) var(--ease),
+      border-color var(--dur-fast) var(--ease),
+      background var(--dur-fast) var(--ease);
+  }
+  .fs-chip:hover {
+    color: var(--fg);
+    border-color: var(--accent);
   }
   .fs-chip[aria-pressed="true"] {
-    background: var(--accent-weak);
+    background: var(--accent);
     border-color: var(--accent);
-    color: var(--accent);
+    color: var(--on-strong);
     font-weight: var(--weight-medium);
+  }
+
+  /* Groups: each section is a panel with dashed-divided rows — inline formula
+     left, description right — mirroring the original guide's formula sheet. */
+  .formula-sheet {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+  }
+  .fs-group-title {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    font-family: var(--font-display);
+    font-size: var(--text-lg);
+    color: var(--fg);
+    margin-bottom: var(--space-3);
+  }
+  .fs-group-num {
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    color: var(--accent);
+  }
+  .fs-list {
+    list-style: none;
+    margin: 0;
+    padding: 0 var(--space-5);
+    background: var(--card);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius);
+  }
+  .fs-row {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: var(--space-5);
+    padding: var(--space-3) 0;
+    border-bottom: 1px dashed var(--border);
+  }
+  .fs-row:last-child {
+    border-bottom: 0;
+  }
+  /* The author content toggles these via the script below; the UA `[hidden]`
+     rule loses to `.fs-row { display:flex }`, so restate it. */
+  .fs-row[hidden] {
+    display: none;
+  }
+  /* Must-pugges formulas get the original's orange "off the sheet" stripe. */
+  .fs-row[data-memorize="true"] {
+    border-left: 3px solid var(--warning);
+    padding-left: var(--space-3);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  }
+  .fs-render {
+    flex: none;
+    min-width: 150px;
+    color: var(--fg);
+  }
+  .fs-render :global(.katex) {
+    font-size: 1.15em;
+  }
+  .fs-label {
+    flex: 1;
+    font-size: var(--text-sm);
+    color: var(--muted);
+    line-height: var(--leading-snug);
+  }
+  .fs-label :global(b),
+  .fs-label :global(strong) {
+    color: var(--accent);
+    font-weight: var(--weight-semibold);
   }
   .fs-badge {
     flex: none;
+    font-family: var(--font-mono);
     font-size: var(--text-xs);
     font-weight: var(--weight-semibold);
+    letter-spacing: 0.02em;
     color: var(--warning);
-    border: 1px solid color-mix(in srgb, var(--warning) 40%, var(--border));
-    border-radius: var(--radius-pill);
-    padding: 0.1em 0.5em;
+    border: 1px solid var(--warning);
+    border-radius: var(--radius-sm);
+    padding: 0.15em 0.55em;
     white-space: nowrap;
+  }
+  .fs-copy {
+    flex: none;
+    margin-left: auto;
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg-elevated);
+    color: var(--muted);
+    transition:
+      color var(--dur-fast) var(--ease),
+      border-color var(--dur-fast) var(--ease);
+  }
+  .fs-copy:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+  /* Icon swap: copy by default, check once copied. The icons render from the
+     Icon component (a different scope), so :global() is needed to reach them. */
+  .fs-copy :global(.i-check) {
+    display: none;
+  }
+  .fs-copy[data-copied="true"] {
+    color: var(--tip);
+    border-color: var(--tip);
+  }
+  .fs-copy[data-copied="true"] :global(.i-copy) {
+    display: none;
+  }
+  .fs-copy[data-copied="true"] :global(.i-check) {
+    display: block;
+  }
+  .fs-empty {
+    color: var(--faint);
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    padding: var(--space-3) 0;
+  }
+
+  @media (max-width: 640px) {
+    .fs-row {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: var(--space-2);
+      padding-right: 40px;
+    }
+    .fs-render {
+      min-width: 0;
+    }
+    .fs-copy {
+      position: absolute;
+      top: var(--space-3);
+      right: 0;
+    }
   }
 </style>
 
 <script>
+  // Copy LaTeX — toggles the data-copied state; the icon swap is pure CSS.
   document.querySelectorAll<HTMLButtonElement>(".fs-copy").forEach((btn) => {
+    let timer: ReturnType<typeof setTimeout>;
     btn.addEventListener("click", async () => {
       try {
         await navigator.clipboard.writeText(btn.dataset.tex ?? "");
         btn.dataset.copied = "true";
-        const prev = btn.textContent;
-        btn.textContent = "✓";
-        setTimeout(() => {
-          btn.dataset.copied = "false";
-          btn.textContent = prev;
-        }, 1200);
+        clearTimeout(timer);
+        timer = setTimeout(() => (btn.dataset.copied = "false"), 1200);
       } catch {
         /* clipboard unavailable */
       }
     });
   });
 
-  // Filter: all / on the exam sheet / must-memorize.
-  const chips = document.querySelectorAll<HTMLButtonElement>(".fs-chip");
-  if (chips.length) {
-    const rows = document.querySelectorAll<HTMLElement>(".fs-row");
-    const groups = document.querySelectorAll<HTMLElement>("[data-fs-group]");
-    chips.forEach((chip) => {
-      chip.addEventListener("click", () => {
-        const mode = chip.dataset.filter;
-        chips.forEach((c) =>
-          c.setAttribute("aria-pressed", c === chip ? "true" : "false"),
-        );
-        rows.forEach((r) => {
-          const show =
-            mode === "all" ||
-            (mode === "sheet" && r.dataset.onsheet === "true") ||
-            (mode === "memorize" && r.dataset.memorize === "true");
-          r.hidden = !show;
-        });
-        // Hide groups left with no visible rows.
-        groups.forEach((g) => {
-          const any = [...g.querySelectorAll<HTMLElement>(".fs-row")].some(
-            (r) => !r.hidden,
-          );
-          g.hidden = !any;
-        });
-      });
+  // Combined filter: free-text search AND the active chip (all / on the exam
+  // sheet / must-memorize). Empty groups and the whole sheet collapse cleanly.
+  const rows = [...document.querySelectorAll<HTMLElement>(".fs-row")];
+  const groups = [...document.querySelectorAll<HTMLElement>("[data-fs-group]")];
+  const chips = [...document.querySelectorAll<HTMLButtonElement>(".fs-chip")];
+  const searchInput = document.querySelector<HTMLInputElement>(".fs-search-input");
+  const empty = document.querySelector<HTMLElement>(".fs-empty");
+
+  let mode = "all";
+  let term = "";
+
+  const apply = () => {
+    let anyVisible = false;
+    rows.forEach((r) => {
+      const matchMode =
+        mode === "all" ||
+        (mode === "sheet" && r.dataset.onsheet === "true") ||
+        (mode === "memorize" && r.dataset.memorize === "true");
+      const matchTerm = !term || (r.dataset.text ?? "").includes(term);
+      const show = matchMode && matchTerm;
+      r.hidden = !show;
+      if (show) anyVisible = true;
     });
-  }
+    groups.forEach((g) => {
+      g.hidden = ![...g.querySelectorAll<HTMLElement>(".fs-row")].some(
+        (r) => !r.hidden,
+      );
+    });
+    if (empty) empty.hidden = anyVisible;
+  };
+
+  chips.forEach((chip) => {
+    chip.addEventListener("click", () => {
+      mode = chip.dataset.filter ?? "all";
+      chips.forEach((c) =>
+        c.setAttribute("aria-pressed", c === chip ? "true" : "false"),
+      );
+      apply();
+    });
+  });
+
+  searchInput?.addEventListener("input", () => {
+    term = searchInput.value.trim().toLowerCase();
+    apply();
+  });
 </script>

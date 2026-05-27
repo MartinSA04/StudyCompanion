@@ -4,9 +4,14 @@ import { renderMathString } from "../lib/katex.ts";
 
 /**
  * A labelled, server-rendered KaTeX formula. Zero client JS — the TeX is
- * rendered to HTML+MathML at build time. Use `block` (default) for a centred
- * display formula with an optional caption, or `block={false}` for inline math.
- * The caption may itself contain `$inline$` math.
+ * rendered to HTML+MathML at build time.
+ *
+ * `block` (default) lays the formula out the way the original optics guide
+ * did: a panel row with the formula on the left and its caption to the right,
+ * not a centred display equation. Consecutive `<Formula>` blocks merge into one
+ * continuous panel with dashed dividers (see the sibling rules below). Use
+ * `block={false}` for inline math inside prose. The caption may itself contain
+ * `$inline$` math.
  */
 interface Props {
   tex: string;
@@ -15,8 +20,15 @@ interface Props {
 }
 const { tex, caption, block = true } = Astro.props;
 
-const html = katex.renderToString(tex, {
-  displayMode: block,
+// Block formulas: render with a \displaystyle prefix in *inline* mode rather
+// than display mode. This keeps fractions full-size and lets \left(…\right)
+// and matrix delimiters stretch to their content (correct parenthesis
+// height), but emits a plain `.katex` span — not `.katex-display`, which
+// carries the base stylesheet's overflow-x rule and would add a stray
+// horizontal scrollbar. Inline prose math (block=false) stays text-style so it
+// sits on the line with the surrounding sentence.
+const html = katex.renderToString(block ? `\\displaystyle ${tex}` : tex, {
+  displayMode: false,
   throwOnError: false, // render the offending TeX in red instead of failing build
   output: "htmlAndMathml",
 });
@@ -25,8 +37,10 @@ const html = katex.renderToString(tex, {
 {
   block ? (
     <figure class="formula">
-      <div class="formula-render" set:html={html} />
-      {caption && <figcaption set:html={renderMathString(caption)} />}
+      <div class="formula-row">
+        <span class="fx" set:html={html} />
+        {caption && <span class="desc" set:html={renderMathString(caption)} />}
+      </div>
     </figure>
   ) : (
     <span class="formula-inline" set:html={html} />
@@ -36,27 +50,66 @@ const html = katex.renderToString(tex, {
 <style>
   .formula {
     margin-block: var(--space-5);
-    padding: var(--space-3) var(--space-4);
+    padding: 0 var(--space-5);
     background: var(--card);
-    border: 1px solid var(--border);
-    border-left: 3px solid var(--accent);
+    border: 1px solid var(--border-strong);
     border-radius: var(--radius);
-    overflow-x: auto;
   }
-  .formula-render {
-    /* KaTeX adds its own .katex-display margins; trim ours. */
-    margin: 0;
+
+  /* Merge consecutive formula blocks into one panel with dashed dividers,
+     mirroring the original guide's grouped .formula-box. `+` skips whitespace
+     text nodes, so blank lines between <Formula> blocks in MDX don't break the
+     run; intervening prose does (as it should). */
+  .formula:has(+ .formula) {
+    margin-bottom: 0;
+    border-bottom: 0;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
   }
-  .formula :global(.katex-display) {
-    margin: 0;
+  .formula + .formula {
+    margin-top: 0;
+    border-top: 1px dashed var(--border);
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
   }
-  figcaption {
-    margin-top: var(--space-2);
+
+  .formula-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-5);
+    padding: var(--space-3) 0;
+  }
+  .fx {
+    flex: none;
+    min-width: 150px;
+    color: var(--fg);
+  }
+  .fx :global(.katex) {
+    font-size: 1.15em;
+  }
+  .desc {
     font-size: var(--text-sm);
     color: var(--muted);
-    text-align: center;
+    line-height: var(--leading-snug);
   }
+  .desc :global(b),
+  .desc :global(strong) {
+    color: var(--accent);
+    font-weight: var(--weight-semibold);
+  }
+
   .formula-inline {
     white-space: nowrap;
+  }
+
+  @media (max-width: 640px) {
+    .formula-row {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: var(--space-2);
+    }
+    .fx {
+      min-width: 0;
+    }
   }
 </style>

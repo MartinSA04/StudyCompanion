@@ -3,6 +3,8 @@
  * An admonition box. `type` selects the semantic color (note/tip/warning).
  * Body is slotted MDX, so it can contain math, lists, links, etc.
  */
+import Icon from "./Icon.astro";
+
 interface Props {
   type?: "note" | "tip" | "warning";
   title?: string;
@@ -14,14 +16,13 @@ const defaults: Record<NonNullable<Props["type"]>, string> = {
   tip: "Tips",
   warning: "Advarsel",
 };
+const icons = { note: "info", tip: "star", warning: "alert-triangle" } as const;
 const heading = title ?? defaults[type];
 ---
 
 <aside class={`callout callout-${type}`} role="note">
   <p class="callout-title">
-    <span class="callout-icon" aria-hidden="true">
-      {type === "warning" ? "▲" : type === "tip" ? "★" : "ℹ"}
-    </span>
+    <span class="callout-icon"><Icon name={icons[type]} size={17} /></span>
     {heading}
   </p>
   <div class="callout-body"><slot /></div>
@@ -55,7 +56,9 @@ const heading = title ?? defaults[type];
     margin-bottom: var(--space-2);
   }
   .callout-icon {
-    font-size: 0.9em;
+    flex: none;
+    display: inline-flex;
+    align-items: center;
   }
   /* Let the last child sit flush against the padding. */
   .callout-body :global(> :last-child) {

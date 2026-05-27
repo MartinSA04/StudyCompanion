@@ -5,6 +5,10 @@ import mdx from "@astrojs/mdx";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 
+// This package's root (parent of src/ or dist/). Used to let the dev server
+// serve assets that live alongside the framework — see the fs.allow note below.
+const PACKAGE_ROOT = fileURLToPath(new URL("../", import.meta.url));
+
 export interface StudyCompanionOptions {
   /**
    * Build a Pagefind search index over the emitted static output in
@@ -40,6 +44,20 @@ export default function studyCompanion(
           markdown: {
             remarkPlugins: [remarkMath],
             rehypePlugins: [rehypeKatex],
+          },
+          vite: {
+            server: {
+              fs: {
+                // Course repos consume this framework as a `link:`ed dependency
+                // that lives OUTSIDE their project root. Vite's fs.allow would
+                // then 403 anything served from here — most visibly KaTeX's web
+                // fonts (its CSS is imported from this package), so display math
+                // falls back to a serif face with non-stretchy delimiters. Allow
+                // serving from the framework root. Dev-only; production bundles
+                // the fonts into the static output.
+                allow: [PACKAGE_ROOT],
+              },
+            },
           },
         });
 

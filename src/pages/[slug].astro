@@ -9,6 +9,7 @@ import { loadCourse } from "../lib/loadCourse.ts";
 import { mdxComponents } from "../mdx-components.ts";
 import {
   sectionNav,
+  sectionNumbers,
   sectionSlug,
   toolFlags,
   TOOL_SLUGS,
@@ -25,9 +26,10 @@ export async function getStaticPaths() {
     ? ((await getCollection("flashcards"))[0]?.data.cards ?? [])
     : [];
   const tools = toolFlags(course, flashcards.length);
+  const nums = sectionNumbers(sections);
 
   const neighbor = (s?: CollectionEntry<"sections">): Neighbor =>
-    s ? { slug: sectionSlug(s.id), num: String(s.data.order) } : null;
+    s ? { slug: sectionSlug(s.id), num: nums.get(s.id) ?? "" } : null;
 
   const paths: { params: { slug: string }; props: Props }[] = sections.map(
     (entry, i) => ({
@@ -61,6 +63,7 @@ const flashcards = course.features.flashcards
   : [];
 const nav = sectionNav(sections);
 const tools = toolFlags(course, flashcards.length);
+const nums = sectionNumbers(sections);
 
 const importanceLabel = { core: "Kjernepensum", useful: "Pensum", extra: "Tilleggsstoff" };
 
@@ -78,7 +81,7 @@ if (props.kind === "section") {
   ].filter(Boolean);
   head = {
     kicker: d.tags[0] ?? importanceLabel[d.importance],
-    index: String(d.order),
+    index: nums.get(props.entry.id) ?? String(d.order).padStart(2, "0"),
     title: d.title,
     week: weekParts.join(" · "),
     order: d.order,

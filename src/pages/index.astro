@@ -2,7 +2,7 @@
 import { getCollection } from "astro:content";
 import CourseLayout from "../layouts/CourseLayout.astro";
 import { loadCourse } from "../lib/loadCourse.ts";
-import { sectionNav, sectionSlug, toolFlags } from "../lib/nav.ts";
+import { sectionNav, sectionNumbers, sectionSlug, toolFlags } from "../lib/nav.ts";
 
 const { course, sections } = await loadCourse();
 
@@ -12,11 +12,12 @@ const flashcards = course.features.flashcards
 
 const nav = sectionNav(sections);
 const tools = toolFlags(course, flashcards.length);
+const nums = sectionNumbers(sections);
 
 // Module tiles, derived from section frontmatter.
 const tiles = sections.map((s) => ({
   slug: sectionSlug(s.id),
-  num: String(s.data.order).padStart(2, "0"),
+  num: nums.get(s.id) ?? String(s.data.order).padStart(2, "0"),
   title: s.data.title,
   week:
     s.data.estMinutes != null

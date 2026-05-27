@@ -8,11 +8,14 @@ interface Props {
   open?: boolean;
 }
 const { title = "Utledning", open = false } = Astro.props;
+import Icon from "./Icon.astro";
 ---
 
 <details class="derivation" open={open}>
   <summary>
-    <span class="derivation-chevron" aria-hidden="true">▶</span>
+    <span class="derivation-chevron" aria-hidden="true">
+      <Icon name="chevron-right" size={15} />
+    </span>
     <span>{title}</span>
   </summary>
   <div class="derivation-body"><slot /></div>
@@ -44,8 +47,8 @@ const { title = "Utledning", open = false } = Astro.props;
     background: var(--card-hover);
   }
   .derivation-chevron {
+    display: inline-flex;
     color: var(--muted);
-    font-size: 0.7em;
     transition: transform var(--dur-fast) var(--ease);
   }
   .derivation[open] .derivation-chevron {

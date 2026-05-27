@@ -4,6 +4,8 @@ import type { NavItem, ToolFlags } from "../lib/nav.ts";
 import { TOOL_SLUGS } from "../lib/nav.ts";
 import ThemeToggle from "../components/ThemeToggle.astro";
 import SearchPalette from "../components/SearchPalette.astro";
+import Icon from "../components/Icon.astro";
+import { contrastText, accentOnBg } from "../lib/color.ts";
 import "katex/dist/katex.min.css";
 import "../styles/tokens.css";
 import "../styles/base.css";
@@ -23,22 +25,39 @@ interface Props {
 const { course, nav, tools, active, pageTitle } = Astro.props;
 const { ui, features } = course;
 
+// Accent-contrast guard: the per-course accent is arbitrary, so derive the
+// text color that sits ON it from its luminance (theme-independent), and warn
+// in dev if the accent is too light to read as a link on the light page ground.
+const accentContrast = contrastText(course.accent);
+if (import.meta.env.DEV) {
+  const ratio = accentOnBg(course.accent, "#f5f7fa");
+  if (ratio != null && ratio < 4.5) {
+    console.warn(
+      `[study-companion] course.accent "${course.accent}" has ${ratio.toFixed(2)}:1 contrast on the light page ground — links/active nav may be hard to read. Choose a darker accent (≥4.5:1).`,
+    );
+  }
+}
+
 const themeKey = `sc:theme:${course.code}`;
 const progressKey = `sc:progress:${course.code}`;
 const title = pageTitle
   ? `${pageTitle} · ${course.code}`
   : `${course.code} · ${course.title}`;
 
-const toolNav: { slug: string; num: string; label: string; show: boolean }[] = [
-  { slug: TOOL_SLUGS.formulas, num: "∑", label: ui.formulaSheetLabel, show: tools.formulas },
-  { slug: TOOL_SLUGS.flashcards, num: "⚡", label: ui.flashcardsLabel, show: tools.flashcards },
-  { slug: TOOL_SLUGS.exams, num: "▦", label: ui.examsLabel, show: tools.exams },
+type IconName = "sigma" | "layers" | "file";
+const toolNav: { slug: string; icon: IconName; label: string; show: boolean }[] = [
+  { slug: TOOL_SLUGS.formulas, icon: "sigma", label: ui.formulaSheetLabel, show: tools.formulas },
+  { slug: TOOL_SLUGS.flashcards, icon: "layers", label: ui.flashcardsLabel, show: tools.flashcards },
+  { slug: TOOL_SLUGS.exams, icon: "file", label: ui.examsLabel, show: tools.exams },
 ];
 const hasTools = toolNav.some((t) => t.show);
 ---
 
 <!doctype html>
-<html lang={course.language} style={`--accent: ${course.accent};`}>
+<html
+  lang={course.language}
+  style={`--accent: ${course.accent}; --accent-contrast: ${accentContrast};`}
+>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -80,7 +99,7 @@ const hasTools = toolNav.some((t) => t.show);
           type="button"
           aria-label="Åpne meny"
           aria-controls="sidebar"
-          aria-expanded="false">☰</button>
+          aria-expanded="false"><Icon name="menu" size={18} /></button>
         <a class="brand" href="/">
           <span class="prism" aria-hidden="true"></span>
           <span>
@@ -124,7 +143,7 @@ const hasTools = toolNav.some((t) => t.show);
       <aside class="sidebar" id="sidebar" aria-label="Moduler">
         <div class="nav-section">Kom i gang</div>
         <a class={`nav-link${active === "top" ? " active" : ""}`} href="/">
-          <span class="nav-num">↑</span>
+          <span class="nav-num nav-ico"><Icon name="grid" /></span>
           <span class="nav-title">Oversikt</span>
         </a>
 
@@ -138,7 +157,9 @@ const hasTools = toolNav.some((t) => t.show);
                   <a
                     class={`nav-link${active === t.slug ? " active" : ""}`}
                     href={`/${t.slug}`}>
-                    <span class="nav-num">{t.num}</span>
+                    <span class="nav-num nav-ico">
+                      <Icon name={t.icon} />
+                    </span>
                     <span class="nav-title">{t.label}</span>
                   </a>
                 ))}
@@ -155,7 +176,7 @@ const hasTools = toolNav.some((t) => t.show);
               data-nav-order={item.order}>
               <span class="nav-num">{item.num}</span>
               <span class="nav-title">{item.shortTitle}</span>
-              <span class="nav-check" aria-hidden="true">✓</span>
+              <span class="nav-check" aria-hidden="true"><Icon name="check" size={12} /></span>
             </a>
           ))
         }
@@ -166,7 +187,7 @@ const hasTools = toolNav.some((t) => t.show);
               <div class="nav-section">Lenker</div>
               {course.links.map((l) => (
                 <a class="nav-link" href={l.url} target="_blank" rel="noopener noreferrer">
-                  <span class="nav-num">↗</span>
+                  <span class="nav-num nav-ico"><Icon name="external" /></span>
                   <span class="nav-title">{l.label}</span>
                 </a>
               ))}

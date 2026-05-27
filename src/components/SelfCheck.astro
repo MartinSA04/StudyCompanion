@@ -9,6 +9,7 @@ interface Props {
 }
 const { question, revealLabel = "Vis svar" } = Astro.props;
 import { renderMathString } from "../lib/katex.ts";
+import Icon from "./Icon.astro";
 ---
 
 <div class="selfcheck">
@@ -17,7 +18,12 @@ import { renderMathString } from "../lib/katex.ts";
     <span set:html={renderMathString(question)} />
   </p>
   <details class="selfcheck-a">
-    <summary>{revealLabel}</summary>
+    <summary>
+      <span class="selfcheck-chev" aria-hidden="true">
+        <Icon name="chevron-right" size={13} />
+      </span>
+      {revealLabel}
+    </summary>
     <div class="selfcheck-body"><slot /></div>
   </details>
 </div>
@@ -62,12 +68,11 @@ import { renderMathString } from "../lib/katex.ts";
   summary::-webkit-details-marker {
     display: none;
   }
-  summary::before {
-    content: "▶";
-    font-size: 0.7em;
+  .selfcheck-chev {
+    display: inline-flex;
     transition: transform var(--dur-fast) var(--ease);
   }
-  .selfcheck-a[open] summary::before {
+  .selfcheck-a[open] .selfcheck-chev {
     transform: rotate(90deg);
   }
   .selfcheck-body {

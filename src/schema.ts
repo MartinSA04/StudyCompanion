@@ -86,6 +86,12 @@ export const courseSchema = z.object({
 
 export const sectionSchema = z.object({
   order: z.number(),
+  /**
+   * Display label shown in the sidebar, overview tile and module header.
+   * Defaults to the zero-padded `order` (e.g. 4 → "04"); override for special
+   * modules, e.g. `num: "RT"` for a ray-tracing interlude.
+   */
+  num: z.string().optional(),
   title: z.string(),
   summary: z.string().optional(),
   importance: z.enum(["core", "useful", "extra"]).default("useful"),
