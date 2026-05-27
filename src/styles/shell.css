@@ -363,6 +363,9 @@
 }
 .done-btn {
   flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--gap-2);
   font-family: var(--font-mono);
   font-size: var(--text-sm);
   border: 1px solid var(--border-strong);
@@ -373,6 +376,13 @@
   cursor: pointer;
   transition: var(--dur) var(--ease);
   white-space: nowrap;
+}
+/* The check shows only once the module is marked done. */
+.done-check {
+  display: none;
+}
+.done-btn.done .done-check {
+  display: inline-flex;
 }
 .done-btn:hover {
   border-color: var(--green);
@@ -396,6 +406,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: var(--gap-1);
   min-height: var(--control-h);
   text-decoration: none;
   color: var(--accent);

@@ -25,17 +25,29 @@ interface Props {
 const { course, nav, tools, active, pageTitle } = Astro.props;
 const { ui, features } = course;
 
-// Accent-contrast guard: the per-course accent is arbitrary, so derive the
-// text color that sits ON it from its luminance (theme-independent), and warn
-// in dev if the accent is too light to read as a link on the light page ground.
-const accentContrast = contrastText(course.accent);
+// Per-theme brand accent. The course sets `accent` (light) and optionally
+// `accentDark`; the framework uses exactly those (no auto-lightening) and
+// derives the legible text colour that sits ON each. tokens.css switches
+// `--accent` / `--accent-contrast` to the right pair per theme.
+const accentLight = course.accent;
+const accentDark = course.accentDark ?? course.accent;
+const onAccentLight = contrastText(accentLight);
+const onAccentDark = contrastText(accentDark);
+const accentVars =
+  `--accent-light: ${accentLight}; --accent-dark: ${accentDark}; ` +
+  `--accent-contrast-light: ${onAccentLight}; --accent-contrast-dark: ${onAccentDark};`;
 if (import.meta.env.DEV) {
-  const ratio = accentOnBg(course.accent, "#f5f7fa");
-  if (ratio != null && ratio < 4.5) {
-    console.warn(
-      `[study-companion] course.accent "${course.accent}" has ${ratio.toFixed(2)}:1 contrast on the light page ground — links/active nav may be hard to read. Choose a darker accent (≥4.5:1).`,
-    );
-  }
+  // Warn when an accent is hard to read as text/links on its theme's ground.
+  const check = (hex: string, bg: string, theme: "light" | "dark") => {
+    const r = accentOnBg(hex, bg);
+    if (r != null && r < 4.5) {
+      console.warn(
+        `[study-companion] ${theme} accent "${hex}" has ${r.toFixed(2)}:1 on the ${theme} page ground — accent text/links may be hard to read. Pick a ${theme === "dark" ? "lighter (set accentDark)" : "darker"} shade.`,
+      );
+    }
+  };
+  check(accentLight, "#f5f7fa", "light");
+  check(accentDark, "#11161d", "dark");
 }
 
 const themeKey = `sc:theme:${course.code}`;
@@ -54,10 +66,7 @@ const hasTools = toolNav.some((t) => t.show);
 ---
 
 <!doctype html>
-<html
-  lang={course.language}
-  style={`--accent: ${course.accent}; --accent-contrast: ${accentContrast};`}
->
+<html lang={course.language} style={accentVars}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -254,7 +263,9 @@ const hasTools = toolNav.some((t) => t.show);
         const order = Number(doneBtn.dataset.doneOrder);
         const on = new Set(readProg()).has(order);
         doneBtn.classList.toggle("done", on);
-        doneBtn.textContent = on ? "✓ Fullført" : "Marker fullført";
+        // The check (an SVG) shows via the .done class; only swap the label text.
+        const label = doneBtn.querySelector("[data-done-label]");
+        if (label) label.textContent = on ? "Fullført" : "Marker fullført";
       }
       if (doneBtn) {
         doneBtn.addEventListener("click", () => {

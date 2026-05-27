@@ -1,0 +1,45 @@
+---
+/**
+ * The highlighted final answer of an <Example>. Place it inside <Solution> so it
+ * is revealed together with the worked solution (not before). Body is slotted
+ * MDX, usually a short inline result with `$math$`.
+ */
+interface Props {
+  /** Label chip. Default "Svar". */
+  label?: string;
+}
+const { label = "Svar" } = Astro.props;
+---
+
+<div class="answer">
+  <span class="answer-label">{label}</span>
+  <div class="answer-body"><slot /></div>
+</div>
+
+<style>
+  .answer {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-3);
+    margin-top: var(--space-3);
+    padding: var(--space-2) var(--space-3);
+    background: var(--answer-bg);
+    border-left: 3px solid var(--tip);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  }
+  .answer-label {
+    flex: none;
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-weight: var(--weight-semibold);
+    color: var(--tip);
+  }
+  .answer-body {
+    color: var(--fg);
+  }
+  .answer-body > :global(:last-child) {
+    margin-bottom: 0;
+  }
+</style>

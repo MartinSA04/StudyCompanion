@@ -1,6 +1,7 @@
 ---
 import katex from "katex";
 import { renderMathString } from "../lib/katex.ts";
+import Icon from "./Icon.astro";
 
 /**
  * A labelled, server-rendered KaTeX formula. Zero client JS — the TeX is
@@ -11,14 +12,18 @@ import { renderMathString } from "../lib/katex.ts";
  * not a centred display equation. Consecutive `<Formula>` blocks merge into one
  * continuous panel with dashed dividers (see the sibling rules below). Use
  * `block={false}` for inline math inside prose. The caption may itself contain
- * `$inline$` math.
+ * `$inline$` math. Set `memorize` to flag a formula that is NOT on the exam
+ * sheet and must be learned by heart — it gets a "må pugges" badge instead of
+ * spelling that out in every caption.
  */
 interface Props {
   tex: string;
   caption?: string;
   block?: boolean;
+  /** Not on the exam sheet → show a star "må pugges" badge. */
+  memorize?: boolean;
 }
-const { tex, caption, block = true } = Astro.props;
+const { tex, caption, block = true, memorize = false } = Astro.props;
 
 // Block formulas: render with a \displaystyle prefix in *inline* mode rather
 // than display mode. This keeps fractions full-size and lets \left(…\right)
@@ -40,6 +45,12 @@ const html = katex.renderToString(block ? `\\displaystyle ${tex}` : tex, {
       <div class="formula-row">
         <span class="fx" set:html={html} />
         {caption && <span class="desc" set:html={renderMathString(caption)} />}
+        {memorize && (
+          <span class="formula-badge" title="Står ikke på formelarket – må pugges">
+            <Icon name="star" size={12} />
+            må pugges
+          </span>
+        )}
       </div>
     </figure>
   ) : (
@@ -97,6 +108,23 @@ const html = katex.renderToString(block ? `\\displaystyle ${tex}` : tex, {
     color: var(--accent);
     font-weight: var(--weight-semibold);
   }
+  /* "Must memorise" badge — matches the FormulaSheet memorize badge. */
+  .formula-badge {
+    flex: none;
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-semibold);
+    letter-spacing: 0.02em;
+    color: var(--warning);
+    border: 1px solid var(--warning);
+    border-radius: var(--radius-sm);
+    padding: 0.15em 0.55em;
+    white-space: nowrap;
+  }
 
   .formula-inline {
     white-space: nowrap;
@@ -110,6 +138,9 @@ const html = katex.renderToString(block ? `\\displaystyle ${tex}` : tex, {
     }
     .fx {
       min-width: 0;
+    }
+    .formula-badge {
+      margin-left: 0;
     }
   }
 </style>

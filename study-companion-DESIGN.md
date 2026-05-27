@@ -206,7 +206,8 @@ export const courseSchema = z.object({
   subtitle: z.string().optional(),
   term: z.string(),                       // "V2026"
   language: z.enum(["nb", "nn", "en"]).default("nb"),
-  accent: z.string().default("#2f6df6"),  // per-course theme color (CSS color)
+  accent: z.string().default("#2f6df6"),  // brand accent (light mode)
+  accentDark: z.string().optional(),      // brand accent (dark mode); defaults to `accent`
   exam: z.object({
     date: z.coerce.date().optional(),
     durationMinutes: z.number().optional(),
@@ -316,14 +317,19 @@ and the module-tile grid.
 **Chrome / layout** — the sidebar nav and progress are owned by the layout (no
 separate TableOfContents/ProgressTracker components; navigation is page-to-page,
 so a per-heading scroll-spy TOC is unnecessary).
-- `CourseLayout.astro` — props `{ course, nav, tools, active, pageTitle? }`. Renders the sticky topbar (brand+prism, progress meter, search, theme, reset), the grouped sidebar nav (Kom i gang / Verktøy / Moduler / Lenker, with active + per-module done state), `<main class="content">` slot, footer, mobile menu+scrim. Inline scripts: progress (reads `sc:progress:<code>`, marks done nav links + meter, binds any `[data-done-order]` button), mobile menu, copy-code. Imports `tokens.css`/`base.css`/`shell.css`; sets `--accent` inline from `course.accent`, `lang` from `course.language`; honours `features.*`/`ui.*`. Loads the Fraunces/Spectral/IBM Plex Mono webfonts.
+- `CourseLayout.astro` — props `{ course, nav, tools, active, pageTitle? }`. Renders the sticky topbar (brand+prism, progress meter, search, theme, reset), the grouped sidebar nav (Kom i gang / Verktøy / Moduler / Lenker, with active + per-module done state), `<main class="content">` slot, footer, mobile menu+scrim. Inline scripts: progress (reads `sc:progress:<code>`, marks done nav links + meter, binds any `[data-done-order]` button), mobile menu, copy-code. Imports `tokens.css`/`base.css`/`shell.css`; sets the per-theme accent vars (`--accent-light`/`--accent-dark` + their on-accent text colours) inline from `course.accent`/`course.accentDark`, `lang` from `course.language`; honours `features.*`/`ui.*`. Loads the Fraunces/Spectral/IBM Plex Mono webfonts.
 - `ThemeToggle.astro` *(island)* — toggles `data-theme` on `<html>`, persists to `localStorage`, respects `prefers-color-scheme` on first load (inline no-flash script in `<head>`), and dispatches `sc:themechange` so canvas sims repaint.
 - `SearchPalette.astro` *(island)* — `⌕` button + modal using the Pagefind index over the built site (each page is indexed → results deep-link to modules). Keyboard: `/` or `⌘K` to open. In `astro dev` the index doesn't exist yet, so it shows a friendly notice.
 
 **Content widgets (auto-available in MDX via `mdx-components.ts`)**
-- `Formula.astro` — props `{ tex: string, caption?: string, block?: boolean }`. KaTeX render.
+- `Formula.astro` — props `{ tex: string, caption?: string, block?: boolean, memorize?: boolean }`. KaTeX render; `memorize` adds a "★ må pugges" badge (not on the exam sheet).
 - `Derivation.astro` — collapsible `<details>` with steps slot.
 - `Callout.astro` — props `{ type: "note"|"tip"|"warning" }`, slot body.
+- `Example.astro` — a worked example ("regneeksempel"). Props `{ label?, title? }` (`title` may contain `$math$`). Default slot = the problem, followed by a child `<Solution>`. Subject-agnostic; no slots to remember.
+- `Solution.astro` — collapsible worked solution used inside `<Example>` (closed by default). Props `{ label?, open? }`. Put `<Answer>` inside it so the answer is hidden until revealed.
+- `Answer.astro` — highlighted final answer (`--answer-bg`), placed inside `<Solution>`. Prop `{ label? }`, slot body.
+- `LearningGoals.astro` — module objectives ("læringsmål"); prop `{ title? }`, slot body. Teal `--goals-bg`.
+- `ExamFocus.astro` — exam-priority block ("eksamensfokus"); prop `{ title? }`, slot body. Warm `--exam-bg`.
 - `CodeBlock.astro` — Shiki + copy button (or rely on MDX fenced code + a copy island).
 - `SelfCheck.astro` *(island)* — props `{ question: string }`, slotted answer hidden behind reveal.
 - `Quiz.astro` *(island)* — props `{ question, options: string[], answer: number }`.
@@ -410,6 +416,7 @@ subtitle: Interaktiv pensumguide
 term: V2026
 language: nb
 accent: "#2f6df6"
+accentDark: "#7fb1e6"   # optional: brand accent for dark mode (lighter so it reads on dark)
 exam:
   date: 2026-05-20
   durationMinutes: 240

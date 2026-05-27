@@ -5,6 +5,11 @@ import CodeBlock from "./components/CodeBlock.astro";
 import SelfCheck from "./components/SelfCheck.astro";
 import Quiz from "./components/Quiz.astro";
 import Simulation from "./components/Simulation.astro";
+import Example from "./components/Example.astro";
+import Solution from "./components/Solution.astro";
+import Answer from "./components/Answer.astro";
+import LearningGoals from "./components/LearningGoals.astro";
+import ExamFocus from "./components/ExamFocus.astro";
 
 /**
  * Components made available to every MDX section by name, without the author
@@ -22,6 +27,11 @@ export const mdxComponents = {
   SelfCheck,
   Quiz,
   Simulation,
+  Example,
+  Solution,
+  Answer,
+  LearningGoals,
+  ExamFocus,
 };
 
 export default mdxComponents;

@@ -38,7 +38,15 @@ export const courseSchema = z.object({
   subtitle: z.string().optional(),
   term: z.string(), //  "V2026"
   language: z.enum(["nb", "nn", "en"]).default("nb"),
-  accent: z.string().default("#2f6df6"), // per-course theme color (any CSS color)
+  /** Brand accent for LIGHT mode (any CSS color). */
+  accent: z.string().default("#2f6df6"),
+  /**
+   * Brand accent for DARK mode. Defaults to `accent`. Set a lighter/brighter
+   * shade so accent text, links and labels stay legible on dark surfaces — the
+   * framework uses exactly this value (no auto-derivation), so each course
+   * controls how its brand reads in each theme.
+   */
+  accentDark: z.string().optional(),
 
   /** Upcoming-exam metadata shown in the course header / sidebar. */
   exam: z

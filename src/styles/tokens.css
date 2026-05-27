@@ -14,9 +14,13 @@
 :root {
   color-scheme: light;
 
-  /* --- Brand / accent (overridden per course via inline style on <html>) --- */
-  --accent: #1f5f8b;
-  --accent-contrast: #ffffff; /* text on top of --accent */
+  /* --- Brand / accent ---
+     CourseLayout sets --accent-light / --accent-dark (the course's per-theme
+     accents) and the matching on-accent text colours inline on <html>. --accent
+     resolves to the light pair here and to the dark pair in the dark block, so
+     every `var(--accent)` usage — fill, border or text — is correct per theme. */
+  --accent: var(--accent-light, #1f5f8b);
+  --accent-contrast: var(--accent-contrast-light, #ffffff); /* text on top of --accent */
   --accent-weak: color-mix(in srgb, var(--accent) 12%, transparent);
   --accent-soft: color-mix(in srgb, var(--accent) 10%, var(--bg-elevated));
   --accent-ring: color-mix(in srgb, var(--accent) 45%, transparent);
@@ -46,8 +50,8 @@
   /* Semantic roles. --tip/--warning use AA-legible shades for body-size text;
      the categorical --green/--orange stay vivid for figures. */
   --note: var(--accent);
-  --tip: #2f7d52;
-  --warning: #a85a00;
+  --tip: #2a7547;
+  --warning: #9c5300;
   --core: var(--red);
   --useful: var(--accent);
   --extra: var(--muted);
@@ -150,8 +154,10 @@
 :root[data-theme="dark"] {
   color-scheme: dark;
 
-  /* --accent-contrast is derived from the accent inline on <html> (see
-     lib/color.ts) and is theme-independent, so it is not set here. */
+  /* Dark-mode brand accent + its on-accent text colour (course-set, see
+     CourseLayout). Falls back to the light accent if the course omits accentDark. */
+  --accent: var(--accent-dark, var(--accent-light, #1f5f8b));
+  --accent-contrast: var(--accent-contrast-dark, var(--accent-contrast-light, #ffffff));
   --on-strong: #10151c;
 
   --bg: #11161d;

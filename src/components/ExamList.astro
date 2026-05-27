@@ -1,5 +1,6 @@
 ---
 import type { ExamPaper } from "../schema.ts";
+import Icon from "./Icon.astro";
 
 /**
  * A list of past exam papers with optional dates and solution links. Rendered
@@ -30,7 +31,8 @@ const sorted = [...exams].sort((a, b) => {
         <div class="exam-links">
           {e.url && (
             <a href={e.url} target="_blank" rel="noopener noreferrer">
-              Oppgave ↗
+              Oppgave
+              <Icon name="external" size={13} />
             </a>
           )}
           {e.solutionUrl && (
@@ -40,7 +42,8 @@ const sorted = [...exams].sort((a, b) => {
               rel="noopener noreferrer"
               class="exam-solution"
             >
-              Løsning ↗
+              Løsning
+              <Icon name="external" size={13} />
             </a>
           )}
         </div>
@@ -92,6 +95,9 @@ const sorted = [...exams].sort((a, b) => {
     font-size: var(--text-sm);
   }
   .exam-links a {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
     text-decoration: none;
     white-space: nowrap;
   }

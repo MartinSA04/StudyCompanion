@@ -1,0 +1,66 @@
+---
+import Icon from "./Icon.astro";
+
+/**
+ * A collapsible worked solution, used inside <Example> (closed by default). Put
+ * the final <Answer> inside it so the answer stays hidden until the reader
+ * reveals the solution. Body is slotted MDX.
+ */
+interface Props {
+  /** Summary text. Default "Vis løsning". */
+  label?: string;
+  /** Reveal by default. */
+  open?: boolean;
+}
+const { label = "Vis løsning", open = false } = Astro.props;
+---
+
+<details class="solution" open={open}>
+  <summary>
+    <span class="solution-chev" aria-hidden="true">
+      <Icon name="chevron-right" size={13} />
+    </span>
+    {label}
+  </summary>
+  <div class="solution-body"><slot /></div>
+</details>
+
+<style>
+  .solution {
+    margin-top: var(--space-4);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--card);
+  }
+  .solution > summary {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-3);
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    color: var(--accent);
+    cursor: pointer;
+    list-style: none;
+    user-select: none;
+  }
+  .solution > summary::-webkit-details-marker {
+    display: none;
+  }
+  .solution[open] > summary {
+    border-bottom: 1px solid var(--border);
+  }
+  .solution-chev {
+    display: inline-flex;
+    transition: transform var(--dur-fast) var(--ease);
+  }
+  .solution[open] .solution-chev {
+    transform: rotate(90deg);
+  }
+  .solution-body {
+    padding: var(--space-3);
+  }
+  .solution-body > :global(:last-child) {
+    margin-bottom: 0;
+  }
+</style>

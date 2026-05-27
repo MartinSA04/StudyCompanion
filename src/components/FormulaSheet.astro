@@ -74,7 +74,8 @@ const hasMemorize = formulas.some((f) => f.memorize);
           På formelarket
         </button>
         <button type="button" class="fs-chip" data-filter="memorize" aria-pressed="false">
-          ★ Må pugges
+          <Icon name="star" size={13} />
+          Må pugges
         </button>
       </div>
     )
@@ -103,7 +104,8 @@ const hasMemorize = formulas.some((f) => f.memorize);
               {f.label && <span class="fs-label" set:html={renderMathString(f.label)} />}
               {f.memorize && (
                 <span class="fs-badge" title="Står ikke på formelarket – må pugges">
-                  ★ ikke på formelarket
+                  <Icon name="star" size={12} />
+                  ikke på formelarket
                 </span>
               )}
               <button
@@ -176,6 +178,9 @@ const hasMemorize = formulas.some((f) => f.memorize);
     gap: var(--space-2);
   }
   .fs-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4em;
     font-family: var(--font-mono);
     font-size: var(--text-sm);
     padding: 0.4em 0.95em;
@@ -271,6 +276,9 @@ const hasMemorize = formulas.some((f) => f.memorize);
   }
   .fs-badge {
     flex: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
     font-family: var(--font-mono);
     font-size: var(--text-xs);
     font-weight: var(--weight-semibold);

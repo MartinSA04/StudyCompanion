@@ -1,0 +1,87 @@
+---
+import Icon from "./Icon.astro";
+import { renderMathString } from "../lib/katex.ts";
+
+/**
+ * A worked example ("regneeksempel"): a labelled panel holding a problem and a
+ * collapsible worked solution. Authoring stays flat and tag-light — no slots to
+ * remember, just three nested components:
+ *
+ *   <Example title="bølgelengde fra k">
+ *     $\vec E = 30\cos(kz-\omega t)$. Finn $\lambda$.
+ *
+ *     <Solution>
+ *       $\lambda = 2\pi/k \approx 500$ nm. ...
+ *
+ *       <Answer>$\lambda \approx 500$ nm</Answer>
+ *     </Solution>
+ *   </Example>
+ *
+ * The default slot is the problem (followed by <Solution>). Put <Answer> inside
+ * <Solution> so it is hidden until the reader reveals the solution. The example
+ * works fine with just a problem, or problem + solution, or all three.
+ * Subject-agnostic — labels are props; `title` may contain `$inline$` math.
+ */
+interface Props {
+  /** The mono kicker badge. Default "Regneeksempel". */
+  label?: string;
+  /** Optional descriptive subtitle beside the badge; may contain `$inline$` math. */
+  title?: string;
+}
+const { label = "Regneeksempel", title } = Astro.props;
+---
+
+<figure class="example">
+  <figcaption class="example-head">
+    <span class="example-badge">
+      <Icon name="calculator" size={16} />
+      {label}
+    </span>
+    {title && <span class="example-title" set:html={renderMathString(title)} />}
+  </figcaption>
+  <div class="example-body"><slot /></div>
+</figure>
+
+<style>
+  .example {
+    margin-block: var(--space-5);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius);
+    background: var(--bg-elevated);
+    overflow: hidden;
+  }
+  .example-head {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+  }
+  .example-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex: none;
+    align-self: center;
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    font-weight: var(--weight-semibold);
+    color: var(--accent);
+  }
+  .example-title {
+    font-family: var(--font-display);
+    font-weight: var(--weight-medium);
+    font-size: var(--text-md);
+    color: var(--fg);
+  }
+  .example-body {
+    padding: var(--space-4);
+  }
+  .example-body > :global(:last-child) {
+    margin-bottom: 0;
+  }
+</style>
