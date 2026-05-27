@@ -33,23 +33,29 @@ Each item carries:
 
 ---
 
-## P0 — Foundations (do these first; they de-risk everything after)
+## P0 — Foundations (do these first; they de-risk everything after) — ✅ Complete
 
 These are cheap, mostly non-visual, and make every later change safer to ship in
-a versioned library.
+a versioned library. **All five shipped** — see each item's **Done** note.
 
-### 0.1 Unit tests for the pure logic — `minor`/infra, **M**
+### 0.1 Unit tests for the pure logic — `minor`/infra, **M** — ✅ Done
 **Why.** This is a *versioned* library; a numbering or contrast regression ships
 to every pinned course. The pure functions are perfect test targets and have
 zero rendering dependencies.
-**What.** Add Vitest. Cover `lib/nav.ts` (`sectionNumbers` gap-free `num`
-override, `sectionSlug` edge cases, `shortTitle` splitting), `lib/color.ts`
+**What.** Cover `lib/nav.ts` (`sectionNumbers` gap-free `num` override,
+`sectionSlug` edge cases, `shortTitle` splitting, `toolFlags`), `lib/color.ts`
 (`contrastText`/`accentOnBg` against known WCAG pairs), `lib/progress.ts`
-(round-trip + corrupt-storage fallback), and a smoke test that every
-`mdxComponents` entry imports. Add `"test": "vitest"` to scripts.
-**Note.** Pure infra — no schema change.
+(round-trip + number coercion + corrupt-storage/throwing-storage fallback), and a
+static smoke test that every `mdxComponents` import resolves to a real file and is
+registered in the map.
+**Done.** `test/*.test.ts` (24 cases) via the **built-in `node:test`** runner —
+no Vitest. Rationale: this is a near-zero-dependency library and Node 23 strips TS
+types natively, so the suite runs with **zero new devDeps** (and Vitest can't be
+installed in the dev sandbox anyway — see the demo/verify memory). `"test": "node
+--test … 'test/**/*.test.ts'"`. `.astro` execution stays covered by the demo
+`pnpm build`; the smoke test is the static guard. Pure infra — no schema change.
 
-### 0.2 In-repo dev fixture / kitchen-sink course — infra, **S–M**
+### 0.2 In-repo dev fixture / kitchen-sink course — infra, **S–M** — ✅ Done
 **Why.** The framework can't `astro build`/`dev` standalone (no `content/`), so
 component work and screenshotting require an external course. A bundled fixture
 makes `pnpm dev` show every widget in both themes — the screenshot-compare
@@ -58,7 +64,7 @@ workflow becomes one command.
 widget (a "kitchen sink" module). A dev script points Astro's content root at it.
 Excluded from the published package via `files`/`.npmignore`.
 
-### 0.3 Heading hierarchy fix — `patch` (a11y), **S**
+### 0.3 Heading hierarchy fix — `patch` (a11y), **S** — ✅ Done
 **Why.** Module and tool pages start at `<h2>` (`[slug].astro:107,151,…`) with no
 `<h1>` — fails sequential-heading a11y and weakens document outline/SEO. The
 topbar brand is a link, not a heading.
@@ -66,7 +72,7 @@ topbar brand is a link, not a heading.
 `<h1>` for the course title). Demote in-content headings if needed so MDX `##`
 stays below the page `<h1>`. Verify the type scale still reads right.
 
-### 0.4 Print stylesheet upgrade — `patch`, **S**
+### 0.4 Print stylesheet upgrade — `patch`, **S** — ✅ Done
 **Why.** Students print study guides. The current `@media print`
 (`shell.css:618`) hides chrome but leaves every `<details>` collapsed — so
 `<Solution>`, `<Derivation>`, `<SelfCheck>` answers and `<Quiz>` explanations
@@ -76,7 +82,7 @@ display:block !important }`), avoid page-breaks inside `.formula`/`.example`
 panels (`break-inside: avoid`), print link URLs after external links, and ensure
 the formula sheet prints as a clean reference. Test print-to-PDF in both themes.
 
-### 0.5 Doc + version reconciliation — `patch`, **S**
+### 0.5 Doc + version reconciliation — `patch`, **S** — ✅ Done
 **Why.** `CLAUDE.md` says "Astro 5"; `package.json`/README are on Astro **6**.
 The README widget table is missing the widgets added since: `Example`,
 `Solution`, `Answer`, `LearningGoals`, `ExamFocus`, plus the `course.yaml`-driven
@@ -287,19 +293,25 @@ canonical expression and apply it everywhere.
 5. **Ongoing:** visual-regression CI (2.6) and design-system unification
    (2.7–2.8) as capacity allows.
 
-**Do next:** 0.2 (dev fixture) + 0.1 (tests) together — they make every
-subsequent widget faster to build, screenshot, and guard against regressions, and
-neither touches the public schema.
+**Status:** Release N (P0 foundations) is **complete** — dev fixture, tests,
+heading fix, print, docs all shipped and verified against the demo.
+
+**Do next:** Release N+1 (authoring power) — the widgets that kill the most
+repetition: `<Figure>` (1.1), `<Steps>` (1.2), `<KeyTakeaways>` (1.3),
+`<Hint>` (1.5). All additive `minor`s, each verified in both themes against the
+kitchen-sink demo.
 
 ## SemVer ledger (at a glance)
 
+✅ = shipped.
+
 | Item | SemVer | Effort |
 |---|---|---|
-| 0.1 Unit tests | infra | M |
-| 0.2 Dev fixture | infra | S–M |
-| 0.3 Heading hierarchy | patch | S |
-| 0.4 Print stylesheet | patch | S |
-| 0.5 Docs/version reconcile | patch | S |
+| ✅ 0.1 Unit tests | infra | M |
+| ✅ 0.2 Dev fixture | infra | S–M |
+| ✅ 0.3 Heading hierarchy | patch | S |
+| ✅ 0.4 Print stylesheet | patch | S |
+| ✅ 0.5 Docs/version reconcile | patch | S |
 | 1.1 `<Figure>` | minor | M |
 | 1.2 `<Steps>` | minor | S |
 | 1.3 `<KeyTakeaways>` | minor | S |

@@ -163,8 +163,14 @@ pnpm install
 pnpm dev                # serve the demo course (http://localhost:4321)
 pnpm build              # static build of the demo + Pagefind index → dist/
 pnpm preview            # preview the build (search works here, not in dev)
+pnpm test               # unit tests for the pure logic (built-in node:test)
 pnpm typecheck          # tsc on the framework source
 ```
+
+`pnpm test` uses Node's built-in test runner (Node ≥ 23 strips the TS types
+natively) — no extra dependency. It covers the pure modules (`lib/nav`,
+`lib/color`, `lib/progress`) and statically checks the `mdxComponents` map; the
+`.astro` widgets themselves are exercised by the demo `pnpm build`.
 
 `dev`/`build` first self-link `node_modules/study-companion` → repo root (via
 `scripts/ensure-self-link.mjs`) so the injected routes resolve the package by

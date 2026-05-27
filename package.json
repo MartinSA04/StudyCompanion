@@ -24,6 +24,7 @@
     "dev": "node scripts/ensure-self-link.mjs && astro dev",
     "build": "node scripts/ensure-self-link.mjs && astro build",
     "preview": "astro preview",
+    "test": "node --test --disable-warning=ExperimentalWarning 'test/**/*.test.ts'",
     "typecheck": "astro sync && tsc --noEmit"
   },
   "peerDependencies": {
