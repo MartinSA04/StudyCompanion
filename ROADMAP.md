@@ -227,10 +227,18 @@ module. All client-side, progressive-enhancement — zero change when progress i
 **Why.** Decks render all cards; large decks want focus.
 **Done.** Section filter chips (pill buttons, only shown when cards have sections),
 **"Kun ukjente"** toggle (hides cards at level ≥ 2), and **"Bland"** toggle
-(Fisher-Yates shuffle each lap). Filter state (`section`, `onlyUnknown`, `shuffled`)
-gates `buildQueue()`; the counter updates to show filtered N. Empty-state message
-shown when no cards match. `data-section` added to each card button as the filter
-target. No schema change — data already present.
+(Fisher-Yates shuffle). Filter state (`section`, `onlyUnknown`, `shuffled`) gates
+`buildQueue()`; the counter shows filtered N, with an empty-state message when none
+match. `data-section` added to each card button as the filter target. No schema
+change — data already present.
+**Also (interaction fixes from review):** (a) **per-card mastery badge** — a green
+"Kan" pill at level 2 and a muted amber dot at level 1, driven by `data-level` and
+synced from the stored levels on load + every rating, so a reader can see at a
+glance what they've already mastered. (b) Navigation is now a **stable carousel** —
+removed the silent `buildQueue()` on wrap that reshuffled order mid-session, so
+prev/next always moves to a different card. (c) Fixed a Space/Enter **double-flip**:
+when the card button has focus the native click already flips it, so the keydown
+handler now skips (they were cancelling out).
 
 ---
 

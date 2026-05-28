@@ -93,6 +93,10 @@ const hasSections = sections.length > 0;
               <span class="fc-text" set:html={card.back} />
             </span>
           </span>
+          <span class="fc-level" aria-hidden="true">
+            <span class="fc-level-dot" />
+            <span class="fc-level-text">{labels.known}</span>
+          </span>
         </button>
       ))
     }
@@ -201,6 +205,7 @@ const hasSections = sections.length > 0;
     perspective: 1200px;
   }
   .fc-card {
+    position: relative;
     display: block;
     width: 100%;
     min-height: 200px;
@@ -262,6 +267,51 @@ const hasSections = sections.length > 0;
     bottom: var(--space-3);
     font-size: var(--text-xs);
     color: var(--muted);
+  }
+
+  /* Per-card mastery badge — sits outside .fc-inner so it never flips.
+     Driven by data-level on the card (0 = new, 1 = øvd, 2 = kan). */
+  .fc-level {
+    position: absolute;
+    top: var(--space-3);
+    right: var(--space-3);
+    z-index: 1;
+    display: none;
+    align-items: center;
+    gap: var(--space-1);
+    padding: 2px var(--space-2);
+    border-radius: var(--radius-pill);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    line-height: 1;
+  }
+  .fc-card[data-level="1"] .fc-level,
+  .fc-card[data-level="2"] .fc-level {
+    display: inline-flex;
+  }
+  .fc-level-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex: none;
+    background: currentColor;
+  }
+  .fc-level-text {
+    display: none;
+  }
+  /* Level 1 — seen once: a muted amber dot, no label. */
+  .fc-card[data-level="1"] .fc-level {
+    color: var(--warning);
+    background: var(--warning-bg);
+  }
+  /* Level 2 — mastered ("Kan"): a green pill with the label. */
+  .fc-card[data-level="2"] .fc-level {
+    color: var(--tip);
+    background: var(--tip-bg);
+  }
+  .fc-card[data-level="2"] .fc-level-text {
+    display: inline;
+    font-weight: var(--weight-semibold);
   }
 
   .fc-controls {
@@ -364,29 +414,48 @@ const hasSections = sections.length > 0;
       queue = indices;
     };
 
+    // Reflect each card's stored mastery level on the card (drives the badge).
+    const paintBadges = () => {
+      cards.forEach((c) => {
+        c.dataset.level = String(levels[Number(c.dataset.index)] ?? 0);
+      });
+    };
+
     const renderProgress = () => {
       const known = Object.values(levels).filter((v) => v >= 2).length;
       knownOut.textContent = String(known);
       resetBtn.hidden = Object.keys(levels).length === 0;
+      paintBadges();
     };
 
     const show = () => {
       const idx = queue[pos];
       const isEmpty = idx === undefined;
+      // Hiding the focused card orphans focus up to <main> (a tabindex=-1
+      // container), which would draw a focus ring around the whole page. If the
+      // card had focus, keep it on the deck by moving focus to the new card.
+      const refocus = cards.includes(
+        document.activeElement as HTMLButtonElement,
+      );
       if (emptyMsg) emptyMsg.hidden = !isEmpty;
       cards.forEach((c) => {
         c.hidden = isEmpty || Number(c.dataset.index) !== idx;
         c.dataset.flipped = "false";
       });
+      if (refocus && !isEmpty) {
+        cards.find((c) => !c.hidden)?.focus({ preventScroll: true });
+      }
       posOut.textContent = isEmpty ? "0" : String(pos + 1);
       if (totalOut) totalOut.textContent = String(queue.length);
     };
 
+    // Navigation is a stable carousel: the queue order only changes when the
+    // reader changes a filter, shuffles or resets — never silently mid-session,
+    // so next/prev always moves to a different card (unless only one matches).
     const advance = (delta: number) => {
       const qlen = queue.length;
       if (!qlen) return;
       pos = (pos + delta + qlen) % qlen;
-      if (pos === 0) buildQueue();
       show();
     };
 
@@ -481,7 +550,9 @@ const hasSections = sections.length > 0;
       const cur = cards.find((c) => !c.hidden);
       if (!cur) return;
       if (e.key === " " || e.key === "Enter") {
-        if (active?.closest(".fc-controls")) return;
+        // A focused button (the card itself or a control) already activates on
+        // Space/Enter natively — don't also flip here, or the two cancel out.
+        if (active instanceof HTMLButtonElement) return;
         e.preventDefault();
         cur.dataset.flipped = cur.dataset.flipped === "true" ? "false" : "true";
       } else if (e.key === "ArrowLeft") {

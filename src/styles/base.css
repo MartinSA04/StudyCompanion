@@ -205,7 +205,17 @@ button {
   cursor: pointer;
 }
 
-:where(a, button, input, select, summary, [tabindex]):focus-visible {
+/* `:not([tabindex="-1"])` keeps the ring off programmatically-focused
+   containers (e.g. the skip-link target <main>, or a card whose focused sibling
+   was just hidden) — only real tab stops get the outline. */
+:where(
+  a,
+  button,
+  input,
+  select,
+  summary,
+  [tabindex]:not([tabindex="-1"])
+):focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
   border-radius: var(--radius-sm);
