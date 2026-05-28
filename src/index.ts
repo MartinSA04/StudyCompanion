@@ -84,7 +84,18 @@ export default function studyCompanion(
         try {
           // Dynamic import: pagefind spawns a native binary, so we only load it
           // when actually building an index (and never during `astro dev`).
-          const pagefind = await import("pagefind");
+          // Build the import via `new Function` so Vite never rewrites it into a
+          // call on its SSR module runner — which is already closed by the time
+          // astro:build:done runs, otherwise failing with "Vite module runner
+          // has been closed". The runner only intercepts the import when this
+          // package is consumed as a packed node_modules dependency; a symlinked
+          // `link:` dep happens to dodge it. The Function body's `import()`
+          // resolves through Node's native loader.
+          const nativeImport = new Function(
+            "specifier",
+            "return import(specifier)",
+          ) as (s: string) => Promise<typeof import("pagefind")>;
+          const pagefind = await nativeImport("pagefind");
           const { index } = await pagefind.createIndex();
           if (!index) throw new Error("Pagefind failed to create an index.");
           await index.addDirectory({ path: outDir });
