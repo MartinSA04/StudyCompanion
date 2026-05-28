@@ -34,8 +34,10 @@ const { src, title, caption, height = 300 } = Astro.props;
 <figure class="simulation" data-sim data-sim-src={src} data-sim-height={height}>
   {title && <figcaption class="sim-title">{title}</figcaption>}
   <div class="sim-stage">
-    <canvas class="sim-canvas" role="img" aria-label={title ?? "Interaktiv simulering"}
-    ></canvas>
+    <canvas
+      class="sim-canvas"
+      role="img"
+      aria-label={title ?? "Interaktiv simulering"}></canvas>
     <p class="sim-fallback">Interaktiv simulering krever JavaScript.</p>
   </div>
   <div class="sim-controls"></div>

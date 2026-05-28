@@ -16,6 +16,7 @@ Set `schemaVersion: 1` in `content/course.yaml`. Required: `code`, `title`, `ter
 Everything else is optional with sensible defaults (see `README.md`).
 
 Additive since the first tag (no migration, available when present):
+
 - `course.formulas[]` — `{ tex, label?, section?, onSheet?, memorize? }` → renders the
   **Formelsamling** section + auto-generated flashcards. `memorize: true` (with
   `onSheet: false`) flags "må pugges" and enables the on-sheet/memorize filter.

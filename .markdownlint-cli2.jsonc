@@ -1,0 +1,19 @@
+{
+  // Markdown lint config for the repo's docs (README, ROADMAP, DESIGN, …).
+  // Read by both `markdownlint-cli2` (pnpm lint:md) and the VS Code markdownlint
+  // extension, so the editor and CI agree.
+  "config": {
+    "default": true,
+    // Line length: prose and tables wrap freely — matches the editor default.
+    "MD013": false,
+    // Table pipe spacing: padded header + compact separator is standard GFM and
+    // renders identically; not worth enforcing (and this rule is very new).
+    "MD060": false,
+    // Duplicate headings are fine under different parents (e.g. repeated "P1 — …").
+    "MD024": { "siblings_only": true },
+  },
+  // Only the docs — never node_modules, build output, or the generated cache.
+  // `.mdx` is intentionally excluded: it is JSX-bearing, not CommonMark.
+  "globs": ["**/*.md"],
+  "ignores": ["**/node_modules/**", "dist/**", ".astro/**"],
+}

@@ -20,7 +20,10 @@
      resolves to the light pair here and to the dark pair in the dark block, so
      every `var(--accent)` usage — fill, border or text — is correct per theme. */
   --accent: var(--accent-light, #1f5f8b);
-  --accent-contrast: var(--accent-contrast-light, #ffffff); /* text on top of --accent */
+  --accent-contrast: var(
+    --accent-contrast-light,
+    #ffffff
+  ); /* text on top of --accent */
   --accent-weak: color-mix(in srgb, var(--accent) 12%, transparent);
   --accent-soft: color-mix(in srgb, var(--accent) 10%, var(--bg-elevated));
   --accent-ring: color-mix(in srgb, var(--accent) 45%, transparent);
@@ -69,7 +72,8 @@
   /* --- Typography --- */
   --font-display: "Fraunces", "Georgia", "Times New Roman", serif;
   --font-body: "Spectral", "Georgia", "Times New Roman", serif;
-  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-mono:
+    "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
   --font-sans:
     ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 
@@ -116,7 +120,11 @@
     0 4px 12px color-mix(in srgb, #0b1020 8%, transparent),
     0 1px 3px color-mix(in srgb, #0b1020 6%, transparent);
   --shadow-lg: 0 24px 60px color-mix(in srgb, #0b1020 22%, transparent);
-  --scrim: color-mix(in srgb, #0b1020 60%, transparent); /* modal / drawer backdrop */
+  --scrim: color-mix(
+    in srgb,
+    #0b1020 60%,
+    transparent
+  ); /* modal / drawer backdrop */
 
   --maxw: 820px; /* readable content measure */
   --sidebar-w: 264px;
@@ -157,7 +165,10 @@
   /* Dark-mode brand accent + its on-accent text colour (course-set, see
      CourseLayout). Falls back to the light accent if the course omits accentDark. */
   --accent: var(--accent-dark, var(--accent-light, #1f5f8b));
-  --accent-contrast: var(--accent-contrast-dark, var(--accent-contrast-light, #ffffff));
+  --accent-contrast: var(
+    --accent-contrast-dark,
+    var(--accent-contrast-light, #ffffff)
+  );
   --on-strong: #10151c;
 
   --bg: #11161d;
@@ -194,8 +205,7 @@
   --canvas-bg: #10151c;
 
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
-  --shadow:
-    0 4px 14px rgba(0, 0, 0, 0.5), 0 1px 3px rgba(0, 0, 0, 0.4);
+  --shadow: 0 4px 14px rgba(0, 0, 0, 0.5), 0 1px 3px rgba(0, 0, 0, 0.4);
   --shadow-lg: 0 24px 60px rgba(0, 0, 0, 0.62);
   --scrim: color-mix(in srgb, #000 72%, transparent);
 }

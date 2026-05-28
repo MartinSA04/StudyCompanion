@@ -23,8 +23,16 @@ const auto = !solution && !label;
   open={open}
 >
   <summary>
-    <span class="hint-chev" aria-hidden="true"><Icon name="chevron-right" size={13} /></span>
-    {auto ? <span class="hint-auto"></span> : <span>{solution ? "Løsning" : label}</span>}
+    <span class="hint-chev" aria-hidden="true"
+      ><Icon name="chevron-right" size={13} /></span
+    >
+    {
+      auto ? (
+        <span class="hint-auto" />
+      ) : (
+        <span>{solution ? "Løsning" : label}</span>
+      )
+    }
   </summary>
   <div class="hint-body"><slot /></div>
 </details>

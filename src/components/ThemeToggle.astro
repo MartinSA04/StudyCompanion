@@ -65,21 +65,25 @@ import Icon from "./Icon.astro";
 
 <script>
   // Vanilla island: flip data-theme on <html> and persist the choice.
-  document.querySelectorAll<HTMLButtonElement>(".theme-toggle").forEach((btn) => {
-    const key = btn.dataset.storageKey;
-    btn.addEventListener("click", () => {
-      const root = document.documentElement;
-      const next =
-        root.getAttribute("data-theme") === "dark" ? "light" : "dark";
-      root.setAttribute("data-theme", next);
-      try {
-        if (key) localStorage.setItem(key, next);
-      } catch {
-        /* private mode / storage disabled — fall through, no persistence */
-      }
-      // Let canvas simulations (and any other listeners) repaint with the new
-      // theme's CSS custom properties.
-      document.dispatchEvent(new CustomEvent("sc:themechange", { detail: next }));
+  document
+    .querySelectorAll<HTMLButtonElement>(".theme-toggle")
+    .forEach((btn) => {
+      const key = btn.dataset.storageKey;
+      btn.addEventListener("click", () => {
+        const root = document.documentElement;
+        const next =
+          root.getAttribute("data-theme") === "dark" ? "light" : "dark";
+        root.setAttribute("data-theme", next);
+        try {
+          if (key) localStorage.setItem(key, next);
+        } catch {
+          /* private mode / storage disabled — fall through, no persistence */
+        }
+        // Let canvas simulations (and any other listeners) repaint with the new
+        // theme's CSS custom properties.
+        document.dispatchEvent(
+          new CustomEvent("sc:themechange", { detail: next }),
+        );
+      });
     });
-  });
 </script>

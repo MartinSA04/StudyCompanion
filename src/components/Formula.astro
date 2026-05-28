@@ -46,7 +46,10 @@ const html = katex.renderToString(block ? `\\displaystyle ${tex}` : tex, {
         <span class="fx" set:html={html} />
         {caption && <span class="desc" set:html={renderMathString(caption)} />}
         {memorize && (
-          <span class="formula-badge" title="Står ikke på formelarket – må pugges">
+          <span
+            class="formula-badge"
+            title="Står ikke på formelarket – må pugges"
+          >
             <Icon name="star" size={12} />
             må pugges
           </span>

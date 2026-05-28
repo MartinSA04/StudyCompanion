@@ -1,0 +1,16 @@
+# Generated / vendored — never format.
+node_modules
+dist
+.astro
+pnpm-lock.yaml
+
+# Markdown is owned by markdownlint (pnpm lint:md).
+*.md
+
+# Demo content (MDX is JSX-bearing) and static assets are left as authored.
+content
+public
+
+# prettier-plugin-astro (0.14) can't parse an `is:inline` <script> nested inside
+# a `{cond && (…)}` expression — it throws on this file only. Left as authored.
+src/layouts/CourseLayout.astro

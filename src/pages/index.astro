@@ -2,7 +2,12 @@
 import { getCollection } from "astro:content";
 import CourseLayout from "../layouts/CourseLayout.astro";
 import { loadCourse } from "../lib/loadCourse.ts";
-import { sectionNav, sectionNumbers, sectionSlug, toolFlags } from "../lib/nav.ts";
+import {
+  sectionNav,
+  sectionNumbers,
+  sectionSlug,
+  toolFlags,
+} from "../lib/nav.ts";
 
 const { course, sections } = await loadCourse();
 
@@ -67,20 +72,30 @@ const hasExamCard =
   {
     hasExamCard && (
       <div class="card">
-        <h2><span class="dot"></span>{course.ui.examsLabel}</h2>
+        <h2>
+          <span class="dot" />
+          {course.ui.examsLabel}
+        </h2>
         {examDate && (
           <p>
             <strong>Dato:</strong> {examDate}
             {daysToExam != null && daysToExam >= 0 && (
-              <span> — {daysToExam === 0 ? "i dag" : `om ${daysToExam} dager`}</span>
+              <span>
+                {" "}
+                — {daysToExam === 0 ? "i dag" : `om ${daysToExam} dager`}
+              </span>
             )}
           </p>
         )}
         {course.exam?.format && (
-          <p><strong>Form:</strong> {course.exam.format}</p>
+          <p>
+            <strong>Form:</strong> {course.exam.format}
+          </p>
         )}
         {course.exam?.aids && (
-          <p><strong>Hjelpemidler:</strong> {course.exam.aids}</p>
+          <p>
+            <strong>Hjelpemidler:</strong> {course.exam.aids}
+          </p>
         )}
       </div>
     )

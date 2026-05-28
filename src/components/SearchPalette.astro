@@ -26,7 +26,8 @@ import Icon from "./Icon.astro";
   // runs synchronously as the parser passes it — the kbd above is already in the
   // DOM and gets fixed before first paint, so non-Mac users never see ⌘K flash.
   (() => {
-    const platform = navigator.userAgentData?.platform ?? navigator.platform ?? "";
+    const platform =
+      navigator.userAgentData?.platform ?? navigator.platform ?? "";
     if (/mac|iphone|ipad|ipod/i.test(platform)) return; // default markup is correct
     for (const el of document.querySelectorAll("[data-search-kbd]")) {
       el.textContent = "Ctrl K";
@@ -236,7 +237,10 @@ import Icon from "./Icon.astro";
       const typing =
         document.activeElement instanceof HTMLInputElement ||
         document.activeElement instanceof HTMLTextAreaElement;
-      if ((e.key === "k" && (e.metaKey || e.ctrlKey)) || (e.key === "/" && !typing)) {
+      if (
+        (e.key === "k" && (e.metaKey || e.ctrlKey)) ||
+        (e.key === "/" && !typing)
+      ) {
         e.preventDefault();
         void open();
       }
@@ -256,9 +260,9 @@ import Icon from "./Icon.astro";
         )
         .join("");
       // Close the dialog when a result is chosen.
-      results.querySelectorAll("a").forEach((a) =>
-        a.addEventListener("click", () => dialog.close()),
-      );
+      results
+        .querySelectorAll("a")
+        .forEach((a) => a.addEventListener("click", () => dialog.close()));
     };
 
     let token = 0;
@@ -273,7 +277,13 @@ import Icon from "./Icon.astro";
         const data = await r.data();
         const subs = data.sub_results?.length
           ? data.sub_results
-          : [{ title: data.meta.title ?? "Treff", url: data.url, excerpt: data.excerpt }];
+          : [
+              {
+                title: data.meta.title ?? "Treff",
+                url: data.url,
+                excerpt: data.excerpt,
+              },
+            ];
         flat.push(...subs);
         if (flat.length >= 8) break;
       }

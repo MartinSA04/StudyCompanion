@@ -81,9 +81,7 @@ export function toolFlags(course: Course, flashcardCount: number): ToolFlags {
 }
 
 /** The ordered module nav items (no tools). */
-export function sectionNav(
-  sections: CollectionEntry<"sections">[],
-): NavItem[] {
+export function sectionNav(sections: CollectionEntry<"sections">[]): NavItem[] {
   const nums = sectionNumbers(sections);
   return sections.map((s) => ({
     slug: sectionSlug(s.id),

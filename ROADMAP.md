@@ -39,6 +39,7 @@ These are cheap, mostly non-visual, and make every later change safer to ship in
 a versioned library. **All five shipped** — see each item's **Done** note.
 
 ### 0.1 Unit tests for the pure logic — `minor`/infra, **M** — ✅ Done
+
 **Why.** This is a *versioned* library; a numbering or contrast regression ships
 to every pinned course. The pure functions are perfect test targets and have
 zero rendering dependencies.
@@ -56,6 +57,7 @@ installed in the dev sandbox anyway — see the demo/verify memory). `"test": "n
 `pnpm build`; the smoke test is the static guard. Pure infra — no schema change.
 
 ### 0.2 In-repo dev fixture / kitchen-sink course — infra, **S–M** — ✅ Done
+
 **Why.** The framework can't `astro build`/`dev` standalone (no `content/`), so
 component work and screenshotting require an external course. A bundled fixture
 makes `pnpm dev` show every widget in both themes — the screenshot-compare
@@ -65,6 +67,7 @@ widget (a "kitchen sink" module). A dev script points Astro's content root at it
 Excluded from the published package via `files`/`.npmignore`.
 
 ### 0.3 Heading hierarchy fix — `patch` (a11y), **S** — ✅ Done
+
 **Why.** Module and tool pages start at `<h2>` (`[slug].astro:107,151,…`) with no
 `<h1>` — fails sequential-heading a11y and weakens document outline/SEO. The
 topbar brand is a link, not a heading.
@@ -73,6 +76,7 @@ topbar brand is a link, not a heading.
 stays below the page `<h1>`. Verify the type scale still reads right.
 
 ### 0.4 Print stylesheet upgrade — `patch`, **S** — ✅ Done
+
 **Why.** Students print study guides. The current `@media print`
 (`shell.css:618`) hides chrome but leaves every `<details>` collapsed — so
 `<Solution>`, `<Derivation>`, `<SelfCheck>` answers and `<Quiz>` explanations
@@ -83,6 +87,7 @@ panels (`break-inside: avoid`), print link URLs after external links, and ensure
 the formula sheet prints as a clean reference. Test print-to-PDF in both themes.
 
 ### 0.5 Doc + version reconciliation — `patch`, **S** — ✅ Done
+
 **Why.** `CLAUDE.md` says "Astro 5"; `package.json`/README are on Astro **6**.
 The README widget table is missing the widgets added since: `Example`,
 `Solution`, `Answer`, `LearningGoals`, `ExamFocus`, plus the `course.yaml`-driven
@@ -100,6 +105,7 @@ additive → `minor`, available via `mdx-components.ts` with no per-file imports
 **All six shipped** — see each item's **Done** note.
 
 ### 1.1 `<Figure>` — captioned, numbered images/diagrams — `minor`, **M** — ✅ Done
+
 **Why.** There is **no image component at all**. Diagram-heavy courses (optics ray
 diagrams, algorithm illustrations) currently drop raw `<img>` with no caption,
 numbering, lazy-load, or CLS protection.
@@ -113,6 +119,7 @@ lightbox — kept v1 JS-free (static-first); add when a diagram-heavy course nee
 it. Verified in both themes against the demo (`/mer`).
 
 ### 1.2 `<Steps>` — numbered procedure/method — `minor`, **S** — ✅ Done
+
 **Why.** "How to solve a … problem" recurs in every quantitative module and is
 currently a plain `<ol>` indistinguishable from prose lists.
 **Done.** `<Steps>` (a real semantic `<ol>`) wrapping `<Step title?>` children:
@@ -121,6 +128,7 @@ bullet lists. Numbers come from a CSS counter reset per `<Steps>` (multiple bloc
 each start at 1); `title` accepts `$inline$` math. Verified both themes.
 
 ### 1.3 `<KeyTakeaways>` — end-of-module recap — `minor`, **S** — ✅ Done
+
 **Why.** Nearly every module ends with a "huskeliste"/summary; authors rebuild it
 ad hoc with a Callout + list each time.
 **Done.** `<KeyTakeaways title?>` — a dedicated summary block in a distinct violet
@@ -129,6 +137,7 @@ bullet list renders with check markers (an alpha-masked SVG glyph that tints wit
 the block colour, so it adapts per theme). Verified both themes.
 
 ### 1.4 `<Compare>` — side-by-side concept table — `minor`, **M** — ✅ Done
+
 **Why.** Comparisons ("konstruktiv vs destruktiv", "reell vs virtuell bilde") are
 constant and currently hand-built as fragile Markdown tables that wrap badly on
 mobile.
@@ -141,6 +150,7 @@ aspect can live inline in each bullet. Each `<section>` is `aria-label`led for
 screen readers. Verified both themes.
 
 ### 1.5 `<Hint>` ladder — progressive disclosure for problems — `minor`, **S** — ✅ Done
+
 **Why.** `<SelfCheck>` reveals one answer; real problem-solving wants *graduated*
 hints (nudge → method → full solution) so students self-scaffold.
 **Done.** `<Hints>` wrapping `<Hint>` children, each a native `<details>` (no JS).
@@ -149,6 +159,7 @@ is the green "Løsning" closer (tinted like `<Answer>`, left out of the numberin
 and `label` overrides for a custom rung. Verified both themes.
 
 ### 1.6 `<Statement>` — named results (law/theorem/definition) — `minor`, **M** — ✅ Done
+
 **Why.** Physics/math guides reference named results ("Snells lov", "Huygens'
 prinsipp") repeatedly; today they're bold prose with no consistent treatment and
 no anchor to link to.
@@ -167,8 +178,10 @@ KaTeX-aware. Verified both themes; anchors confirmed (`snells-lov`,
 Mostly `patch`/`minor` polish on existing islands. High perceived-quality return.
 
 ### 1.7 Keyboard control for islands — `patch` (a11y), **M**
+
 **Why.** Core interactions are mouse-only.
 **What.**
+
 - **Flashcards**: `Space`/`Enter` flip, `←/→` navigate, `1`/`2` rate. (Currently
   click-only — `Flashcards.astro` has no `keydown`.)
 - **Search**: `↑/↓` to move through results and `Enter` to open (today results are
@@ -177,11 +190,13 @@ Mostly `patch`/`minor` polish on existing islands. High perceived-quality return
   and `aria-live` announce the result.
 
 ### 1.8 Prev/next module via arrow keys — `patch`, **S**
+
 **Why.** Multi-page guide; readers expect `←/→` to page between modules. The
 `.page-actions` links already exist (`[slug].astro:124`); just wire global
 keyboard (guarded against typing in inputs/search-open) with an a11y hint.
 
 ### 1.9 In-page "På denne siden" mini-TOC for long modules — `minor`, **M**
+
 **Why.** DESIGN.md skipped a scroll-spy TOC because nav is page-to-page — correct
 for *short* modules, but long modules (lots of `##`) have no within-page wayfinding.
 **What.** Optional auto-generated TOC from a section's `h2`/`h3` (rehype-slug +
@@ -190,6 +205,7 @@ highlight and `prefers-reduced-motion`-safe smooth scroll. Anchor links on
 headings (hover "#") for deep-linking/sharing.
 
 ### 1.10 Progress surfaced on the overview — `patch`, **S–M**
+
 **Why.** `importance` (core/useful/extra) and per-module done state are computed
 but barely visible. The overview tiles (`index.astro:89`) show num/title/week
 only.
@@ -199,6 +215,7 @@ to the first unread module (reads the same `sc:progress:<code>` key). All
 client-side, progressive-enhancement.
 
 ### 1.11 Flashcard deck filtering — `minor`, **S–M**
+
 **Why.** Decks render all cards; large decks want focus.
 **What.** Filter by `section`/`tags` (already in the flashcards schema),
 **shuffle**, and an "øv bare på de jeg ikke kan" mode using the existing
@@ -211,6 +228,7 @@ localStorage levels. No schema change — data already present.
 These let bigger/second courses (algdat) land without template edits.
 
 ### 2.1 Section grouping into "parts" — `minor`, **M**
+
 **Why.** The module list is flat. A larger course wants chapters ("Del 1:
 Geometrisk optikk"). Today the only grouping is the `Kom i gang / Verktøy /
 Moduler / Lenker` chrome buckets.
@@ -220,6 +238,7 @@ flat behavior (backward-compatible → `minor`). Numbering in `lib/nav.ts` stays
 global and gap-free.
 
 ### 2.2 "Edit this page" + freshness — `minor`, **S**
+
 **Why.** Maintainability + trust. No way to jump from a rendered page to its MDX,
 and no "last updated" signal.
 **What.** Optional `course.repoUrl` (+ optional per-section `updated` date). Footer
@@ -227,6 +246,7 @@ gets an "Rediger denne siden" link built from `repoUrl` + section file path, and
 an "Oppdatert {date}" line. Pure additive.
 
 ### 2.3 Glossary — schema + tool page — `minor`, **M**
+
 **Why.** Study guides define terminology constantly; there's no glossary and no
 reuse of definitions.
 **What.** `course.glossary: [{ term, definition, section? }]` + a `Begreper`/
@@ -234,6 +254,7 @@ glossary tool page (mirrors `FormulaSheet` — searchable, grouped, KaTeX-aware)
 an inline `<Term>` that links into it. Reuses the proven FormulaSheet UI pattern.
 
 ### 2.4 Formula cross-references — `minor`, **S–M**
+
 **Why.** Prose says "by the formula above" instead of linking. `formulas[]` entries
 have no stable id.
 **What.** Optional `id` on `formulaEntrySchema`; a `<FormulaRef id>` inline that
@@ -248,6 +269,7 @@ with `<Statement>` ids (1.6).
 ## P2 — Performance & infrastructure
 
 ### 2.5 Self-host & subset fonts — `patch`, **M**
+
 **Why.** Fonts load from the Google CDN via a render-blocking `<link>`
 (`CourseLayout.astro:80-85`) — a third-party dependency, a privacy footprint, and
 a render/CLS cost. DESIGN.md targets Lighthouse ≥95.
@@ -256,6 +278,7 @@ glyphs used, `font-display: swap`, `preload` the critical body weight, self-host
 KaTeX fonts. Removes the external request entirely.
 
 ### 2.6 Visual regression snapshots — infra, **L**
+
 **Why.** The polish bar is high and verification is manual screenshotting. A
 versioned library should lock in pixels.
 **What.** Playwright snapshots of the kitchen-sink fixture (0.2) per widget in
@@ -267,6 +290,7 @@ before (the theme-toggle icon scope bug).
 ## P2 — Design-system consistency
 
 ### 2.7 Unify the "panel header" pattern — `patch`, **S–M**
+
 **Why.** `Example`, `Simulation`, `FormulaSheet`, `CodeBlock` each implement their
 own header bar (badge/dot/title) with slightly different spacing. Small drifts
 accumulate.
@@ -275,6 +299,7 @@ component) and route the four through it. Pure refactor; screenshot-compare to
 prove no visual change.
 
 ### 2.8 `importance` as a real visual system — `patch`, **S**
+
 **Why.** `core/useful/extra` exists in the schema and `--core/--useful/--extra`
 tokens exist, but the distinction is nearly invisible in nav/tiles/header.
 **What.** A consistent, AA-safe importance treatment across sidebar, overview

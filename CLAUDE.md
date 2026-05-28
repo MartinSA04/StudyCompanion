@@ -1,4 +1,7 @@
+# study-companion
+
 This is study-companion: an Astro 6 integration + component library for course study guides.
+
 - It is consumed by separate "course" repos that pin a git tag of this repo.
 - Course repos contain only content; this repo owns ALL design, schema, and page wiring.
 - The integration (src/index.ts) injects the page routes and sets up MDX+KaTeX.

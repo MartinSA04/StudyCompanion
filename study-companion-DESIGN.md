@@ -10,7 +10,8 @@ This document is written to be handed to Claude Code. It specifies the architect
 
 ## 1. Goals & non-goals
 
-**Goals**
+### Goals
+
 - One fixed "study companion" design, reused across many courses.
 - A course is authored as **data** (`course.yaml` + MDX sections), never by editing templates.
 - The framework is a **versioned dependency**. Each course pins a framework version and is immune to framework updates until it chooses to upgrade.
@@ -18,7 +19,8 @@ This document is written to be handed to Claude Code. It specifies the architect
 - Static output, near-zero JS except for interactive islands (progress, search, theme, flashcards).
 - Build fails loudly on malformed content (schema validation).
 
-**Non-goals (v1)**
+### Non-goals (v1)
+
 - No server runtime, no database, no auth.
 - No headless CMS (file-based authoring; Keystatic is a possible later add-on).
 - No multi-course-per-repo (one subject = one repo = one subdomain).
@@ -29,7 +31,7 @@ This document is written to be handed to Claude Code. It specifies the architect
 
 Two kinds of repos:
 
-```
+```text
 study-companion         (the FRAMEWORK — an Astro integration + component library, published & tagged)
    ▲ pinned by version
    │
@@ -48,6 +50,7 @@ Each course's `package.json` installs the framework straight from a GitHub tag:
 
 **Key mechanism — framework is an Astro integration.**
 The framework ships as an installable Astro integration that, when added to a course's `astro.config.mjs`:
+
 - injects the page route(s) from the package (course repos never copy page code),
 - registers MDX + `remark-math` + `rehype-katex` via `updateConfig` (course repos never configure the toolchain),
 - exposes the content **schema/collection definitions** for the course's `src/content.config.ts` to re-export,
@@ -56,6 +59,7 @@ The framework ships as an installable Astro integration that, when added to a co
 This is what keeps course repos thin and upgrade-safe: all wiring lives in the versioned package.
 
 ### Verified technical constraints (build to these)
+
 1. **Routes can be injected from the package.** `injectRoute({ pattern: '/', entrypoint: 'study-companion/pages/index.astro', prerender: true })` works as long as `package.json#exports` exposes that file. Course repos therefore have **no `src/pages/`**.
 2. **`src/content.config.ts` must physically exist in the course repo** — Astro auto-loads only the consumer's `src/content.config.ts`. It will be a **one-line re-export** of the framework's collections. The framework owns the Zod schemas and `glob()` loaders; the loaders' `base` paths resolve against the **course repo's** cwd at build, so they read the course's `content/` folder.
 3. Static output mode is `output: 'static'` (the default in Astro 5).
@@ -85,7 +89,7 @@ This is what keeps course repos thin and upgrade-safe: all wiring lives in the v
 
 ### 4.1 File tree
 
-```
+```text
 study-companion/
 ├── package.json
 ├── tsconfig.json
@@ -317,11 +321,13 @@ and the module-tile grid.
 **Chrome / layout** — the sidebar nav and progress are owned by the layout (no
 separate TableOfContents/ProgressTracker components; navigation is page-to-page,
 so a per-heading scroll-spy TOC is unnecessary).
+
 - `CourseLayout.astro` — props `{ course, nav, tools, active, pageTitle? }`. Renders the sticky topbar (brand+prism, progress meter, search, theme, reset), the grouped sidebar nav (Kom i gang / Verktøy / Moduler / Lenker, with active + per-module done state), `<main class="content">` slot, footer, mobile menu+scrim. Inline scripts: progress (reads `sc:progress:<code>`, marks done nav links + meter, binds any `[data-done-order]` button), mobile menu, copy-code. Imports `tokens.css`/`base.css`/`shell.css`; sets the per-theme accent vars (`--accent-light`/`--accent-dark` + their on-accent text colours) inline from `course.accent`/`course.accentDark`, `lang` from `course.language`; honours `features.*`/`ui.*`. Loads the Fraunces/Spectral/IBM Plex Mono webfonts.
 - `ThemeToggle.astro` *(island)* — toggles `data-theme` on `<html>`, persists to `localStorage`, respects `prefers-color-scheme` on first load (inline no-flash script in `<head>`), and dispatches `sc:themechange` so canvas sims repaint.
 - `SearchPalette.astro` *(island)* — `⌕` button + modal using the Pagefind index over the built site (each page is indexed → results deep-link to modules). Keyboard: `/` or `⌘K` to open. In `astro dev` the index doesn't exist yet, so it shows a friendly notice.
 
 **Content widgets (auto-available in MDX via `mdx-components.ts`)**
+
 - `Formula.astro` — props `{ tex: string, caption?: string, block?: boolean, memorize?: boolean }`. KaTeX render; `memorize` adds a "★ må pugges" badge (not on the exam sheet).
 - `Derivation.astro` — collapsible `<details>` with steps slot.
 - `Callout.astro` — props `{ type: "note"|"tip"|"warning" }`, slot body.
@@ -359,7 +365,7 @@ so a per-heading scroll-spy TOC is unnecessary).
 
 ### 5.1 File tree
 
-```
+```text
 course-optikk/
 ├── package.json                      # pins study-companion@<tag>
 ├── astro.config.mjs                  # 3 lines: add the integration
@@ -381,6 +387,7 @@ There is **no `src/pages/`, no components, no toolchain config** — all injecte
 ### 5.2 The three thin files
 
 `package.json`:
+
 ```jsonc
 {
   "name": "course-optikk",
@@ -394,6 +401,7 @@ There is **no `src/pages/`, no components, no toolchain config** — all injecte
 ```
 
 `astro.config.mjs`:
+
 ```js
 import { defineConfig } from "astro/config";
 import studyCompanion from "study-companion";
@@ -401,6 +409,7 @@ export default defineConfig({ integrations: [studyCompanion()] });
 ```
 
 `src/content.config.ts`:
+
 ```ts
 export { collections } from "study-companion/content";
 ```
@@ -408,6 +417,7 @@ export { collections } from "study-companion/content";
 ### 5.3 Content format
 
 `content/course.yaml`:
+
 ```yaml
 schemaVersion: 1
 code: TFY4195
@@ -428,6 +438,7 @@ links:
 ```
 
 `content/sections/02-interferens.mdx`:
+
 ```mdx
 ---
 order: 2
@@ -539,7 +550,8 @@ Cloudflare Pages project for `course-optikk` → `optikk.martinsundal.no`. Then 
 ## 12. Suggested `CLAUDE.md` for each repo
 
 **Framework repo `CLAUDE.md`:**
-```
+
+```text
 This is study-companion: an Astro 5 integration + component library for course study guides.
 - It is consumed by separate "course" repos that pin a git tag of this repo.
 - Course repos contain only content; this repo owns ALL design, schema, and page wiring.
@@ -551,7 +563,8 @@ This is study-companion: an Astro 5 integration + component library for course s
 ```
 
 **Course repo `CLAUDE.md`:**
-```
+
+```text
 This is a course study guide. It pins study-companion via a GitHub tag in package.json.
 - DO NOT add components, pages, or toolchain config — the framework injects all of it.
 - Author ONLY under content/: course.yaml (metadata) and sections/*.mdx (content).

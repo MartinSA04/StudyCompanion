@@ -11,11 +11,14 @@ interface Props {
   title: string;
 }
 const { title } = Astro.props;
-const plain = title.replace(/\$[^$]*\$/g, "").replace(/<[^>]*>/g, "").trim();
+const plain = title
+  .replace(/\$[^$]*\$/g, "")
+  .replace(/<[^>]*>/g, "")
+  .trim();
 ---
 
 <section class="compare-col" aria-label={plain || undefined}>
-  <p class="compare-col-title" set:html={renderMathString(title)}></p>
+  <p class="compare-col-title" set:html={renderMathString(title)} />
   <div class="compare-col-body"><slot /></div>
 </section>
 

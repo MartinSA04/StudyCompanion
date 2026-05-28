@@ -14,7 +14,9 @@ const { title = "Eksamensfokus" } = Astro.props;
 
 <aside class="examfocus" aria-label={title}>
   <p class="examfocus-title">
-    <span class="examfocus-icon" aria-hidden="true"><Icon name="flag" size={17} /></span>
+    <span class="examfocus-icon" aria-hidden="true"
+      ><Icon name="flag" size={17} /></span
+    >
     {title}
   </p>
   <div class="examfocus-body"><slot /></div>

@@ -15,7 +15,9 @@ const { title = "Hovedpunkter" } = Astro.props;
 
 <aside class="takeaways" aria-label={title}>
   <p class="takeaways-title">
-    <span class="takeaways-icon" aria-hidden="true"><Icon name="list-checks" size={17} /></span>
+    <span class="takeaways-icon" aria-hidden="true"
+      ><Icon name="list-checks" size={17} /></span
+    >
     {title}
   </p>
   <div class="takeaways-body"><slot /></div>

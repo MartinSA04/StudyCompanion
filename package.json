@@ -25,7 +25,10 @@
     "build": "node scripts/ensure-self-link.mjs && astro build",
     "preview": "astro preview",
     "test": "node --test --disable-warning=ExperimentalWarning 'test/**/*.test.ts'",
-    "typecheck": "astro sync && tsc --noEmit"
+    "typecheck": "astro sync && tsc --noEmit",
+    "lint": "prettier --check \"src/**/*.{ts,astro}\" \"*.{ts,js,json,md}\"",
+    "lint:fix": "prettier --write \"src/**/*.{ts,astro}\" \"*.{ts,js,json,md}\"",
+    "lint:md": "markdownlint-cli2 \"**/*.md\""
   },
   "peerDependencies": {
     "astro": "^6"
@@ -42,6 +45,9 @@
   "devDependencies": {
     "@types/node": "^22.10.0",
     "astro": "^6.3.7",
+    "markdownlint-cli2": "^0.22.1",
+    "prettier": "^3.8.3",
+    "prettier-plugin-astro": "^0.14.1",
     "typescript": "^6.0.3"
   }
 }

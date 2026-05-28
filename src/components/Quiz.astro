@@ -36,7 +36,11 @@ import Icon from "./Icon.astro";
     </ul>
   </fieldset>
   <p class="quiz-feedback" role="status" aria-live="polite" hidden></p>
-  {explanation && <p class="quiz-explain" set:html={renderMathString(explanation)} hidden />}
+  {
+    explanation && (
+      <p class="quiz-explain" set:html={renderMathString(explanation)} hidden />
+    )
+  }
 </form>
 
 <style>
@@ -148,7 +152,9 @@ import Icon from "./Icon.astro";
 <script>
   document.querySelectorAll<HTMLFormElement>(".quiz").forEach((quiz) => {
     const answer = Number(quiz.dataset.answer);
-    const options = [...quiz.querySelectorAll<HTMLButtonElement>(".quiz-option")];
+    const options = [
+      ...quiz.querySelectorAll<HTMLButtonElement>(".quiz-option"),
+    ];
     const feedback = quiz.querySelector<HTMLElement>(".quiz-feedback")!;
     const explain = quiz.querySelector<HTMLElement>(".quiz-explain");
     let done = false;
@@ -168,7 +174,9 @@ import Icon from "./Icon.astro";
 
         feedback.hidden = false;
         feedback.dataset.result = correct ? "correct" : "wrong";
-        feedback.textContent = correct ? "Riktig!" : "Ikke helt — se riktig svar.";
+        feedback.textContent = correct
+          ? "Riktig!"
+          : "Ikke helt — se riktig svar.";
         if (explain) explain.hidden = false;
       });
     });

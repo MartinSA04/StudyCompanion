@@ -18,7 +18,12 @@ import {
 
 type Neighbor = { slug: string; num: string } | null;
 type Props =
-  | { kind: "section"; entry: CollectionEntry<"sections">; prev: Neighbor; next: Neighbor }
+  | {
+      kind: "section";
+      entry: CollectionEntry<"sections">;
+      prev: Neighbor;
+      next: Neighbor;
+    }
   | { kind: "formulas" | "flashcards" | "exams" };
 
 export async function getStaticPaths() {
@@ -45,11 +50,20 @@ export async function getStaticPaths() {
   );
 
   if (tools.formulas)
-    paths.push({ params: { slug: TOOL_SLUGS.formulas }, props: { kind: "formulas" } });
+    paths.push({
+      params: { slug: TOOL_SLUGS.formulas },
+      props: { kind: "formulas" },
+    });
   if (tools.flashcards)
-    paths.push({ params: { slug: TOOL_SLUGS.flashcards }, props: { kind: "flashcards" } });
+    paths.push({
+      params: { slug: TOOL_SLUGS.flashcards },
+      props: { kind: "flashcards" },
+    });
   if (tools.exams)
-    paths.push({ params: { slug: TOOL_SLUGS.exams }, props: { kind: "exams" } });
+    paths.push({
+      params: { slug: TOOL_SLUGS.exams },
+      props: { kind: "exams" },
+    });
 
   return paths;
 }
@@ -66,11 +80,21 @@ const nav = sectionNav(sections);
 const tools = toolFlags(course, flashcards.length);
 const nums = sectionNumbers(sections);
 
-const importanceLabel = { core: "Kjernepensum", useful: "Pensum", extra: "Tilleggsstoff" };
+const importanceLabel = {
+  core: "Kjernepensum",
+  useful: "Pensum",
+  extra: "Tilleggsstoff",
+};
 
 let pageTitle = course.title;
 let Content: Awaited<ReturnType<typeof render>>["Content"] | null = null;
-let head: { kicker: string; index: string; title: string; week: string; order: number } | null = null;
+let head: {
+  kicker: string;
+  index: string;
+  title: string;
+  week: string;
+  order: number;
+} | null = null;
 
 if (props.kind === "section") {
   const d = props.entry.data;
@@ -96,7 +120,13 @@ if (props.kind === "section") {
 }
 ---
 
-<CourseLayout course={course} nav={nav} tools={tools} active={active} pageTitle={pageTitle}>
+<CourseLayout
+  course={course}
+  nav={nav}
+  tools={tools}
+  active={active}
+  pageTitle={pageTitle}
+>
   {
     props.kind === "section" && head && Content && (
       <>
@@ -128,7 +158,7 @@ if (props.kind === "section") {
               Forrige: {props.prev.num}
             </a>
           ) : (
-            <span class="page-link disabled"></span>
+            <span class="page-link disabled" />
           )}
           {props.next ? (
             <a class="page-link" href={`/${props.next.slug}`}>
@@ -136,7 +166,9 @@ if (props.kind === "section") {
               <Icon name="chevron-right" size={15} />
             </a>
           ) : (
-            <a class="page-link" href="/">Til oversikt</a>
+            <a class="page-link" href="/">
+              Til oversikt
+            </a>
           )}
         </nav>
       </>

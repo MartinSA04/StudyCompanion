@@ -40,14 +40,22 @@ function slugify(s: string): string {
 const anchor = id ?? slugify(name);
 ---
 
-<aside class={`statement statement-${kind}`} id={anchor} aria-label={LABELS[kind]}>
+<aside
+  class={`statement statement-${kind}`}
+  id={anchor}
+  aria-label={LABELS[kind]}
+>
   <p class="statement-head">
     <span class="statement-badge">
       <Icon name="bookmark" size={14} />
       {LABELS[kind]}
     </span>
-    <span class="statement-name" set:html={renderMathString(name)}></span>
-    <a class="statement-anchor" href={`#${anchor}`} aria-label="Lenke til dette resultatet">#</a>
+    <span class="statement-name" set:html={renderMathString(name)} />
+    <a
+      class="statement-anchor"
+      href={`#${anchor}`}
+      aria-label="Lenke til dette resultatet">#</a
+    >
   </p>
   <div class="statement-body"><slot /></div>
 </aside>

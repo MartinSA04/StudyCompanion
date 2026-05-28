@@ -15,7 +15,9 @@ const { title = "Læringsmål" } = Astro.props;
 
 <aside class="goals" aria-label={title}>
   <p class="goals-title">
-    <span class="goals-icon" aria-hidden="true"><Icon name="target" size={17} /></span>
+    <span class="goals-icon" aria-hidden="true"
+      ><Icon name="target" size={17} /></span
+    >
     {title}
   </p>
   <div class="goals-body"><slot /></div>

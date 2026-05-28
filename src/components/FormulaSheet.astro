@@ -67,13 +67,28 @@ const hasMemorize = formulas.some((f) => f.memorize);
   {
     hasMemorize && (
       <div class="fs-filter" role="group" aria-label="Filtrer formler">
-        <button type="button" class="fs-chip" data-filter="all" aria-pressed="true">
+        <button
+          type="button"
+          class="fs-chip"
+          data-filter="all"
+          aria-pressed="true"
+        >
           Alle
         </button>
-        <button type="button" class="fs-chip" data-filter="sheet" aria-pressed="false">
+        <button
+          type="button"
+          class="fs-chip"
+          data-filter="sheet"
+          aria-pressed="false"
+        >
           På formelarket
         </button>
-        <button type="button" class="fs-chip" data-filter="memorize" aria-pressed="false">
+        <button
+          type="button"
+          class="fs-chip"
+          data-filter="memorize"
+          aria-pressed="false"
+        >
           <Icon name="star" size={13} />
           Må pugges
         </button>
@@ -101,9 +116,14 @@ const hasMemorize = formulas.some((f) => f.memorize);
               data-text={haystack(f)}
             >
               <span class="fs-render" set:html={html(f.tex)} />
-              {f.label && <span class="fs-label" set:html={renderMathString(f.label)} />}
+              {f.label && (
+                <span class="fs-label" set:html={renderMathString(f.label)} />
+              )}
               {f.memorize && (
-                <span class="fs-badge" title="Står ikke på formelarket – må pugges">
+                <span
+                  class="fs-badge"
+                  title="Står ikke på formelarket – må pugges"
+                >
                   <Icon name="star" size={12} />
                   ikke på formelarket
                 </span>
@@ -369,7 +389,8 @@ const hasMemorize = formulas.some((f) => f.memorize);
   const rows = [...document.querySelectorAll<HTMLElement>(".fs-row")];
   const groups = [...document.querySelectorAll<HTMLElement>("[data-fs-group]")];
   const chips = [...document.querySelectorAll<HTMLButtonElement>(".fs-chip")];
-  const searchInput = document.querySelector<HTMLInputElement>(".fs-search-input");
+  const searchInput =
+    document.querySelector<HTMLInputElement>(".fs-search-input");
   const empty = document.querySelector<HTMLElement>(".fs-empty");
 
   let mode = "all";

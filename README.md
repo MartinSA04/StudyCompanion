@@ -13,6 +13,7 @@ A *course* is authored as **data** — a `course.yaml` plus `sections/*.mdx` —
 A course repo contains **three thin files** plus a `content/` folder — no pages, components, or toolchain config.
 
 `package.json`
+
 ```jsonc
 {
   "type": "module",
@@ -23,9 +24,11 @@ A course repo contains **three thin files** plus a `content/` folder — no page
   }
 }
 ```
+
 > During local development you can use `"study-companion": "link:../path/to/study-companion"` instead of the GitHub tag.
 
 `astro.config.mjs`
+
 ```js
 import { defineConfig } from "astro/config";
 import studyCompanion from "study-companion";
@@ -33,12 +36,14 @@ export default defineConfig({ integrations: [studyCompanion()] });
 ```
 
 `src/content.config.ts`
+
 ```ts
 export { collections } from "study-companion/content";
 ```
 
 `content/` — the only place you author:
-```
+
+```text
 content/
 ├── course.yaml          # metadata, formulas, exams, features, ui strings
 ├── flashcards.yaml      # optional deck
@@ -58,6 +63,7 @@ Run `pnpm dev` to preview, `pnpm build` for static output to `dist/`. Search (Pa
 ## Authoring content
 
 ### `course.yaml`
+
 ```yaml
 schemaVersion: 1            # must match the framework's SCHEMA_VERSION
 code: TFY4195               # course code
@@ -80,10 +86,13 @@ exams:                      # optional past-exam list (<ExamList>)
   - { label: "Eksamen V2023", date: 2023-05-24, url: "/exams/2023.pdf", solutionUrl: "/exams/2023-sol.pdf" }
 ui: { progressLabel: Fremgang, searchLabel: Søk, ... }   # optional chrome string overrides
 ```
+
 YAML scalars containing LaTeX must be double-quoted with **escaped backslashes**, e.g. `tex: "\\dfrac{a}{b}"`.
 
 ### `sections/NN-slug.mdx`
+
 Frontmatter is the contract; `order` (not the filename) is the source of truth for sequence.
+
 ```mdx
 ---
 order: 2
@@ -101,6 +110,7 @@ $$ \Delta y \approx \frac{\lambda L}{d} $$ render server-side via KaTeX.
 ```
 
 ### Widgets (available in every MDX section — no imports needed)
+
 | Component | Props | Purpose |
 |---|---|---|
 | `<Formula>` | `tex`, `caption?`, `block?`, `memorize?` | Server-rendered KaTeX. `memorize` adds a "må pugges" badge. |
@@ -139,6 +149,7 @@ Interactive simulations stay in the **course** repo so the framework carries no 
 ```
 
 The module default-exports an `init(api)` called when the figure scrolls into view:
+
 ```js
 // public/sims/thin-lens.js
 export default function init({ canvas, ctx, controls, getSize, onResize }) {
@@ -148,6 +159,7 @@ export default function init({ canvas, ctx, controls, getSize, onResize }) {
   draw();
 }
 ```
+
 `api` = `{ canvas, ctx, controls, getSize:()=>({w,h}), onResize:(cb)=>void }`. The context is pre-scaled for `devicePixelRatio`, so you work in CSS pixels. The framework owns the chrome, DPR sizing, and lazy mount.
 
 ---
