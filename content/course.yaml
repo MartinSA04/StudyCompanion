@@ -17,8 +17,13 @@ exam:
 
 features: { progress: true, search: true, flashcards: true, theme: true }
 
+# This demo course lives inside the framework repo, so repoUrl points there and
+# the footer "edit this page" links resolve to the real section files.
+repoUrl: "https://github.com/MartinSA04/StudyCompanion"
+repoBranch: main
+
 links:
-  - { label: "study-companion (GitHub)", url: "https://github.com/martinsundal/study-companion" }
+  - { label: "study-companion (GitHub)", url: "https://github.com/MartinSA04/StudyCompanion" }
 
 # Exercises <FormulaSheet>: grouping by `section`, plus must-memorize rows
 # (memorize + onSheet:false) that get the star badge and the off-sheet stripe.

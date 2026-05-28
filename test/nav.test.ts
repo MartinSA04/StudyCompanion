@@ -5,6 +5,7 @@ import {
   sectionNumbers,
   shortTitle,
   toolFlags,
+  partGroups,
 } from "../src/lib/nav.ts";
 
 test("sectionSlug strips a leading numeric prefix with optional separator", () => {
@@ -86,4 +87,73 @@ test("toolFlags reflects course data + flashcard count", () => {
     9,
   );
   assert.equal(flagOff.flashcards, false);
+});
+
+test("partGroups: no parts → one null-part group holding every item", () => {
+  const items = [{ slug: "a" }, { slug: "b" }, { slug: "c" }];
+  const groups = partGroups(items);
+  assert.equal(groups.length, 1);
+  assert.equal(groups[0].part, null);
+  assert.deepEqual(
+    groups[0].items.map((i) => i.slug),
+    ["a", "b", "c"],
+  );
+});
+
+test("partGroups: empty input → no groups", () => {
+  assert.deepEqual(partGroups([]), []);
+});
+
+test("partGroups: one group per distinct part, in first-appearance order", () => {
+  const items = [
+    { slug: "a", part: "Del 1" },
+    { slug: "b", part: "Del 1" },
+    { slug: "c", part: "Del 2" },
+  ];
+  const groups = partGroups(items);
+  assert.deepEqual(
+    groups.map((g) => g.part),
+    ["Del 1", "Del 2"],
+  );
+  assert.deepEqual(
+    groups[0].items.map((i) => i.slug),
+    ["a", "b"],
+  );
+  assert.deepEqual(
+    groups[1].items.map((i) => i.slug),
+    ["c"],
+  );
+});
+
+test("partGroups: part-less items collect into a null-part group", () => {
+  const items = [
+    { slug: "a", part: "Del 1" },
+    { slug: "b" },
+    { slug: "c", part: "Del 2" },
+  ];
+  const groups = partGroups(items);
+  assert.deepEqual(
+    groups.map((g) => g.part),
+    ["Del 1", null, "Del 2"],
+  );
+  assert.deepEqual(
+    groups[1].items.map((i) => i.slug),
+    ["b"],
+  );
+});
+
+test("partGroups: a part recurring after an interruption merges back", () => {
+  // A stray ungrouped module between two "Del 1" entries must NOT split Del 1.
+  const items = [
+    { slug: "a", part: "Del 1" },
+    { slug: "b" },
+    { slug: "c", part: "Del 1" },
+  ];
+  const groups = partGroups(items);
+  assert.equal(groups.length, 2);
+  const del1 = groups.find((g) => g.part === "Del 1")!;
+  assert.deepEqual(
+    del1.items.map((i) => i.slug),
+    ["a", "c"],
+  );
 });

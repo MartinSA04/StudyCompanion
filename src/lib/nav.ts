@@ -21,6 +21,8 @@ export interface NavItem {
   kind: NavKind;
   /** Only set for sections — drives the read/done checkbox + progress. */
   order?: number;
+  /** Optional chapter grouping (sections only); see `partGroups`. */
+  part?: string;
 }
 
 /** `01-foton` / `02_geo1` → `foton` / `geo1`. Falls back to the raw id. */
@@ -90,5 +92,56 @@ export function sectionNav(sections: CollectionEntry<"sections">[]): NavItem[] {
     shortTitle: shortTitle(s.data.title),
     kind: "section" as const,
     order: s.data.order,
+    part: s.data.part,
   }));
+}
+
+export interface PartGroup<T> {
+  /** Part header label, or null for the generic/ungrouped bucket. */
+  part: string | null;
+  items: T[];
+}
+
+/**
+ * Group ordered, part-tagged items into chapters for the sidebar / overview.
+ * Generic over anything carrying an optional `part` (nav items or overview tiles).
+ *
+ * - No item has a `part` → a single group with `part: null` (today's flat list;
+ *   the caller supplies the generic heading, e.g. "Moduler").
+ * - Some items have a `part` → one group per distinct part, in first-appearance
+ *   (i.e. `order`) sequence. Part-less items collect into a `part: null` group
+ *   kept in its natural position relative to the parted ones.
+ *
+ * Items are assumed pre-sorted by `order` (as `sectionNav` returns them); a part
+ * that recurs after an interruption merges back into its first group so a stray
+ * ungrouped module never splits a chapter into two headers.
+ */
+export function partGroups<T extends { part?: string }>(
+  items: T[],
+): PartGroup<T>[] {
+  if (!items.some((i) => i.part)) {
+    return items.length ? [{ part: null, items }] : [];
+  }
+  const groups: PartGroup<T>[] = [];
+  const byPart = new Map<string, PartGroup<T>>();
+  let ungrouped: PartGroup<T> | null = null;
+  for (const item of items) {
+    const key = item.part ?? "";
+    if (item.part) {
+      let g = byPart.get(key);
+      if (!g) {
+        g = { part: item.part, items: [] };
+        byPart.set(key, g);
+        groups.push(g);
+      }
+      g.items.push(item);
+    } else {
+      if (!ungrouped) {
+        ungrouped = { part: null, items: [] };
+        groups.push(ungrouped);
+      }
+      ungrouped.items.push(item);
+    }
+  }
+  return groups;
 }

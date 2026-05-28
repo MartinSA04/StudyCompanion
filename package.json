@@ -5,6 +5,11 @@
   "type": "module",
   "license": "MIT",
   "author": "Martin Sundal",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MartinSA04/StudyCompanion.git"
+  },
+  "homepage": "https://github.com/MartinSA04/StudyCompanion",
   "packageManager": "pnpm@10.33.0",
   "exports": {
     ".": "./src/index.ts",

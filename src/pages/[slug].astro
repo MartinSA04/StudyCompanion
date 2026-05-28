@@ -90,6 +90,9 @@ const importanceLabel = {
 let pageTitle = course.title;
 let Content: Awaited<ReturnType<typeof render>>["Content"] | null = null;
 let headings: { depth: number; slug: string; text: string }[] = [];
+// Footer "edit this page" + freshness — section pages only, when repoUrl is set.
+let editUrl: string | undefined;
+let updated: Date | undefined;
 let head: {
   kicker: string;
   index: string;
@@ -102,6 +105,11 @@ if (props.kind === "section") {
   const d = props.entry.data;
   ({ Content, headings } = await render(props.entry));
   pageTitle = d.title;
+  updated = d.updated;
+  const repoUrl = course.repoUrl?.replace(/\/+$/, "");
+  if (repoUrl && props.entry.filePath) {
+    editUrl = `${repoUrl}/edit/${course.repoBranch}/${props.entry.filePath}`;
+  }
   const weekParts = [
     d.estMinutes != null ? `~${d.estMinutes} min lesing` : null,
     ...d.tags.slice(1),
@@ -128,6 +136,8 @@ if (props.kind === "section") {
   tools={tools}
   active={active}
   pageTitle={pageTitle}
+  editUrl={editUrl}
+  updated={updated}
 >
   {
     props.kind === "section" && head && Content && (

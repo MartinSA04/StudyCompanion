@@ -71,7 +71,10 @@ title: Optikk
 subtitle: Interaktiv pensumguide
 term: V2026
 language: nb               # nb | nn | en
-accent: "#2f6df6"          # per-course theme colour (any CSS colour)
+accent: "#2f6df6"          # per-course theme colour, LIGHT mode (any CSS colour)
+accentDark: "#6ea9d8"      # optional — accent for DARK mode (defaults to `accent`)
+repoUrl: "https://github.com/you/optikk"   # optional → footer "edit this page" links
+repoBranch: main           # optional — branch the edit links target (default: main)
 exam:                       # optional upcoming-exam card
   date: 2026-05-20          #   (optional) ISO date; build-time countdown
   format: 4t skriftlig
@@ -101,6 +104,8 @@ summary: Superposisjon, koherens og tofelt-interferens.   # optional
 importance: core            # core | useful | extra (core gets a TOC dot)
 estMinutes: 45              # optional
 tags: [bølger, koherens]    # optional
+part: "Del 2: Bølgeoptikk"  # optional — chapter grouping in sidebar + overview
+updated: 2026-05-20         # optional — footer freshness line ("Oppdatert …")
 ---
 
 Markdown body. Inline math `$d\sin\theta = m\lambda$` and display math

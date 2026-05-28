@@ -8,6 +8,7 @@ import {
   sectionNumbers,
   sectionSlug,
   toolFlags,
+  partGroups,
 } from "../lib/nav.ts";
 
 const { course, sections } = await loadCourse();
@@ -26,11 +27,15 @@ const tiles = sections.map((s) => ({
   order: s.data.order,
   num: nums.get(s.id) ?? String(s.data.order).padStart(2, "0"),
   title: s.data.title,
+  part: s.data.part,
   week:
     s.data.estMinutes != null
       ? `~${s.data.estMinutes} min`
       : (s.data.tags[0] ?? ""),
 }));
+
+// Group tiles into parts (single null-part group when no section sets one).
+const tileGroups = partGroups(tiles);
 
 const stats = [
   { n: sections.length, label: "moduler" },
@@ -115,22 +120,31 @@ const hasExamCard =
     )
   }
 
-  <div class="overview-grid">
-    {
-      tiles.map((t) => (
-        <a class="module-tile" href={`/${t.slug}`} data-tile-order={t.order}>
-          <div class="tile-num">{t.num}</div>
-          <div class="tile-title">{t.title}</div>
-          {t.week && <div class="tile-week">{t.week}</div>}
-          {course.features.progress && (
-            <span class="tile-check" aria-hidden="true">
-              <Icon name="check" size={11} />
-            </span>
-          )}
-        </a>
-      ))
-    }
-  </div>
+  {
+    tileGroups.map((group) => (
+      <>
+        {group.part && <h2 class="part-head">{group.part}</h2>}
+        <div class="overview-grid">
+          {group.items.map((t) => (
+            <a
+              class="module-tile"
+              href={`/${t.slug}`}
+              data-tile-order={t.order}
+            >
+              <div class="tile-num">{t.num}</div>
+              <div class="tile-title">{t.title}</div>
+              {t.week && <div class="tile-week">{t.week}</div>}
+              {course.features.progress && (
+                <span class="tile-check" aria-hidden="true">
+                  <Icon name="check" size={11} />
+                </span>
+              )}
+            </a>
+          ))}
+        </div>
+      </>
+    ))
+  }
 </CourseLayout>
 
 <script is:inline>

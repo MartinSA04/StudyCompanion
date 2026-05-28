@@ -282,11 +282,35 @@
   text-transform: uppercase;
   letter-spacing: 0.02em;
 }
+/* Chapter divider above a group of tiles (section `part`). Mono kicker + a
+   hairline that fills the row — same editorial vocabulary as .nav-section. */
+.part-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin: var(--gap-8) 0 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--faint);
+}
+.part-head::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
 .overview-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
   gap: var(--gap-3);
   margin-top: var(--gap-6);
+}
+/* Tighter gap when the grid follows its own part header. */
+.part-head + .overview-grid {
+  margin-top: var(--gap-4);
 }
 .module-tile {
   position: relative;
@@ -601,6 +625,31 @@
 .site-footer .accent-text {
   color: var(--accent);
   font-weight: var(--weight-semibold);
+  text-decoration: none;
+}
+.site-footer .accent-text:hover {
+  text-decoration: underline;
+}
+/* Per-page freshness + "edit this page" line (only on module pages). */
+.footer-meta {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--gap-2);
+  margin-bottom: var(--gap-2);
+}
+.footer-edit {
+  color: var(--accent);
+  text-decoration: none;
+}
+.footer-edit:hover {
+  text-decoration: underline;
+}
+.footer-meta span + .footer-edit::before {
+  content: "·";
+  margin-right: var(--gap-2);
+  color: var(--border-strong);
 }
 
 /* ====== mobile ====== */

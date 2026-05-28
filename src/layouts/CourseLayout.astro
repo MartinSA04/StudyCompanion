@@ -1,7 +1,7 @@
 ---
 import type { Course } from "../schema.ts";
 import type { NavItem, ToolFlags } from "../lib/nav.ts";
-import { TOOL_SLUGS } from "../lib/nav.ts";
+import { TOOL_SLUGS, partGroups } from "../lib/nav.ts";
 import ThemeToggle from "../components/ThemeToggle.astro";
 import SearchPalette from "../components/SearchPalette.astro";
 import Icon from "../components/Icon.astro";
@@ -21,9 +21,25 @@ interface Props {
   active: string;
   /** Page <title>; defaults to the course title. */
   pageTitle?: string;
+  /** "Edit this page" deep-link for the footer (section pages only). */
+  editUrl?: string;
+  /** Last-updated date for the footer freshness line (section pages only). */
+  updated?: Date;
 }
-const { course, nav, tools, active, pageTitle } = Astro.props;
+const { course, nav, tools, active, pageTitle, editUrl, updated } = Astro.props;
 const { ui, features } = course;
+
+// The framework's own source — linked from the "Bygget med" footer attribution.
+const FRAMEWORK_REPO = "https://github.com/MartinSA04/StudyCompanion";
+
+// Module nav grouped into parts (single null-part group when no section sets one).
+const moduleGroups = partGroups(nav);
+
+const updatedStr = updated
+  ? new Intl.DateTimeFormat(course.language, { dateStyle: "long" }).format(
+      updated,
+    )
+  : null;
 
 // Per-theme brand accent. The course sets `accent` (light) and optionally
 // `accentDark`; the framework uses exactly those (no auto-lightening) and
@@ -180,18 +196,24 @@ const hasTools = toolNav.some((t) => t.show);
           )
         }
 
-        <div class="nav-section">Moduler</div>
         {
-          nav.map((item) => (
-            <a
-              class={`nav-link${active === item.slug ? " active" : ""}`}
-              href={`/${item.slug}`}
-              data-nav-order={item.order}
-              aria-current={active === item.slug ? "page" : undefined}>
-              <span class="nav-num">{item.num}</span>
-              <span class="nav-title">{item.shortTitle}</span>
-              <span class="nav-check" aria-hidden="true"><Icon name="check" size={12} /></span>
-            </a>
+          moduleGroups.map((group) => (
+            <>
+              <div class="nav-section">{group.part ?? "Moduler"}</div>
+              {group.items.map((item) => (
+                <a
+                  class={`nav-link${active === item.slug ? " active" : ""}`}
+                  href={`/${item.slug}`}
+                  data-nav-order={item.order}
+                  aria-current={active === item.slug ? "page" : undefined}>
+                  <span class="nav-num">{item.num}</span>
+                  <span class="nav-title">{item.shortTitle}</span>
+                  <span class="nav-check" aria-hidden="true">
+                    <Icon name="check" size={12} />
+                  </span>
+                </a>
+              ))}
+            </>
           ))
         }
 
@@ -213,8 +235,37 @@ const hasTools = toolNav.some((t) => t.show);
       <main class="content" id="content" tabindex="-1">
         <slot />
         <footer class="site-footer">
+          {
+            (updatedStr || editUrl) && (
+              <p class="footer-meta">
+                {updatedStr && (
+                  <span>
+                    {ui.updatedLabel} {updatedStr}
+                  </span>
+                )}
+                {editUrl && (
+                  <a
+                    class="footer-edit"
+                    href={editUrl}
+                    target="_blank"
+                    rel="noopener noreferrer">
+                    {ui.editPageLabel}
+                  </a>
+                )}
+              </p>
+            )
+          }
           <p>{course.code} · {course.title} · {course.term}</p>
-          <p>Bygget med <span class="accent-text">study-companion</span></p>
+          <p>
+            Bygget med
+            <a
+              class="accent-text"
+              href={FRAMEWORK_REPO}
+              target="_blank"
+              rel="noopener noreferrer">
+              study-companion
+            </a>
+          </p>
         </footer>
       </main>
     </div>

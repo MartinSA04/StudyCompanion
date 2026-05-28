@@ -66,6 +66,15 @@ export const courseSchema = z.object({
 
   links: z.array(z.object({ label: z.string(), url: z.url() })).default([]),
 
+  /**
+   * Source repository for THIS course's content (not the framework). When set,
+   * each module page gets a footer "edit this page" deep-link built from this
+   * URL + the section's file path. GitHub-style `/edit/<branch>/<path>` URLs.
+   */
+  repoUrl: z.url().optional(),
+  /** Branch the edit links point at. */
+  repoBranch: z.string().default("main"),
+
   features: z
     .object({
       progress: z.boolean().default(true),
@@ -88,6 +97,8 @@ export const courseSchema = z.object({
       examsLabel: z.string().default("Eksamen"),
       formulaSheetLabel: z.string().default("Formelsamling"),
       tocLabel: z.string().default("Innhold"),
+      editPageLabel: z.string().default("Rediger denne siden"),
+      updatedLabel: z.string().default("Oppdatert"),
     })
     .prefault({}),
 });
@@ -105,6 +116,15 @@ export const sectionSchema = z.object({
   importance: z.enum(["core", "useful", "extra"]).default("useful"),
   estMinutes: z.number().optional(),
   tags: z.array(z.string()).default([]),
+  /**
+   * Optional chapter grouping, e.g. "Del 1: Geometrisk optikk". When any section
+   * sets a `part`, the sidebar and overview group modules under part headers (in
+   * `order`); part-less sections fall back to a generic "Moduler" group. Absent
+   * everywhere → today's flat list. Global numbering is unaffected.
+   */
+  part: z.string().optional(),
+  /** Last-updated date, shown as a freshness line in the module footer. */
+  updated: z.coerce.date().optional(),
 });
 
 export const flashcardsSchema = z.object({

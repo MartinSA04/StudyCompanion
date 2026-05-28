@@ -246,23 +246,35 @@ handler now skips (they were cancelling out).
 
 These let bigger/second courses (algdat) land without template edits.
 
-### 2.1 Section grouping into "parts" — `minor`, **M**
+### 2.1 Section grouping into "parts" — `minor`, **M** — ✅ Done
 
 **Why.** The module list is flat. A larger course wants chapters ("Del 1:
 Geometrisk optikk"). Today the only grouping is the `Kom i gang / Verktøy /
 Moduler / Lenker` chrome buckets.
-**What.** Optional `part: string` on `sectionSchema`. Sidebar groups modules under
-part headers (in `order`); overview groups tiles by part. Absent `part` → today's
-flat behavior (backward-compatible → `minor`). Numbering in `lib/nav.ts` stays
-global and gap-free.
+**Done.** Optional `part: string` on `sectionSchema`. A generic `partGroups()` in
+`lib/nav.ts` (unit-tested: flat fallback, first-appearance ordering, part-less
+bucket, and a recurring-part-merge guard so a stray ungrouped module never splits
+a chapter) drives both the **sidebar** (a `.nav-section` header per part replaces
+the single "Moduler" label) and the **overview** (a `.part-head` editorial divider
+above each tile grid). Absent `part` everywhere → today's flat behavior (one
+`null`-part group → the generic "Moduler"/single grid), so it's backward-compatible
+→ `minor`. Numbering in `lib/nav.ts` stays global and gap-free (independent of
+parts). Verified in the demo (`Del 1: Grunnlag` / `Del 2: Komponenter`).
 
-### 2.2 "Edit this page" + freshness — `minor`, **S**
+### 2.2 "Edit this page" + freshness — `minor`, **S** — ✅ Done
 
 **Why.** Maintainability + trust. No way to jump from a rendered page to its MDX,
 and no "last updated" signal.
-**What.** Optional `course.repoUrl` (+ optional per-section `updated` date). Footer
-gets an "Rediger denne siden" link built from `repoUrl` + section file path, and
-an "Oppdatert {date}" line. Pure additive.
+**Done.** Optional `course.repoUrl` + `course.repoBranch` (default `main`) and an
+optional per-section `updated` date. On module pages the footer renders a
+`.footer-meta` line with an **"Oppdatert {date}"** span (localized via the course
+`language`) and a **"Rediger denne siden"** edit link built as
+`repoUrl/edit/<branch>/<filePath>` from Astro's `entry.filePath` (GitHub-style).
+Both are independent — the line shows whichever is present; tool/overview pages get
+neither. UI strings `editPageLabel`/`updatedLabel` added. Also linked the framework
+attribution ("Bygget med study-companion") to the framework repo. Pure additive →
+`minor`. Verified in the demo (repoUrl points at the framework repo, so the demo's
+own section files resolve).
 
 ### 2.3 Glossary — schema + tool page — `minor`, **M**
 
@@ -354,7 +366,8 @@ canonical expression and apply it everywhere.
 5. **Ongoing:** visual-regression CI (2.6) and design-system unification
    (2.7–2.8) as capacity allows.
 
-**Status:** Releases N, N+1, and N+2 are **complete**.
+**Status:** Releases N, N+1, and N+2 are **complete**; Release N+3 (scale) is **in
+progress** — section "parts" (2.1) and edit-this-page + freshness (2.2) shipped.
 
 - **N (P0 foundations):** dev fixture, tests, heading fix, print, docs — all
   shipped and verified against the demo.
@@ -366,8 +379,8 @@ canonical expression and apply it everywhere.
   arrow-key paging (1.8), in-page TOC (1.9), overview progress (1.10), flashcard
   filtering (1.11) — all `patch`/`minor`, verified via `pnpm build`.
 
-**Do next:** Release N+3 (scale) — section grouping into "parts" (2.1), glossary
-(2.3), "edit this page" + freshness (2.2), self-hosted fonts (2.5).
+**Do next:** finish Release N+3 (scale) — glossary (2.3), formula cross-refs (2.4),
+self-hosted fonts (2.5).
 
 ## SemVer ledger (at a glance)
 
@@ -391,8 +404,8 @@ canonical expression and apply it everywhere.
 | ✅ 1.9 In-page TOC | minor | M |
 | ✅ 1.10 Overview progress | patch | S–M |
 | ✅ 1.11 Flashcard filtering | minor | S–M |
-| 2.1 Section "parts" | minor | M |
-| 2.2 Edit-this-page | minor | S |
+| ✅ 2.1 Section "parts" | minor | M |
+| ✅ 2.2 Edit-this-page | minor | S |
 | 2.3 Glossary | minor | M |
 | 2.4 Formula cross-refs | minor | S–M |
 | 2.5 Self-host fonts | patch | M |
