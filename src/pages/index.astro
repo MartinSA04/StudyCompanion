@@ -2,6 +2,7 @@
 import { getCollection } from "astro:content";
 import CourseLayout from "../layouts/CourseLayout.astro";
 import Icon from "../components/Icon.astro";
+import ImportanceTag from "../components/ImportanceTag.astro";
 import { loadCourse } from "../lib/loadCourse.ts";
 import {
   sectionNav,
@@ -28,6 +29,7 @@ const tiles = sections.map((s) => ({
   num: nums.get(s.id) ?? String(s.data.order).padStart(2, "0"),
   title: s.data.title,
   part: s.data.part,
+  importance: s.data.importance,
   week:
     s.data.estMinutes != null
       ? `~${s.data.estMinutes} min`
@@ -133,7 +135,10 @@ const hasExamCard =
             >
               <div class="tile-num">{t.num}</div>
               <div class="tile-title">{t.title}</div>
-              {t.week && <div class="tile-week">{t.week}</div>}
+              <div class="tile-meta">
+                <ImportanceTag importance={t.importance} />
+                {t.week && <span class="tile-week">{t.week}</span>}
+              </div>
               {course.features.progress && (
                 <span class="tile-check" aria-hidden="true">
                   <Icon name="check" size={11} />

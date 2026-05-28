@@ -1,5 +1,6 @@
 import type { CollectionEntry } from "astro:content";
 import type { Course } from "../schema.ts";
+import type { Importance } from "./importance.ts";
 
 /**
  * Navigation model shared by the overview page, the per-module pages and the
@@ -23,6 +24,8 @@ export interface NavItem {
   order?: number;
   /** Optional chapter grouping (sections only); see `partGroups`. */
   part?: string;
+  /** Pensum tier (sections only) — drives the importance signal. */
+  importance?: Importance;
 }
 
 /** `01-foton` / `02_geo1` → `foton` / `geo1`. Falls back to the raw id. */
@@ -96,6 +99,7 @@ export function sectionNav(sections: CollectionEntry<"sections">[]): NavItem[] {
     kind: "section" as const,
     order: s.data.order,
     part: s.data.part,
+    importance: s.data.importance,
   }));
 }
 

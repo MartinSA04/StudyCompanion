@@ -1,0 +1,66 @@
+---
+import { IMPORTANCE_LABELS, type Importance } from "../lib/importance.ts";
+
+/**
+ * The course's one canonical importance signal — a token-keyed marker plus a
+ * mono label. AA- and colourblind-safe: the three tiers differ by SHAPE as well
+ * as colour (core = filled square, useful = filled disc, extra = hollow ring),
+ * so the distinction survives without colour. The label is the textual cue.
+ *
+ * `variant="full"` (default) shows marker + label (overview tiles, module
+ * header). `variant="mark"` shows the marker alone with the label as its
+ * accessible name (tight chrome). The sidebar uses a complementary left rule on
+ * core rows (see shell.css) — same vocabulary, the density each surface allows.
+ */
+interface Props {
+  importance: Importance;
+  variant?: "full" | "mark";
+}
+const { importance, variant = "full" } = Astro.props;
+const label = IMPORTANCE_LABELS[importance];
+---
+
+<span
+  class={`imp imp-${variant}`}
+  data-importance={importance}
+  aria-label={variant === "mark" ? label : undefined}
+  title={variant === "mark" ? label : undefined}
+>
+  <span class="imp-mark" aria-hidden="true"></span>
+  {variant === "full" && <span class="imp-label">{label}</span>}
+</span>
+
+<style>
+  .imp {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45em;
+  }
+  .imp-label {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: 0.02em;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  .imp-mark {
+    flex: none;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%; /* disc — the "useful" default */
+  }
+  /* core: filled square in the core hue (the must-know tier). */
+  .imp[data-importance="core"] .imp-mark {
+    background: var(--core);
+    border-radius: 2px;
+  }
+  /* useful: filled disc. */
+  .imp[data-importance="useful"] .imp-mark {
+    background: var(--useful);
+  }
+  /* extra: hollow ring — distinct shape, not just a dimmer colour. */
+  .imp[data-importance="extra"] .imp-mark {
+    background: transparent;
+    border: 1.5px solid var(--extra);
+  }
+</style>

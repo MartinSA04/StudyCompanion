@@ -7,9 +7,15 @@ import SearchPalette from "../components/SearchPalette.astro";
 import Icon from "../components/Icon.astro";
 import { contrastText, accentOnBg } from "../lib/color.ts";
 import "katex/dist/katex.min.css";
+import "../styles/fonts.css";
 import "../styles/tokens.css";
 import "../styles/base.css";
 import "../styles/shell.css";
+// Hashed URLs for the above-the-fold faces, used to preload them (the rest load
+// from fonts.css). Fraunces is a variable file → preloading 400 covers all
+// heading weights; Spectral 400 is the body face.
+import displayFont from "../styles/fonts/fraunces-400-latin.woff2";
+import bodyFont from "../styles/fonts/spectral-400-latin.woff2";
 
 interface Props {
   course: Course;
@@ -94,11 +100,19 @@ const hasTools = toolNav.some((t) => t.show);
         <meta name="description" content={`${course.title} — ${course.subtitle}`} />
       )
     }
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Spectral:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
-      rel="stylesheet"
+      rel="preload"
+      as="font"
+      type="font/woff2"
+      href={bodyFont}
+      crossorigin
+    />
+    <link
+      rel="preload"
+      as="font"
+      type="font/woff2"
+      href={displayFont}
+      crossorigin
     />
     {
       features.theme && (
@@ -206,6 +220,7 @@ const hasTools = toolNav.some((t) => t.show);
                   class={`nav-link${active === item.slug ? " active" : ""}`}
                   href={`/${item.slug}`}
                   data-nav-order={item.order}
+                  data-importance={item.importance}
                   aria-current={active === item.slug ? "page" : undefined}>
                   <span class="nav-num">{item.num}</span>
                   <span class="nav-title">{item.shortTitle}</span>

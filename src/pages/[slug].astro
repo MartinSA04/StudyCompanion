@@ -8,7 +8,9 @@ import Flashcards from "../components/Flashcards.astro";
 import ExamList from "../components/ExamList.astro";
 import Icon from "../components/Icon.astro";
 import PageToc from "../components/PageToc.astro";
+import ImportanceTag from "../components/ImportanceTag.astro";
 import { loadCourse } from "../lib/loadCourse.ts";
+import { IMPORTANCE_LABELS } from "../lib/importance.ts";
 import { mdxComponents } from "../mdx-components.ts";
 import {
   sectionNav,
@@ -87,12 +89,6 @@ const nav = sectionNav(sections);
 const tools = toolFlags(course, flashcards.length);
 const nums = sectionNumbers(sections);
 
-const importanceLabel = {
-  core: "Kjernepensum",
-  useful: "Pensum",
-  extra: "Tilleggsstoff",
-};
-
 let pageTitle = course.title;
 let Content: Awaited<ReturnType<typeof render>>["Content"] | null = null;
 let headings: { depth: number; slug: string; text: string }[] = [];
@@ -105,6 +101,7 @@ let head: {
   title: string;
   week: string;
   order: number;
+  importance: (typeof sections)[number]["data"]["importance"];
 } | null = null;
 
 if (props.kind === "section") {
@@ -121,9 +118,10 @@ if (props.kind === "section") {
     ...d.tags.slice(1),
   ].filter(Boolean);
   head = {
-    kicker: d.tags[0] ?? importanceLabel[d.importance],
+    kicker: d.tags[0] ?? IMPORTANCE_LABELS[d.importance],
     index: nums.get(props.entry.id) ?? String(d.order).padStart(2, "0"),
     title: d.title,
+    importance: d.importance,
     week: weekParts.join(" · "),
     order: d.order,
   };
@@ -155,7 +153,10 @@ if (props.kind === "section") {
           <div class="meta">
             <div class="mod-kicker">{head.kicker}</div>
             <h1>{head.title}</h1>
-            {head.week && <div class="week">{head.week}</div>}
+            <div class="mod-meta-row">
+              <ImportanceTag importance={head.importance} />
+              {head.week && <span class="week">{head.week}</span>}
+            </div>
           </div>
           {course.features.progress && (
             <button class="done-btn" type="button" data-done-order={head.order}>

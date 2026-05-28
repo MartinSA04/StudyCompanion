@@ -30,6 +30,8 @@
     "build": "node scripts/ensure-self-link.mjs && astro build",
     "preview": "astro preview",
     "test": "node --test --disable-warning=ExperimentalWarning 'test/**/*.test.ts'",
+    "test:visual": "playwright test -c visual/playwright.config.ts",
+    "test:visual:update": "playwright test -c visual/playwright.config.ts --update-snapshots",
     "typecheck": "astro sync && tsc --noEmit",
     "lint": "prettier --check \"src/**/*.{ts,astro}\" \"*.{ts,js,json,md}\"",
     "lint:fix": "prettier --write \"src/**/*.{ts,astro}\" \"*.{ts,js,json,md}\"",
@@ -48,6 +50,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@playwright/test": "^1.50.0",
     "@types/node": "^22.10.0",
     "astro": "^6.3.7",
     "markdownlint-cli2": "^0.22.1",

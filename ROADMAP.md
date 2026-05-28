@@ -311,43 +311,72 @@ the single source of truth, unit-tested). Verified in the demo (`<FormulaRef>` i
 
 ## P2 — Performance & infrastructure
 
-### 2.5 Self-host & subset fonts — `patch`, **M**
+### 2.5 Self-host & subset fonts — `patch`, **M** — ✅ Done
 
 **Why.** Fonts load from the Google CDN via a render-blocking `<link>`
 (`CourseLayout.astro:80-85`) — a third-party dependency, a privacy footprint, and
 a render/CLS cost. DESIGN.md targets Lighthouse ≥95.
-**What.** Vendor Fraunces/Spectral/IBM Plex Mono into the package, subset to the
-glyphs used, `font-display: swap`, `preload` the critical body weight, self-host
-KaTeX fonts. Removes the external request entirely.
+**Done.** `scripts/fetch-fonts.mjs` vendors Fraunces/Spectral/IBM Plex Mono woff2
+into `src/styles/fonts/` and generates `src/styles/fonts.css` (`@font-face`,
+`font-display: swap`). Imported from `CourseLayout`, so Vite fingerprints the woff2
+and rewrites the url()s — works the same in a consuming course's build. The Google
+`<link>` + preconnects are gone (verified: zero `fonts.gstatic`/`googleapis` in
+output); the body + display faces are `preload`ed via hashed imports. KaTeX fonts
+were already self-hosted (bundled from `katex/dist/katex.min.css`).
+**Not** lossy-subset: we keep every Google range (latin/-ext, cyrillic/-ext,
+vietnamese) with their `unicode-range`, so no prose glyph can go missing while a
+page still downloads only the range(s) it uses — re-running the script refreshes
+all ranges. (Per request: only subset when really needed; range-gating already
+gives the runtime win without dropping glyphs.)
 
-### 2.6 Visual regression snapshots — infra, **L**
+### 2.6 Visual regression snapshots — infra, **L** — ✅ Scaffolded
 
 **Why.** The polish bar is high and verification is manual screenshotting. A
 versioned library should lock in pixels.
-**What.** Playwright snapshots of the kitchen-sink fixture (0.2) per widget in
-both themes; run in CI on PRs. Catches the class of scoped-CSS regressions we hit
-before (the theme-toggle icon scope bug).
+**Done.** `visual/playwright.config.ts` (builds + previews the demo, both-theme
+screenshots, animations disabled) + `visual/kitchen-sink.spec.ts` (full-page
+snapshot of every injected route × {light, dark}, masking the canvas sim) +
+`.github/workflows/visual.yml` (installs Chromium, runs on PRs, uploads the report
+on failure). Scripts: `test:visual` / `test:visual:update`. Lives in `visual/` so
+the root tsconfig (which Astro rewrites on sync) never type-checks the CI-only
+`@playwright/test` import. **Caveat:** Playwright can't be installed in the dev
+sandbox, so the suite is authored but unrun here — baselines must be generated once
+on Linux (`pnpm install && pnpm test:visual:update`) and committed; CI then
+compares. Catches the scoped-CSS regression class (the theme-toggle icon-scope bug).
 
 ---
 
 ## P2 — Design-system consistency
 
-### 2.7 Unify the "panel header" pattern — `patch`, **S–M**
+### 2.7 Unify the "panel header" pattern — `patch`, **S–M** — ✅ Done
 
 **Why.** `Example`, `Simulation`, `FormulaSheet`, `CodeBlock` each implement their
 own header bar (badge/dot/title) with slightly different spacing. Small drifts
 accumulate.
-**What.** Extract one shared panel-header treatment (tokens or a tiny internal
-component) and route the four through it. Pure refactor; screenshot-compare to
-prove no visual change.
+**Done.** Extracted `PanelHeader.astro` — one card-tinted bar (bottom hairline,
+shared padding/typography) with a leading mark (mono kicker badge **or** accent
+dot), an optional display title, and a `kicker-icon` slot. `<Example>` (icon +
+kicker + md title, baseline) and `<Simulation>` (dot + lg title, centred) now route
+through it; their duplicated header CSS is gone. Verified the bundled CSS keeps the
+exact original values, so no visual change (the header element is a `<div>` rather
+than `<figcaption>` — invisible). **Deliberately left out:** `<CodeBlock>`'s
+filename strip (a lighter mono chrome, different border model) and the FormulaSheet
+group title (a heading above a list, not a panel bar) — folding them in would
+*change* their look, against the "no visual change" goal. Not author-facing (kept
+out of `mdx-components`).
 
-### 2.8 `importance` as a real visual system — `patch`, **S**
+### 2.8 `importance` as a real visual system — `patch`, **S** — ✅ Done
 
 **Why.** `core/useful/extra` exists in the schema and `--core/--useful/--extra`
 tokens exist, but the distinction is nearly invisible in nav/tiles/header.
-**What.** A consistent, AA-safe importance treatment across sidebar, overview
-tiles and module header (badge or accent rule, never color-alone). Decide the one
-canonical expression and apply it everywhere.
+**Done.** One canonical signal — `ImportanceTag.astro`: a token-keyed marker whose
+**shape** also varies (core = filled square, useful = filled disc, extra = hollow
+ring) plus a mono label, so the tier survives without colour (AA + colourblind-safe,
+never colour-alone). Applied to the **overview tiles** and the **module header**
+meta line; the **sidebar** carries the compact half of the same vocabulary (a
+left rule on core rows — presence vs absence is the non-colour cue). Labels live in
+`lib/importance.ts` (single source, reused for the module-header kicker fallback).
+Demo now spans all three tiers (Simulering → `extra`) to exercise the ring.
 
 ---
 
@@ -378,9 +407,13 @@ canonical expression and apply it everywhere.
 5. **Ongoing:** visual-regression CI (2.6) and design-system unification
    (2.7–2.8) as capacity allows.
 
-**Status:** Releases N, N+1, and N+2 are **complete**; Release N+3 (scale) is **in
-progress** — section "parts" (2.1), edit-this-page + freshness (2.2), glossary (2.3)
-and formula cross-refs (2.4) shipped. Only self-hosted fonts (2.5) remains.
+**Status:** **All of P0–P2 is complete.** Releases N, N+1, N+2 and N+3 (scale —
+parts 2.1, edit-this-page 2.2, glossary 2.3, formula cross-refs 2.4) shipped, plus
+the perf + design-system pass: self-hosted fonts (2.5), the importance visual
+system (2.8), the unified panel header (2.7), and the visual-regression CI scaffold
+(2.6, baselines pending a first Linux run). Only the **P3 speculative** items
+(`<Tabs>`, `<Embed>`, Preact/Keystatic escalation) remain — pull them only when a
+course needs one.
 
 - **N (P0 foundations):** dev fixture, tests, heading fix, print, docs — all
   shipped and verified against the demo.
@@ -392,9 +425,9 @@ and formula cross-refs (2.4) shipped. Only self-hosted fonts (2.5) remains.
   arrow-key paging (1.8), in-page TOC (1.9), overview progress (1.10), flashcard
   filtering (1.11) — all `patch`/`minor`, verified via `pnpm build`.
 
-**Do next:** self-hosted fonts (2.5) closes Release N+3. Then the design-system
-pass — unify the panel header (2.7), `importance` visual system (2.8) — and
-visual-regression CI (2.6).
+**Do next:** nothing queued — P0–P2 are done. Before the next release, generate the
+2.6 visual baselines on Linux (`pnpm test:visual:update`) and commit them. Beyond
+that, P3 items are demand-driven.
 
 ## SemVer ledger (at a glance)
 
@@ -422,10 +455,10 @@ visual-regression CI (2.6).
 | ✅ 2.2 Edit-this-page | minor | S |
 | ✅ 2.3 Glossary | minor | M |
 | ✅ 2.4 Formula cross-refs | minor | S–M |
-| 2.5 Self-host fonts | patch | M |
-| 2.6 Visual regression CI | infra | L |
-| 2.7 Unify panel header | patch | S–M |
-| 2.8 `importance` visual system | patch | S |
+| ✅ 2.5 Self-host fonts | patch | M |
+| ✅ 2.6 Visual regression CI | infra | L |
+| ✅ 2.7 Unify panel header | patch | S–M |
+| ✅ 2.8 `importance` visual system | patch | S |
 
 > No item here requires a **major** bump. The first change that forces existing
 > courses to edit content (e.g. making `part` required, or restructuring

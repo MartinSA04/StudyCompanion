@@ -192,8 +192,20 @@ pnpm dev                # serve the demo course (http://localhost:4321)
 pnpm build              # static build of the demo + Pagefind index → dist/
 pnpm preview            # preview the build (search works here, not in dev)
 pnpm test               # unit tests for the pure logic (built-in node:test)
+pnpm test:visual        # Playwright snapshots of the demo, both themes (CI)
 pnpm typecheck          # tsc on the framework source
 ```
+
+The brand fonts are **self-hosted** (no Google Fonts request): `node
+scripts/fetch-fonts.mjs` vendors Fraunces/Spectral/IBM Plex Mono woff2 into
+`src/styles/fonts/` and regenerates `src/styles/fonts.css`; re-run it to refresh.
+All Google ranges are kept (`unicode-range` gates what each page downloads), so no
+glyph goes missing. KaTeX fonts are already bundled from its stylesheet.
+
+`pnpm test:visual` (config in `visual/`) builds + previews the demo and compares
+full-page screenshots per route × theme. Baselines are platform-specific — generate
+them once on Linux with `pnpm test:visual:update` and commit
+`visual/*-snapshots/`; CI (`.github/workflows/visual.yml`) compares against them.
 
 `pnpm test` uses Node's built-in test runner (Node ≥ 23 strips the TS types
 natively) — no extra dependency. It covers the pure modules (`lib/nav`,

@@ -1,0 +1,105 @@
+---
+import { renderMathString } from "../lib/katex.ts";
+
+/**
+ * The shared header bar that sits at the top of a bordered panel — one card-tinted
+ * strip with a bottom hairline, a leading mark (a mono kicker badge or an accent
+ * dot) and an optional display title. Extracted so `<Example>` and `<Simulation>`
+ * stop re-implementing slightly-drifting copies of the same bar (ROADMAP 2.7).
+ *
+ * Slots: `kicker-icon` sits inside the kicker badge (kept as one chip); the
+ * default slot is trailing content. `title` may contain `$inline$` math.
+ *
+ * Not author-facing (not in mdx-components) — an internal layout primitive.
+ * Deliberately NOT used by `<CodeBlock>` (a lighter mono filename strip) or the
+ * FormulaSheet group heading (a heading above a list, not a panel bar).
+ */
+interface Props {
+  /** Mono uppercase badge text (e.g. "Regneeksempel"). */
+  kicker?: string;
+  /** A leading accent dot instead of a kicker badge. */
+  dot?: boolean;
+  /** Display title text; may contain `$inline$` math. */
+  title?: string;
+  titleSize?: "md" | "lg";
+  /** Cross-axis alignment: "baseline" pairs a badge with a title; "center" suits a dot. */
+  align?: "baseline" | "center";
+}
+const {
+  kicker,
+  dot = false,
+  title,
+  titleSize = "md",
+  align = "baseline",
+} = Astro.props;
+---
+
+<div class={`panel-head align-${align}`}>
+  {dot && <span class="panel-dot" aria-hidden="true" />}
+  {
+    kicker && (
+      <span class="panel-kicker">
+        <slot name="kicker-icon" />
+        {kicker}
+      </span>
+    )
+  }
+  {
+    title && (
+      <span
+        class={`panel-title size-${titleSize}`}
+        set:html={renderMathString(title)}
+      />
+    )
+  }
+  <slot />
+</div>
+
+<style>
+  .panel-head {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+  }
+  .align-baseline {
+    align-items: baseline;
+  }
+  .align-center {
+    align-items: center;
+  }
+  .panel-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex: none;
+    align-self: center;
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    font-weight: var(--weight-semibold);
+    color: var(--accent);
+  }
+  .panel-dot {
+    flex: none;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+  .panel-title {
+    font-family: var(--font-display);
+    color: var(--fg);
+  }
+  .panel-title.size-md {
+    font-weight: var(--weight-medium);
+    font-size: var(--text-md);
+  }
+  .panel-title.size-lg {
+    font-weight: var(--weight-semibold);
+    font-size: var(--text-lg);
+  }
+</style>

@@ -20,6 +20,8 @@
  * `api` = { canvas, ctx, controls, getSize:()=>({w,h}), onResize:(cb)=>void }.
  * Coordinates are CSS pixels (the context is pre-scaled for devicePixelRatio).
  */
+import PanelHeader from "./PanelHeader.astro";
+
 interface Props {
   /** Path to the course-provided ES module, e.g. "/sims/thin-lens.js". */
   src: string;
@@ -32,7 +34,7 @@ const { src, title, caption, height = 300 } = Astro.props;
 ---
 
 <figure class="simulation" data-sim data-sim-src={src} data-sim-height={height}>
-  {title && <figcaption class="sim-title">{title}</figcaption>}
+  {title && <PanelHeader dot title={title} titleSize="lg" align="center" />}
   <div class="sim-stage">
     <canvas
       class="sim-canvas"
@@ -51,24 +53,6 @@ const { src, title, caption, height = 300 } = Astro.props;
     border-radius: var(--radius);
     background: var(--card);
     overflow: hidden;
-  }
-  .sim-title {
-    display: flex;
-    align-items: center;
-    gap: var(--space-3);
-    font-family: var(--font-display);
-    font-weight: var(--weight-semibold);
-    font-size: var(--text-lg);
-    padding: var(--space-3) var(--space-4);
-    border-bottom: 1px solid var(--border);
-  }
-  .sim-title::before {
-    content: "";
-    width: 9px;
-    height: 9px;
-    border-radius: 50%;
-    background: var(--accent);
-    flex: none;
   }
   .sim-stage {
     position: relative;
