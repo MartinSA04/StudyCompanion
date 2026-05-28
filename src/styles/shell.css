@@ -289,6 +289,7 @@
   margin-top: var(--gap-6);
 }
 .module-tile {
+  position: relative;
   display: block;
   text-decoration: none;
   color: inherit;
@@ -318,6 +319,51 @@
   font-size: var(--text-xs);
   color: var(--faint);
   margin-top: var(--gap-2);
+}
+/* Only shown once a module is marked done — keeps the unvisited grid clean. */
+.tile-check {
+  position: absolute;
+  top: var(--gap-3);
+  right: var(--gap-3);
+  width: 18px;
+  height: 18px;
+  border-radius: var(--radius-xs);
+  background: var(--green);
+  color: var(--on-strong);
+  display: none;
+  place-items: center;
+}
+.module-tile.done .tile-check {
+  display: grid;
+}
+
+/* Overview progress row (shown by JS when any module is done) */
+.hero-progress-row {
+  margin-top: var(--gap-5);
+  display: flex;
+  align-items: center;
+  gap: var(--gap-4);
+  flex-wrap: wrap;
+}
+.hero-done {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: var(--muted);
+  margin: 0;
+}
+.hero-continue {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: var(--accent);
+  text-decoration: none;
+  border: 1px solid var(--accent-ring);
+  border-radius: var(--radius-sm);
+  padding: var(--gap-1) var(--gap-3);
+  transition: var(--dur-fast) var(--ease);
+}
+.hero-continue:hover {
+  background: var(--accent-weak);
+  border-color: var(--accent);
 }
 
 /* ====== module header ====== */
@@ -475,6 +521,25 @@
 /* ====== content rhythm (rendered MDX) ====== */
 .prose {
   max-width: var(--maxw);
+}
+/* Ensure anchor-targeted headings clear the sticky topbar when scrolled to. */
+.prose :is(h2, h3, h4) {
+  scroll-margin-top: calc(var(--topbar-h) + var(--gap-4));
+}
+/* "Hover #" deep-link injected by PageToc.astro's script. */
+.heading-anchor {
+  margin-left: 0.35em;
+  font-size: 0.75em;
+  color: var(--muted);
+  text-decoration: none;
+  opacity: 0;
+  transition: opacity var(--dur-fast) var(--ease);
+  font-family: var(--font-mono);
+  font-weight: var(--weight-normal);
+}
+.prose :is(h2, h3):hover .heading-anchor,
+.heading-anchor:focus-visible {
+  opacity: 1;
 }
 .prose > h3 {
   margin-top: var(--space-7);

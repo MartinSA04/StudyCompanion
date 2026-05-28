@@ -28,6 +28,8 @@ const rendered = cards.map((c) => ({
   back: renderMathString(c.back),
   section: c.section ?? "",
 }));
+const sections = [...new Set(rendered.map((c) => c.section).filter(Boolean))];
+const hasSections = sections.length > 0;
 ---
 
 <div
@@ -44,6 +46,31 @@ const rendered = cards.map((c) => ({
     >
   </div>
 
+  <div class="fc-toolbar">
+    {
+      hasSections && (
+        <div
+          class="fc-section-chips"
+          role="group"
+          aria-label="Filtrer etter seksjon"
+        >
+          <button type="button" class="fc-chip active" data-fc-section="">
+            Alle
+          </button>
+          {sections.map((s) => (
+            <button type="button" class="fc-chip" data-fc-section={s}>
+              {s}
+            </button>
+          ))}
+        </div>
+      )
+    }
+    <div class="fc-toggles">
+      <button type="button" class="fc-chip" data-fc-unknown>Kun ukjente</button>
+      <button type="button" class="fc-chip" data-fc-shuffle>Bland</button>
+    </div>
+  </div>
+
   <div class="fc-stage">
     {
       rendered.map((card, i) => (
@@ -52,6 +79,7 @@ const rendered = cards.map((c) => ({
           class="fc-card"
           data-fc-card
           data-index={i}
+          data-section={card.section}
           hidden={i !== 0}
           aria-label={labels.flip}
         >
@@ -91,7 +119,10 @@ const rendered = cards.map((c) => ({
       <Icon name="chevron-right" size={18} />
     </button>
   </div>
-  <p class="fc-counter"><span data-fc-pos>1</span> / {rendered.length}</p>
+  <p class="fc-counter">
+    <span data-fc-pos>1</span> / <span data-fc-total>{rendered.length}</span>
+  </p>
+  <p class="fc-empty" data-fc-empty hidden>Ingen kort matcher filteret.</p>
 </div>
 
 <style>
@@ -119,6 +150,51 @@ const rendered = cards.map((c) => ({
   }
   .fc-reset:hover {
     color: var(--accent);
+  }
+
+  /* Filter toolbar: section chips (left) + toggles (right) — one chip language. */
+  .fc-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    margin-bottom: var(--space-4);
+    padding-bottom: var(--space-3);
+    border-bottom: 1px solid var(--border);
+  }
+  .fc-section-chips,
+  .fc-toggles {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1);
+  }
+  .fc-chip {
+    padding: 3px var(--space-3);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-pill);
+    background: var(--bg-elevated);
+    font-size: var(--text-xs);
+    font-family: var(--font-mono);
+    color: var(--muted);
+    transition: var(--dur-fast) var(--ease);
+    cursor: pointer;
+  }
+  .fc-chip:hover {
+    border-color: var(--accent);
+    color: var(--fg);
+  }
+  .fc-chip.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--accent-contrast);
+  }
+  .fc-empty {
+    text-align: center;
+    padding: var(--space-6);
+    color: var(--muted);
+    font-size: var(--text-sm);
+    font-style: italic;
   }
 
   .fc-stage {
@@ -245,7 +321,9 @@ const rendered = cards.map((c) => ({
     ];
     const knownOut = deck.querySelector<HTMLElement>("[data-fc-known]")!;
     const posOut = deck.querySelector<HTMLElement>("[data-fc-pos]")!;
+    const totalOut = deck.querySelector<HTMLElement>("[data-fc-total]")!;
     const resetBtn = deck.querySelector<HTMLButtonElement>("[data-fc-reset]")!;
+    const emptyMsg = deck.querySelector<HTMLElement>("[data-fc-empty]");
 
     const load = (): Levels => {
       try {
@@ -263,11 +341,27 @@ const rendered = cards.map((c) => ({
     let levels = load();
     let queue: number[] = [];
     let pos = 0;
+    const filter = { section: "", onlyUnknown: false, shuffled: false };
 
     const buildQueue = () => {
-      queue = [...Array(total).keys()].sort(
-        (a, b) => (levels[a] ?? 0) - (levels[b] ?? 0) || a - b,
-      );
+      let indices = [...Array(total).keys()];
+      if (filter.section) {
+        indices = indices.filter(
+          (i) => cards[i].dataset.section === filter.section,
+        );
+      }
+      if (filter.onlyUnknown) {
+        indices = indices.filter((i) => (levels[i] ?? 0) < 2);
+      }
+      if (filter.shuffled) {
+        for (let i = indices.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [indices[i], indices[j]] = [indices[j], indices[i]];
+        }
+      } else {
+        indices.sort((a, b) => (levels[a] ?? 0) - (levels[b] ?? 0) || a - b);
+      }
+      queue = indices;
     };
 
     const renderProgress = () => {
@@ -278,32 +372,40 @@ const rendered = cards.map((c) => ({
 
     const show = () => {
       const idx = queue[pos];
+      const isEmpty = idx === undefined;
+      if (emptyMsg) emptyMsg.hidden = !isEmpty;
       cards.forEach((c) => {
-        c.hidden = Number(c.dataset.index) !== idx;
+        c.hidden = isEmpty || Number(c.dataset.index) !== idx;
         c.dataset.flipped = "false";
       });
-      posOut.textContent = String(pos + 1);
+      posOut.textContent = isEmpty ? "0" : String(pos + 1);
+      if (totalOut) totalOut.textContent = String(queue.length);
     };
 
     const advance = (delta: number) => {
-      pos = (pos + delta + total) % total;
+      const qlen = queue.length;
+      if (!qlen) return;
+      pos = (pos + delta + qlen) % qlen;
       if (pos === 0) buildQueue();
       show();
     };
 
     const rate = (known: boolean) => {
       const idx = queue[pos];
+      if (idx === undefined) return;
       levels[idx] = known ? Math.min(2, (levels[idx] ?? 0) + 1) : 0;
       save(levels);
       renderProgress();
       advance(1);
     };
 
+    // Card click = flip
     cards.forEach((c) =>
       c.addEventListener("click", () => {
         c.dataset.flipped = c.dataset.flipped === "true" ? "false" : "true";
       }),
     );
+
     deck
       .querySelector("[data-fc-prev]")!
       .addEventListener("click", () => advance(-1));
@@ -322,6 +424,79 @@ const rendered = cards.map((c) => ({
       pos = 0;
       renderProgress();
       show();
+    });
+
+    // Section filter chips
+    const sectionChips = [
+      ...deck.querySelectorAll<HTMLButtonElement>("[data-fc-section]"),
+    ];
+    sectionChips.forEach((chip) => {
+      chip.addEventListener("click", () => {
+        filter.section = chip.dataset.fcSection ?? "";
+        sectionChips.forEach((c) => c.classList.toggle("active", c === chip));
+        buildQueue();
+        pos = 0;
+        show();
+      });
+    });
+
+    // Unknown-only toggle
+    const unknownBtn =
+      deck.querySelector<HTMLButtonElement>("[data-fc-unknown]");
+    if (unknownBtn) {
+      unknownBtn.addEventListener("click", () => {
+        filter.onlyUnknown = !filter.onlyUnknown;
+        unknownBtn.classList.toggle("active", filter.onlyUnknown);
+        buildQueue();
+        pos = 0;
+        show();
+      });
+    }
+
+    // Shuffle toggle
+    const shuffleBtn =
+      deck.querySelector<HTMLButtonElement>("[data-fc-shuffle]");
+    if (shuffleBtn) {
+      shuffleBtn.addEventListener("click", () => {
+        filter.shuffled = !filter.shuffled;
+        shuffleBtn.classList.toggle("active", filter.shuffled);
+        buildQueue();
+        pos = 0;
+        show();
+      });
+    }
+
+    // Keyboard: Space/Enter=flip, ←/→=navigate, 1=Øv, 2=Kan
+    document.addEventListener("keydown", (e) => {
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      const active = document.activeElement;
+      const tag = (active?.tagName ?? "").toLowerCase();
+      if (tag === "input" || tag === "textarea" || tag === "select") return;
+      if (
+        [...document.querySelectorAll("dialog")].some(
+          (d) => (d as HTMLDialogElement).open,
+        )
+      )
+        return;
+      const cur = cards.find((c) => !c.hidden);
+      if (!cur) return;
+      if (e.key === " " || e.key === "Enter") {
+        if (active?.closest(".fc-controls")) return;
+        e.preventDefault();
+        cur.dataset.flipped = cur.dataset.flipped === "true" ? "false" : "true";
+      } else if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        advance(-1);
+      } else if (e.key === "ArrowRight") {
+        e.preventDefault();
+        advance(1);
+      } else if (e.key === "1") {
+        e.preventDefault();
+        rate(false);
+      } else if (e.key === "2") {
+        e.preventDefault();
+        rate(true);
+      }
     });
 
     buildQueue();

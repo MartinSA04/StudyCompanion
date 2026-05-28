@@ -1,6 +1,7 @@
 ---
 import { getCollection } from "astro:content";
 import CourseLayout from "../layouts/CourseLayout.astro";
+import Icon from "../components/Icon.astro";
 import { loadCourse } from "../lib/loadCourse.ts";
 import {
   sectionNav,
@@ -22,6 +23,7 @@ const nums = sectionNumbers(sections);
 // Module tiles, derived from section frontmatter.
 const tiles = sections.map((s) => ({
   slug: sectionSlug(s.id),
+  order: s.data.order,
   num: nums.get(s.id) ?? String(s.data.order).padStart(2, "0"),
   title: s.data.title,
   week:
@@ -67,6 +69,18 @@ const hasExamCard =
         </div>
       )
     }
+    {
+      course.features.progress && (
+        <div class="hero-progress-row" data-hero-progress-row hidden>
+          <p class="hero-done">
+            <span data-progress-done>0</span> av {tiles.length} moduler fullført
+          </p>
+          <a class="hero-continue" data-hero-continue href="#" hidden>
+            Fortsett der du slapp →
+          </a>
+        </div>
+      )
+    }
   </section>
 
   {
@@ -104,12 +118,52 @@ const hasExamCard =
   <div class="overview-grid">
     {
       tiles.map((t) => (
-        <a class="module-tile" href={`/${t.slug}`}>
+        <a class="module-tile" href={`/${t.slug}`} data-tile-order={t.order}>
           <div class="tile-num">{t.num}</div>
           <div class="tile-title">{t.title}</div>
           {t.week && <div class="tile-week">{t.week}</div>}
+          {course.features.progress && (
+            <span class="tile-check" aria-hidden="true">
+              <Icon name="check" size={11} />
+            </span>
+          )}
         </a>
       ))
     }
   </div>
 </CourseLayout>
+
+<script is:inline>
+  (function () {
+    var key = document.body.dataset.progressKey;
+    if (!key) return;
+    var done;
+    try {
+      done = new Set(JSON.parse(localStorage.getItem(key) || "[]").map(Number));
+    } catch (e) {
+      done = new Set();
+    }
+    if (!done.size) return;
+
+    var tiles = Array.from(document.querySelectorAll("[data-tile-order]"));
+    tiles.forEach(function (t) {
+      if (done.has(Number(t.dataset.tileOrder))) t.classList.add("done");
+    });
+
+    var row = document.querySelector("[data-hero-progress-row]");
+    if (row) {
+      var doneEl = row.querySelector("[data-progress-done]");
+      if (doneEl) doneEl.textContent = String(done.size);
+      row.hidden = false;
+    }
+
+    var continueLink = document.querySelector("[data-hero-continue]");
+    var firstUndone = tiles.find(function (t) {
+      return !t.classList.contains("done");
+    });
+    if (continueLink && firstUndone) {
+      continueLink.href = firstUndone.href;
+      continueLink.hidden = false;
+    }
+  })();
+</script>

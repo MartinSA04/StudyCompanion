@@ -173,53 +173,64 @@ KaTeX-aware. Verified both themes; anchors confirmed (`snells-lov`,
 
 ---
 
-## P1 — UX & interaction upgrades
+## P1 — UX & interaction upgrades — ✅ Complete
 
 Mostly `patch`/`minor` polish on existing islands. High perceived-quality return.
+**All five shipped** — see each item's **Done** note.
 
-### 1.7 Keyboard control for islands — `patch` (a11y), **M**
+### 1.7 Keyboard control for islands — `patch` (a11y), **M** — ✅ Done
 
 **Why.** Core interactions are mouse-only.
-**What.**
+**Done.**
 
-- **Flashcards**: `Space`/`Enter` flip, `←/→` navigate, `1`/`2` rate. (Currently
-  click-only — `Flashcards.astro` has no `keydown`.)
-- **Search**: `↑/↓` to move through results and `Enter` to open (today results are
-  click-only; only open/close is keyboarded).
-- **Quiz**: options are `<button>`s (already focusable) — verify arrow/Enter flow
-  and `aria-live` announce the result.
+- **Flashcards**: `Space`/`Enter` flip current card, `←/→` navigate, `1`/`2` rate
+  (Øv/Kan). Global `keydown` guarded against inputs, dialogs and the search palette.
+- **Search**: `↑/↓` moves focus through results (from input, `↓` enters the list;
+  `↑` from first result returns to the input). `Enter` in the input navigates to the
+  first/highlighted result.
+- **Quiz**: `↑/↓` while a quiz option is focused moves to the next/previous option
+  (circular). Options were already `<button>`s with `Enter`/`Space`; this adds arrow
+  group navigation.
 
-### 1.8 Prev/next module via arrow keys — `patch`, **S**
+### 1.8 Prev/next module via arrow keys — `patch`, **S** — ✅ Done
 
-**Why.** Multi-page guide; readers expect `←/→` to page between modules. The
-`.page-actions` links already exist (`[slug].astro:124`); just wire global
-keyboard (guarded against typing in inputs/search-open) with an a11y hint.
+**Why.** Multi-page guide; readers expect `←/→` to page between modules.
+**Done.** `data-page-prev` / `data-page-next` added to both section prev/next links
+and the "Til oversikt" fallback link in `[slug].astro`. A `keydown` handler in
+`CourseLayout.astro`'s inline script clicks the relevant link on `ArrowLeft`/
+`ArrowRight` (guarded: no modifier keys, not typing, search dialog not open).
 
-### 1.9 In-page "På denne siden" mini-TOC for long modules — `minor`, **M**
+### 1.9 In-page "På denne siden" mini-TOC for long modules — `minor`, **M** — ✅ Done
 
-**Why.** DESIGN.md skipped a scroll-spy TOC because nav is page-to-page — correct
-for *short* modules, but long modules (lots of `##`) have no within-page wayfinding.
-**What.** Optional auto-generated TOC from a section's `h2`/`h3` (rehype-slug +
-collected headings), shown only above a heading-count threshold, with scroll-spy
-highlight and `prefers-reduced-motion`-safe smooth scroll. Anchor links on
-headings (hover "#") for deep-linking/sharing.
+**Why.** Long modules (lots of `##`) have no within-page wayfinding.
+**Done.** New `<PageToc>` component (`src/components/PageToc.astro`). Uses the
+`headings` array from Astro's `render(entry)` (built-in rehype-slug IDs). Renders a
+sidebar-style nav for h2/h3, shown only when the module has ≥ 3 qualifying headings.
+Scroll-spy via `getBoundingClientRect` highlights the last heading above the 90px
+viewport threshold. Heading anchor `#` deep-links are injected by the component
+script into every h2/h3 in `.prose` (show on hover via CSS). `scroll-margin-top`
+added to prose headings so topbar doesn't occlude anchored targets. TOC label uses
+`course.ui.tocLabel` (already in schema, default `"Innhold"`).
 
-### 1.10 Progress surfaced on the overview — `patch`, **S–M**
+### 1.10 Progress surfaced on the overview — `patch`, **S–M** — ✅ Done
 
-**Why.** `importance` (core/useful/extra) and per-module done state are computed
-but barely visible. The overview tiles (`index.astro:89`) show num/title/week
-only.
-**What.** Show a done check + subtle "core/useful/extra" treatment on each tile;
-add an "X av N fullført" ring to the hero and a **"Fortsett der du slapp"** link
-to the first unread module (reads the same `sc:progress:<code>` key). All
-client-side, progressive-enhancement.
+**Why.** Per-module done state is tracked but invisible on the overview.
+**Done.** Each tile now has a `data-tile-order` attribute and a `.tile-check`
+element (box mirrors `.nav-check` pattern from the sidebar). An `is:inline` script
+reads the same `sc:progress:<code>` key from `body.dataset.progressKey`, marks done
+tiles `.done` (green border + checkmark), shows an "X av N moduler fullført" line
+in the hero, and reveals a **"Fortsett der du slapp →"** link to the first unread
+module. All client-side, progressive-enhancement — zero change when progress is 0.
 
-### 1.11 Flashcard deck filtering — `minor`, **S–M**
+### 1.11 Flashcard deck filtering — `minor`, **S–M** — ✅ Done
 
 **Why.** Decks render all cards; large decks want focus.
-**What.** Filter by `section`/`tags` (already in the flashcards schema),
-**shuffle**, and an "øv bare på de jeg ikke kan" mode using the existing
-localStorage levels. No schema change — data already present.
+**Done.** Section filter chips (pill buttons, only shown when cards have sections),
+**"Kun ukjente"** toggle (hides cards at level ≥ 2), and **"Bland"** toggle
+(Fisher-Yates shuffle each lap). Filter state (`section`, `onlyUnknown`, `shuffled`)
+gates `buildQueue()`; the counter updates to show filtered N. Empty-state message
+shown when no cards match. `data-section` added to each card button as the filter
+target. No schema change — data already present.
 
 ---
 
@@ -335,7 +346,7 @@ canonical expression and apply it everywhere.
 5. **Ongoing:** visual-regression CI (2.6) and design-system unification
    (2.7–2.8) as capacity allows.
 
-**Status:** Releases N and N+1 are **complete**.
+**Status:** Releases N, N+1, and N+2 are **complete**.
 
 - **N (P0 foundations):** dev fixture, tests, heading fix, print, docs — all
   shipped and verified against the demo.
@@ -343,10 +354,12 @@ canonical expression and apply it everywhere.
   `<Steps>` (1.2), `<KeyTakeaways>` (1.3), `<Compare>` (1.4), `<Hint>` (1.5),
   `<Statement>` (1.6) — all additive `minor`s, verified in both themes against the
   demo (`/mer`, `/sammenligning`).
+- **N+2 (UX):** all five P1 UX items — keyboard control for islands (1.7),
+  arrow-key paging (1.8), in-page TOC (1.9), overview progress (1.10), flashcard
+  filtering (1.11) — all `patch`/`minor`, verified via `pnpm build`.
 
-**Do next:** Release N+2 (UX) — keyboard control for islands (1.7), arrow-key
-paging (1.8), overview progress (1.10), in-page TOC (1.9), flashcard
-filtering (1.11).
+**Do next:** Release N+3 (scale) — section grouping into "parts" (2.1), glossary
+(2.3), "edit this page" + freshness (2.2), self-hosted fonts (2.5).
 
 ## SemVer ledger (at a glance)
 
@@ -365,11 +378,11 @@ filtering (1.11).
 | ✅ 1.4 `<Compare>` | minor | M |
 | ✅ 1.5 `<Hint>` | minor | S |
 | ✅ 1.6 `<Statement>` | minor | M |
-| 1.7 Island keyboard control | patch | M |
-| 1.8 Arrow-key paging | patch | S |
-| 1.9 In-page TOC | minor | M |
-| 1.10 Overview progress | patch | S–M |
-| 1.11 Flashcard filtering | minor | S–M |
+| ✅ 1.7 Island keyboard control | patch | M |
+| ✅ 1.8 Arrow-key paging | patch | S |
+| ✅ 1.9 In-page TOC | minor | M |
+| ✅ 1.10 Overview progress | patch | S–M |
+| ✅ 1.11 Flashcard filtering | minor | S–M |
 | 2.1 Section "parts" | minor | M |
 | 2.2 Edit-this-page | minor | S |
 | 2.3 Glossary | minor | M |

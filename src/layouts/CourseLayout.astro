@@ -311,6 +311,26 @@ const hasTools = toolNav.some((t) => t.show);
           toggleMenu(false);
       });
 
+      // ---- Arrow-key prev/next module ----
+      document.addEventListener("keydown", (e) => {
+        if (e.metaKey || e.ctrlKey || e.altKey || e.shiftKey) return;
+        const active = document.activeElement;
+        const typing =
+          active instanceof HTMLInputElement ||
+          active instanceof HTMLTextAreaElement ||
+          active instanceof HTMLSelectElement ||
+          active?.getAttribute("contenteditable") === "true";
+        if (typing) return;
+        if (document.querySelector(".search-dialog")?.open) return;
+        if (e.key === "ArrowLeft") {
+          const link = document.querySelector("[data-page-prev]");
+          if (link instanceof HTMLAnchorElement) { e.preventDefault(); link.click(); }
+        } else if (e.key === "ArrowRight") {
+          const link = document.querySelector("[data-page-next]");
+          if (link instanceof HTMLAnchorElement) { e.preventDefault(); link.click(); }
+        }
+      });
+
       // ---- Copy buttons on code blocks ----
       document.querySelectorAll(".content pre").forEach((pre) => {
         const btn = document.createElement("button");

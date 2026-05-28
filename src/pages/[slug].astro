@@ -6,6 +6,7 @@ import FormulaSheet from "../components/FormulaSheet.astro";
 import Flashcards from "../components/Flashcards.astro";
 import ExamList from "../components/ExamList.astro";
 import Icon from "../components/Icon.astro";
+import PageToc from "../components/PageToc.astro";
 import { loadCourse } from "../lib/loadCourse.ts";
 import { mdxComponents } from "../mdx-components.ts";
 import {
@@ -88,6 +89,7 @@ const importanceLabel = {
 
 let pageTitle = course.title;
 let Content: Awaited<ReturnType<typeof render>>["Content"] | null = null;
+let headings: { depth: number; slug: string; text: string }[] = [];
 let head: {
   kicker: string;
   index: string;
@@ -98,7 +100,7 @@ let head: {
 
 if (props.kind === "section") {
   const d = props.entry.data;
-  ({ Content } = await render(props.entry));
+  ({ Content, headings } = await render(props.entry));
   pageTitle = d.title;
   const weekParts = [
     d.estMinutes != null ? `~${d.estMinutes} min lesing` : null,
@@ -147,13 +149,15 @@ if (props.kind === "section") {
           )}
         </header>
 
+        <PageToc headings={headings} label={course.ui.tocLabel} />
+
         <article class="prose" data-pagefind-body data-section={head.order}>
           <Content components={mdxComponents} />
         </article>
 
         <nav class="page-actions" aria-label="Moduler">
           {props.prev ? (
-            <a class="page-link" href={`/${props.prev.slug}`}>
+            <a class="page-link" href={`/${props.prev.slug}`} data-page-prev>
               <Icon name="chevron-left" size={15} />
               Forrige: {props.prev.num}
             </a>
@@ -161,12 +165,12 @@ if (props.kind === "section") {
             <span class="page-link disabled" />
           )}
           {props.next ? (
-            <a class="page-link" href={`/${props.next.slug}`}>
+            <a class="page-link" href={`/${props.next.slug}`} data-page-next>
               Neste: {props.next.num}
               <Icon name="chevron-right" size={15} />
             </a>
           ) : (
-            <a class="page-link" href="/">
+            <a class="page-link" href="/" data-page-next>
               Til oversikt
             </a>
           )}

@@ -293,12 +293,59 @@ import Icon from "./Icon.astro";
     let debounce: ReturnType<typeof setTimeout>;
     input.addEventListener("input", () => {
       clearTimeout(debounce);
+      focusIdx = -1;
       const q = input.value.trim();
       if (!q) {
         results.innerHTML = "";
         return;
       }
       debounce = setTimeout(() => void runSearch(q), 160);
+    });
+
+    // ---- ↑/↓ keyboard navigation through results ----
+    let focusIdx = -1;
+
+    input.addEventListener("keydown", (e) => {
+      const links = [...results.querySelectorAll<HTMLAnchorElement>("a")];
+      if (e.key === "Enter" && !e.isComposing) {
+        const target = focusIdx >= 0 ? links[focusIdx] : links[0];
+        if (target) {
+          e.preventDefault();
+          target.click();
+        }
+      } else if (e.key === "ArrowDown") {
+        const first = links[0];
+        if (first) {
+          e.preventDefault();
+          first.focus();
+          focusIdx = 0;
+        }
+      }
+    });
+
+    results.addEventListener("keydown", (e) => {
+      const links = [...results.querySelectorAll<HTMLAnchorElement>("a")];
+      if (!links.length) return;
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        if (focusIdx < links.length - 1) {
+          focusIdx++;
+          links[focusIdx].focus();
+        }
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        if (focusIdx <= 0) {
+          focusIdx = -1;
+          input.focus();
+        } else {
+          focusIdx--;
+          links[focusIdx].focus();
+        }
+      }
+    });
+
+    dialog.addEventListener("close", () => {
+      focusIdx = -1;
     });
   }
 </script>

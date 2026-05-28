@@ -159,6 +159,19 @@ import Icon from "./Icon.astro";
     const explain = quiz.querySelector<HTMLElement>(".quiz-explain");
     let done = false;
 
+    // ↑/↓ moves focus between options (arrow-key group navigation)
+    options.forEach((btn, i) => {
+      btn.addEventListener("keydown", (e) => {
+        if (e.key === "ArrowDown") {
+          e.preventDefault();
+          options[(i + 1) % options.length]?.focus();
+        } else if (e.key === "ArrowUp") {
+          e.preventDefault();
+          options[(i - 1 + options.length) % options.length]?.focus();
+        }
+      });
+    });
+
     options.forEach((btn) => {
       btn.addEventListener("click", () => {
         if (done) return;

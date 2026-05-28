@@ -1,0 +1,141 @@
+---
+/**
+ * In-page "På denne siden" mini-TOC for long modules. Shown only when the
+ * section has at least `threshold` h2/h3 headings; otherwise renders nothing.
+ * Also injects a "hover #" deep-link anchor into every h2/h3 in .prose.
+ *
+ * Editorial treatment (no boxed panel): a mono kicker + hairline rule, then a
+ * clean column of links. The active heading (scroll-spy) is accent-coloured with
+ * a leading marker. Matches the paper aesthetic of `.lede` / `.nav-section`.
+ */
+interface Heading {
+  depth: number;
+  slug: string;
+  text: string;
+}
+interface Props {
+  headings: Heading[];
+  label?: string;
+  threshold?: number;
+}
+const { headings, label = "Innhold", threshold = 3 } = Astro.props;
+const visible = headings.filter((h) => h.depth === 2 || h.depth === 3);
+const show = visible.length >= threshold;
+---
+
+{
+  show && (
+    <nav class="page-toc" aria-label={label}>
+      <p class="toc-label">{label}</p>
+      <ol class="toc-list">
+        {visible.map((h) => (
+          <li class={`toc-item toc-h${h.depth}`}>
+            <a class="toc-link" href={`#${h.slug}`}>
+              {h.text}
+            </a>
+          </li>
+        ))}
+      </ol>
+    </nav>
+  )
+}
+
+<style>
+  .page-toc {
+    margin: 0 0 var(--space-6);
+  }
+  /* Mono kicker followed by a hairline that fills the row — editorial label. */
+  .toc-label {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    margin: 0 0 var(--space-2);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--faint);
+  }
+  .toc-label::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+  .toc-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .toc-item {
+    margin: 0;
+  }
+  .toc-h3 {
+    margin-left: var(--space-4);
+  }
+  .toc-link {
+    position: relative;
+    display: block;
+    padding: 2px 0 2px var(--space-4);
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+    color: var(--muted);
+    text-decoration: none;
+    transition: color var(--dur-fast) var(--ease);
+  }
+  .toc-h3 .toc-link {
+    color: var(--faint);
+  }
+  /* Leading marker sits in the reserved gutter; fades in for the active link. */
+  .toc-link::before {
+    content: "›";
+    position: absolute;
+    left: 0;
+    color: var(--accent);
+    opacity: 0;
+    transition: opacity var(--dur-fast) var(--ease);
+  }
+  .toc-link:hover {
+    color: var(--fg);
+  }
+  .toc-link.active {
+    color: var(--accent);
+    font-weight: var(--weight-medium);
+  }
+  .toc-link.active::before {
+    opacity: 1;
+  }
+</style>
+
+<script>
+  // Scroll-spy: highlight the last heading that has scrolled past the viewport
+  // top plus a small clearance for the sticky topbar.
+  const toc = document.querySelector<HTMLElement>(".page-toc");
+  if (toc) {
+    const links = [...toc.querySelectorAll<HTMLAnchorElement>(".toc-link")];
+    const ids = links.map((l) => l.getAttribute("href")!.slice(1));
+    const targets = ids.map((id) => document.getElementById(id));
+
+    const update = () => {
+      let active = -1;
+      targets.forEach((el, i) => {
+        if (el && el.getBoundingClientRect().top <= 90) active = i;
+      });
+      links.forEach((l, i) => l.classList.toggle("active", i === active));
+    };
+
+    window.addEventListener("scroll", update, { passive: true });
+    update();
+  }
+
+  // Inject hover "#" anchor links into every h2/h3 inside .prose.
+  document.querySelectorAll<HTMLElement>(".prose :is(h2, h3)").forEach((h) => {
+    if (!h.id) return;
+    const a = document.createElement("a");
+    a.href = "#" + h.id;
+    a.className = "heading-anchor";
+    a.setAttribute("aria-label", "Direkte lenke til " + h.textContent?.trim());
+    a.textContent = "#";
+    h.appendChild(a);
+  });
+</script>
