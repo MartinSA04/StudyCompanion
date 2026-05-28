@@ -1,0 +1,64 @@
+---
+import katex from "katex";
+import { loadCourse } from "../lib/loadCourse.ts";
+import { TOOL_SLUGS } from "../lib/nav.ts";
+
+/**
+ * Inline cross-reference from prose to a formula's row in the Formelsamling.
+ * Give it the `id` set on a `course.formulas` entry. With no slotted text it
+ * renders the formula itself (server-side KaTeX) as the link; slotted text
+ * overrides that label. Deep-links to `#id` on the sheet, where the row flashes
+ * via `:target`. Couples with `<Statement>` ids (same anchoring idea).
+ */
+interface Props {
+  id: string;
+}
+const { id } = Astro.props;
+const { course } = await loadCourse();
+const formula = course.formulas.find((f) => f.id === id);
+
+if (import.meta.env.DEV && !formula) {
+  console.warn(
+    `[study-companion] <FormulaRef id="${id}"> matches no formula with that id in course.formulas.`,
+  );
+}
+
+const href = `/${TOOL_SLUGS.formulas}#${id}`;
+const hasText = Astro.slots.has("default");
+const texHtml =
+  formula && !hasText
+    ? katex.renderToString(formula.tex, {
+        displayMode: false,
+        throwOnError: false,
+      })
+    : null;
+---
+
+{
+  hasText ? (
+    <a class="formula-ref" href={href}>
+      <slot />
+    </a>
+  ) : texHtml ? (
+    <a class="formula-ref" href={href} set:html={texHtml} />
+  ) : (
+    <a class="formula-ref" href={href}>
+      {id}
+    </a>
+  )
+}
+
+<style>
+  .formula-ref {
+    color: var(--accent);
+    text-decoration: none;
+    border-bottom: 1px dashed var(--accent-ring);
+    white-space: nowrap;
+  }
+  .formula-ref:hover {
+    border-bottom-style: solid;
+  }
+  .formula-ref :global(.katex) {
+    font-size: 0.95em;
+  }
+</style>

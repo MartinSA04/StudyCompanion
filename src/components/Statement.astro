@@ -1,6 +1,7 @@
 ---
 import Icon from "./Icon.astro";
 import { renderMathString } from "../lib/katex.ts";
+import { slugify } from "../lib/slug.ts";
 
 /**
  * A named, boxed result — a law, theorem, definition or principle ("Snells lov",
@@ -24,19 +25,6 @@ const LABELS = {
   principle: "Prinsipp",
 } as const;
 
-/** A stable, ASCII anchor slug. æ/ø/å are mapped; any other non-ASCII collapses
- *  to a separator (good enough — slugs only need to be stable + unique). */
-function slugify(s: string): string {
-  return s
-    .toLowerCase()
-    .replace(/\$[^$]*\$/g, " ") // drop math
-    .replace(/<[^>]*>/g, " ") // drop inline html
-    .replace(/æ/g, "ae")
-    .replace(/ø/g, "o")
-    .replace(/å/g, "a")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-}
 const anchor = id ?? slugify(name);
 ---
 

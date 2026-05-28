@@ -29,6 +29,20 @@ const formulaEntrySchema = z.object({
   onSheet: z.boolean().default(true),
   /** Must be memorized (not on the sheet) — gets a ★ badge. */
   memorize: z.boolean().default(false),
+  /**
+   * Stable anchor id for deep-linking from prose via `<FormulaRef id>`. When set,
+   * the formula's row in the sheet becomes a `#id` target. Must be unique.
+   */
+  id: z.string().optional(),
+});
+
+/** A glossary term + definition (rendered by <Glossary>, linked by <Term>). */
+const glossaryEntrySchema = z.object({
+  term: z.string(),
+  /** May contain `$inline$` math and simple inline HTML. */
+  definition: z.string(),
+  /** Free-text grouping, e.g. a section title. */
+  section: z.string().optional(),
 });
 
 export const courseSchema = z.object({
@@ -64,6 +78,9 @@ export const courseSchema = z.object({
   /** Reference-sheet formulas for <FormulaSheet>. Additive since v1 (optional). */
   formulas: z.array(formulaEntrySchema).default([]),
 
+  /** Glossary terms for the <Glossary> tool page + inline <Term> links. */
+  glossary: z.array(glossaryEntrySchema).default([]),
+
   links: z.array(z.object({ label: z.string(), url: z.url() })).default([]),
 
   /**
@@ -96,6 +113,7 @@ export const courseSchema = z.object({
       flashcardsLabel: z.string().default("Flashcards"),
       examsLabel: z.string().default("Eksamen"),
       formulaSheetLabel: z.string().default("Formelsamling"),
+      glossaryLabel: z.string().default("Begreper"),
       tocLabel: z.string().default("Innhold"),
       editPageLabel: z.string().default("Rediger denne siden"),
       updatedLabel: z.string().default("Oppdatert"),
@@ -143,3 +161,4 @@ export type Section = z.infer<typeof sectionSchema>;
 export type Flashcards = z.infer<typeof flashcardsSchema>;
 export type ExamPaper = z.infer<typeof examPaperSchema>;
 export type FormulaEntry = z.infer<typeof formulaEntrySchema>;
+export type GlossaryEntry = z.infer<typeof glossaryEntrySchema>;

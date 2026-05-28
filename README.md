@@ -83,8 +83,10 @@ features: { progress: true, search: true, flashcards: true, theme: true }
 links:
   - { label: "Emneside (NTNU)", url: "https://www.ntnu.no/studier/emner/TFY4195" }
 formulas:                   # optional → rendered as the Formelsamling section + flashcards
-  - { tex: "n_1\\sin\\theta_1 = n_2\\sin\\theta_2", label: "Snells lov", section: "Geometrisk optikk" }
+  - { tex: "n_1\\sin\\theta_1 = n_2\\sin\\theta_2", label: "Snells lov", section: "Geometrisk optikk", id: snells }   # id → <FormulaRef id="snells">
   - { tex: "\\sin\\theta_c = n_2/n_1", label: "Grensevinkel", section: "Geometrisk optikk", memorize: true, onSheet: false }
+glossary:                   # optional → Begreper tool page + inline <Term name="…">
+  - { term: "Koherens", definition: "Konstant faseforskjell mellom to bølger.", section: "Bølgeoptikk" }
 exams:                      # optional past-exam list (<ExamList>)
   - { label: "Eksamen V2023", date: 2023-05-24, url: "/exams/2023.pdf", solutionUrl: "/exams/2023-sol.pdf" }
 ui: { progressLabel: Fremgang, searchLabel: Søk, ... }   # optional chrome string overrides
@@ -121,6 +123,8 @@ $$ \Delta y \approx \frac{\lambda L}{d} $$ render server-side via KaTeX.
 | `<Formula>` | `tex`, `caption?`, `block?`, `memorize?` | Server-rendered KaTeX. `memorize` adds a "må pugges" badge. |
 | `<Figure>` | `src`, `alt`, `caption?`, `number?`, `width?`, `height?`, `full?` | Captioned image/diagram. `width`+`height` reserve the aspect-ratio (no layout shift); lazy-loaded. `caption` may contain `$…$`; `number` → "Figur N". |
 | `<Statement>` | `kind?` (law\|theorem\|definition\|principle), `name`, `id?` | A named, boxed result with a stable `#` anchor for deep-linking. `name` may contain `$…$`; `id` defaults to a slug of `name`. |
+| `<Term>` | `name`, slot? | Inline link into the glossary page. `name` is the headword (slugified to the row anchor); the slot, if any, is the display word (e.g. an inflected form), else `name` is shown. |
+| `<FormulaRef>` | `id`, slot? | Inline cross-ref to a formula's row in the Formelsamling (matches `course.formulas[].id`). With no slot it renders the formula (KaTeX) as the link; the target row flashes via `:target`. |
 | `<Example>` | `label?`, `title?` | Worked example ("regneeksempel"); default slot is the problem, then a `<Solution>`. `title` may contain `$…$`. |
 | `<Solution>` | `label?`, `open?` | Collapsible worked solution, used inside `<Example>`. Put `<Answer>` inside it so it stays hidden until revealed. |
 | `<Answer>` | `label?` | Highlighted final answer; place inside `<Solution>`. |

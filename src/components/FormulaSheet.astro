@@ -111,6 +111,7 @@ const hasMemorize = formulas.some((f) => f.memorize);
           {g.items.map((f) => (
             <li
               class="fs-row"
+              id={f.id}
               data-onsheet={String(f.onSheet)}
               data-memorize={String(f.memorize)}
               data-text={haystack(f)}
@@ -260,9 +261,17 @@ const hasMemorize = formulas.some((f) => f.memorize);
     gap: var(--space-5);
     padding: var(--space-3) 0;
     border-bottom: 1px dashed var(--border);
+    scroll-margin-top: calc(var(--topbar-h) + var(--space-3));
   }
   .fs-row:last-child {
     border-bottom: 0;
+  }
+  /* Flash the row a `<FormulaRef>` deep-link just jumped to. */
+  .fs-row:target {
+    background: var(--accent-soft);
+    border-radius: var(--radius-sm);
+    box-shadow: inset 3px 0 0 var(--accent);
+    padding-inline: var(--space-3);
   }
   /* The author content toggles these via the script below; the UA `[hidden]`
      rule loses to `.fs-row { display:flex }`, so restate it. */

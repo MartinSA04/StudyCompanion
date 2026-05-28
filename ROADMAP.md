@@ -276,21 +276,33 @@ attribution ("Bygget med study-companion") to the framework repo. Pure additive 
 `minor`. Verified in the demo (repoUrl points at the framework repo, so the demo's
 own section files resolve).
 
-### 2.3 Glossary — schema + tool page — `minor`, **M**
+### 2.3 Glossary — schema + tool page — `minor`, **M** — ✅ Done
 
 **Why.** Study guides define terminology constantly; there's no glossary and no
 reuse of definitions.
-**What.** `course.glossary: [{ term, definition, section? }]` + a `Begreper`/
-glossary tool page (mirrors `FormulaSheet` — searchable, grouped, KaTeX-aware) and
-an inline `<Term>` that links into it. Reuses the proven FormulaSheet UI pattern.
+**Done.** `course.glossary: [{ term, definition, section? }]` + a **Begreper** tool
+page (`Glossary.astro`, slug `begreper`, gated by `toolFlags.glossary`) that mirrors
+`FormulaSheet` — a free-text search box, grouped by `section` (section-less entries
+fall into an untitled bucket), server-side KaTeX + inline HTML in definitions, and a
+stable `#slug` anchor per term (hover `#`, `:target` flash). Inline `<Term name>`
+links prose into it: `name` is the headword (slugified to the anchor), an optional
+slot is the display word, and a DEV warning fires when `name` has no matching entry.
+UI string `glossaryLabel` (default "Begreper") + a `book` nav icon. Reuses the proven
+FormulaSheet UI pattern. Verified in the demo (`/begreper`, three groups + the
+`<Term>` links in `/sammenligning`).
 
-### 2.4 Formula cross-references — `minor`, **S–M**
+### 2.4 Formula cross-references — `minor`, **S–M** — ✅ Done
 
 **Why.** Prose says "by the formula above" instead of linking. `formulas[]` entries
 have no stable id.
-**What.** Optional `id` on `formulaEntrySchema`; a `<FormulaRef id>` inline that
-renders the formula's label and deep-links to its row in the sheet. Couples nicely
-with `<Statement>` ids (1.6).
+**Done.** Optional `id` on `formulaEntrySchema`; the FormulaSheet renders it on the
+row (`scroll-margin` clears the topbar, `:target` flashes the row on arrival). A
+`<FormulaRef id>` inline resolves the entry via `loadCourse()` and deep-links to
+`/formelsamling#id` — with no slot it renders the formula itself (server-side KaTeX)
+as the link, a slot overrides the label; a DEV warning fires for an unknown id.
+Couples with `<Statement>` ids (1.6) via the shared `slugify` (`lib/slug.ts`, now
+the single source of truth, unit-tested). Verified in the demo (`<FormulaRef>` in
+`/sammenligning` → rows `#snells` / `#tynnlinse` on the sheet).
 
 > Keep these **minor**: all optional, no `SCHEMA_VERSION` bump. The first item
 > that *requires* restructuring existing content is the next `major`.
@@ -367,7 +379,8 @@ canonical expression and apply it everywhere.
    (2.7–2.8) as capacity allows.
 
 **Status:** Releases N, N+1, and N+2 are **complete**; Release N+3 (scale) is **in
-progress** — section "parts" (2.1) and edit-this-page + freshness (2.2) shipped.
+progress** — section "parts" (2.1), edit-this-page + freshness (2.2), glossary (2.3)
+and formula cross-refs (2.4) shipped. Only self-hosted fonts (2.5) remains.
 
 - **N (P0 foundations):** dev fixture, tests, heading fix, print, docs — all
   shipped and verified against the demo.
@@ -379,8 +392,9 @@ progress** — section "parts" (2.1) and edit-this-page + freshness (2.2) shippe
   arrow-key paging (1.8), in-page TOC (1.9), overview progress (1.10), flashcard
   filtering (1.11) — all `patch`/`minor`, verified via `pnpm build`.
 
-**Do next:** finish Release N+3 (scale) — glossary (2.3), formula cross-refs (2.4),
-self-hosted fonts (2.5).
+**Do next:** self-hosted fonts (2.5) closes Release N+3. Then the design-system
+pass — unify the panel header (2.7), `importance` visual system (2.8) — and
+visual-regression CI (2.6).
 
 ## SemVer ledger (at a glance)
 
@@ -406,8 +420,8 @@ self-hosted fonts (2.5).
 | ✅ 1.11 Flashcard filtering | minor | S–M |
 | ✅ 2.1 Section "parts" | minor | M |
 | ✅ 2.2 Edit-this-page | minor | S |
-| 2.3 Glossary | minor | M |
-| 2.4 Formula cross-refs | minor | S–M |
+| ✅ 2.3 Glossary | minor | M |
+| ✅ 2.4 Formula cross-refs | minor | S–M |
 | 2.5 Self-host fonts | patch | M |
 | 2.6 Visual regression CI | infra | L |
 | 2.7 Unify panel header | patch | S–M |

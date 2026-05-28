@@ -1,0 +1,253 @@
+---
+import type { GlossaryEntry } from "../schema.ts";
+import { renderMathString } from "../lib/katex.ts";
+import { slugify } from "../lib/slug.ts";
+import Icon from "./Icon.astro";
+
+/**
+ * A scannable glossary of the course's terms, grouped by their optional
+ * `section`. Rendered from `course.glossary`. Mirrors the <FormulaSheet> pattern:
+ * server-side KaTeX in definitions (zero client cost), a free-text search box,
+ * and a stable `#slug` anchor per term so inline `<Term>` links land on the row.
+ */
+interface Props {
+  glossary: GlossaryEntry[];
+}
+const { glossary } = Astro.props;
+
+// Group by section, preserving first-seen order of both groups and entries.
+const groups: { section: string; items: GlossaryEntry[] }[] = [];
+for (const g of glossary) {
+  const key = g.section ?? "";
+  let grp = groups.find((x) => x.section === key);
+  if (!grp) {
+    grp = { section: key, items: [] };
+    groups.push(grp);
+  }
+  grp.items.push(g);
+}
+
+// A lowercased haystack for client-side search: term plus the plain-text
+// definition (math and inline markup stripped).
+const haystack = (e: GlossaryEntry) =>
+  (
+    e.term +
+    " " +
+    e.definition.replace(/<[^>]*>/g, "").replace(/\$[^$]*\$/g, " ")
+  ).toLowerCase();
+---
+
+<div class="gloss-controls">
+  <div class="gloss-search">
+    <Icon name="search" />
+    <input
+      type="search"
+      class="gloss-search-input"
+      placeholder="Søk i begreper …"
+      aria-label="Søk i begreper"
+      autocomplete="off"
+    />
+  </div>
+</div>
+
+<div class="glossary">
+  {
+    groups.map((g, i) => (
+      <section class="gloss-group" data-gloss-group>
+        {g.section && (
+          <h2 class="gloss-group-title">
+            <span class="gloss-group-num">
+              {String(i + 1).padStart(2, "0")}
+            </span>
+            {g.section}
+          </h2>
+        )}
+        <dl class="gloss-list">
+          {g.items.map((e) => (
+            <div class="gloss-row" id={slugify(e.term)} data-text={haystack(e)}>
+              <dt class="gloss-term">
+                <span set:html={renderMathString(e.term)} />
+                <a
+                  class="gloss-anchor"
+                  href={`#${slugify(e.term)}`}
+                  aria-label={`Lenke til «${e.term}»`}
+                >
+                  #
+                </a>
+              </dt>
+              <dd class="gloss-def" set:html={renderMathString(e.definition)} />
+            </div>
+          ))}
+        </dl>
+      </section>
+    ))
+  }
+  <p class="gloss-empty" hidden>Ingen begreper matcher søket.</p>
+</div>
+
+<style>
+  .gloss-controls {
+    margin-bottom: var(--space-5);
+  }
+  .gloss-search {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--card);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius);
+    padding: 9px 14px;
+    color: var(--faint);
+    transition: border-color var(--dur-fast) var(--ease);
+  }
+  .gloss-search:focus-within {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .gloss-search-input {
+    flex: 1;
+    min-width: 0;
+    border: 0;
+    background: transparent;
+    color: var(--fg);
+    font-family: var(--font-body);
+    font-size: var(--text-base);
+  }
+  .gloss-search-input:focus {
+    outline: none;
+  }
+  .gloss-search-input::placeholder {
+    color: var(--faint);
+  }
+  .gloss-search-input::-webkit-search-cancel-button {
+    -webkit-appearance: none;
+  }
+
+  .glossary {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+  }
+  .gloss-group-title {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    font-family: var(--font-display);
+    font-size: var(--text-lg);
+    color: var(--fg);
+    margin-bottom: var(--space-3);
+  }
+  .gloss-group-num {
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    color: var(--accent);
+  }
+  .gloss-list {
+    margin: 0;
+    padding: 0 var(--space-5);
+    background: var(--card);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius);
+  }
+  .gloss-row {
+    /* Term left, definition right — a definition grid that stacks on mobile. */
+    display: grid;
+    grid-template-columns: minmax(140px, 200px) 1fr;
+    gap: var(--space-5);
+    padding: var(--space-3) 0;
+    border-bottom: 1px dashed var(--border);
+    scroll-margin-top: calc(var(--topbar-h) + var(--space-3));
+  }
+  .gloss-row:last-child {
+    border-bottom: 0;
+  }
+  /* The search script toggles [hidden]; restate it since `display:grid` wins. */
+  .gloss-row[hidden] {
+    display: none;
+  }
+  /* Flash the row an inline `<Term>` link just jumped to. */
+  .gloss-row:target {
+    background: var(--accent-soft);
+    border-radius: var(--radius-sm);
+    box-shadow: inset 3px 0 0 var(--accent);
+    padding-left: var(--space-3);
+  }
+  .gloss-term {
+    position: relative;
+    font-family: var(--font-display);
+    font-weight: var(--weight-semibold);
+    color: var(--fg);
+    line-height: var(--leading-snug);
+  }
+  .gloss-anchor {
+    margin-inline-start: var(--space-1);
+    color: var(--faint);
+    font-family: var(--font-mono);
+    text-decoration: none;
+    opacity: 0;
+    transition:
+      opacity var(--dur-fast) var(--ease),
+      color var(--dur-fast) var(--ease);
+  }
+  .gloss-row:hover .gloss-anchor,
+  .gloss-anchor:focus-visible {
+    opacity: 1;
+    color: var(--accent);
+  }
+  .gloss-def {
+    margin: 0;
+    font-size: var(--text-sm);
+    color: var(--muted);
+    line-height: var(--leading-normal);
+  }
+  .gloss-def :global(b),
+  .gloss-def :global(strong) {
+    color: var(--accent);
+    font-weight: var(--weight-semibold);
+  }
+  .gloss-empty {
+    color: var(--faint);
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    padding: var(--space-3) 0;
+  }
+
+  @media (max-width: 640px) {
+    .gloss-row {
+      grid-template-columns: 1fr;
+      gap: var(--space-1);
+    }
+  }
+</style>
+
+<script>
+  // Free-text search over term + definition. Empty groups and the whole list
+  // collapse cleanly, mirroring the FormulaSheet filter.
+  const rows = [...document.querySelectorAll<HTMLElement>(".gloss-row")];
+  const groups = [
+    ...document.querySelectorAll<HTMLElement>("[data-gloss-group]"),
+  ];
+  const searchInput = document.querySelector<HTMLInputElement>(
+    ".gloss-search-input",
+  );
+  const empty = document.querySelector<HTMLElement>(".gloss-empty");
+
+  const apply = (term: string) => {
+    let anyVisible = false;
+    rows.forEach((r) => {
+      const show = !term || (r.dataset.text ?? "").includes(term);
+      r.hidden = !show;
+      if (show) anyVisible = true;
+    });
+    groups.forEach((g) => {
+      g.hidden = ![...g.querySelectorAll<HTMLElement>(".gloss-row")].some(
+        (r) => !r.hidden,
+      );
+    });
+    if (empty) empty.hidden = anyVisible;
+  };
+
+  searchInput?.addEventListener("input", () => {
+    apply(searchInput.value.trim().toLowerCase());
+  });
+</script>

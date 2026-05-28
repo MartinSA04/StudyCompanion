@@ -19,6 +19,8 @@ import Hint from "./components/Hint.astro";
 import Compare from "./components/Compare.astro";
 import CompareCol from "./components/CompareCol.astro";
 import Statement from "./components/Statement.astro";
+import Term from "./components/Term.astro";
+import FormulaRef from "./components/FormulaRef.astro";
 
 /**
  * Components made available to every MDX section by name, without the author
@@ -50,6 +52,8 @@ export const mdxComponents = {
   Compare,
   CompareCol,
   Statement,
+  Term,
+  FormulaRef,
 };
 
 export default mdxComponents;

@@ -72,9 +72,10 @@ const title = pageTitle
   ? `${pageTitle} · ${course.code}`
   : `${course.code} · ${course.title}`;
 
-type IconName = "sigma" | "layers" | "file";
+type IconName = "sigma" | "book" | "layers" | "file";
 const toolNav: { slug: string; icon: IconName; label: string; show: boolean }[] = [
   { slug: TOOL_SLUGS.formulas, icon: "sigma", label: ui.formulaSheetLabel, show: tools.formulas },
+  { slug: TOOL_SLUGS.glossary, icon: "book", label: ui.glossaryLabel, show: tools.glossary },
   { slug: TOOL_SLUGS.flashcards, icon: "layers", label: ui.flashcardsLabel, show: tools.flashcards },
   { slug: TOOL_SLUGS.exams, icon: "file", label: ui.examsLabel, show: tools.exams },
 ];

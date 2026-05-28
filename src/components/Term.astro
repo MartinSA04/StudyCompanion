@@ -1,0 +1,51 @@
+---
+import { loadCourse } from "../lib/loadCourse.ts";
+import { slugify } from "../lib/slug.ts";
+import { TOOL_SLUGS } from "../lib/nav.ts";
+
+/**
+ * Inline link from prose into the glossary tool page. `name` is the glossary
+ * headword to link to (slugified to the row's anchor); the slotted text, when
+ * given, is the display word (e.g. an inflected form). With no slot, `name`
+ * itself is shown. In DEV, warns when `name` matches no glossary entry.
+ */
+interface Props {
+  name: string;
+}
+const { name } = Astro.props;
+const href = `/${TOOL_SLUGS.glossary}#${slugify(name)}`;
+const hasText = Astro.slots.has("default");
+
+if (import.meta.env.DEV) {
+  const { course } = await loadCourse();
+  const found = course.glossary.some((g) => slugify(g.term) === slugify(name));
+  if (!found) {
+    console.warn(
+      `[study-companion] <Term name="${name}"> has no matching glossary entry — the link points at ${href} but no row has that anchor.`,
+    );
+  }
+}
+---
+
+{
+  hasText ? (
+    <a class="term-ref" href={href}>
+      <slot />
+    </a>
+  ) : (
+    <a class="term-ref" href={href}>
+      {name}
+    </a>
+  )
+}
+
+<style>
+  .term-ref {
+    color: var(--accent);
+    text-decoration: none;
+    border-bottom: 1px dashed var(--accent-ring);
+  }
+  .term-ref:hover {
+    border-bottom-style: solid;
+  }
+</style>

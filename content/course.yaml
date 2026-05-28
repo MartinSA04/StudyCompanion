@@ -28,11 +28,19 @@ links:
 # Exercises <FormulaSheet>: grouping by `section`, plus must-memorize rows
 # (memorize + onSheet:false) that get the star badge and the off-sheet stripe.
 formulas:
-  - { tex: "n_1\\sin\\theta_1 = n_2\\sin\\theta_2", label: "<b>Snells lov</b> — brytning i en grenseflate", section: "Geometrisk optikk" }
-  - { tex: "\\frac{1}{f} = \\frac{1}{s} + \\frac{1}{s'}", label: "Tynnlinseformelen", section: "Geometrisk optikk" }
+  - { tex: "n_1\\sin\\theta_1 = n_2\\sin\\theta_2", label: "<b>Snells lov</b> — brytning i en grenseflate", section: "Geometrisk optikk", id: snells }
+  - { tex: "\\frac{1}{f} = \\frac{1}{s} + \\frac{1}{s'}", label: "Tynnlinseformelen", section: "Geometrisk optikk", id: tynnlinse }
   - { tex: "\\sin\\theta_c = \\frac{n_2}{n_1}", label: "Grensevinkel for totalrefleksjon", section: "Geometrisk optikk", memorize: true, onSheet: false }
   - { tex: "d\\sin\\theta = m\\lambda", label: "Maksima i flerspaltinterferens", section: "Bølgeoptikk" }
   - { tex: "\\Delta y = \\frac{\\lambda L}{d}", label: "Stripeavstand i dobbeltspalteforsøket", section: "Bølgeoptikk", memorize: true, onSheet: false }
+
+# Exercises the <Glossary> tool page + inline <Term> links: grouped by `section`,
+# plus one section-less entry (the ungrouped bucket) and inline math / HTML.
+glossary:
+  - { term: "Brytningsindeks", definition: "Forholdet $n = c/v$ mellom lysfarten i vakuum og farten i mediet.", section: "Geometrisk optikk" }
+  - { term: "Totalrefleksjon", definition: "Når lys går fra tett mot tynt medium med en vinkel over grensevinkelen $\\theta_c$, reflekteres alt tilbake.", section: "Geometrisk optikk" }
+  - { term: "Koherens", definition: "To bølger er <b>koherente</b> når faseforskjellen er konstant — forutsetningen for stabil interferens.", section: "Bølgeoptikk" }
+  - { term: "Virtuelt bilde", definition: "Et bilde som dannes der strålenes forlengelser møtes; kan ikke fanges på en skjerm." }
 
 # Exercises <ExamList>: newest first, with and without a solution link.
 exams:

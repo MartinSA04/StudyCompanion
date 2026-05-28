@@ -3,6 +3,7 @@ import { getCollection, render } from "astro:content";
 import type { CollectionEntry } from "astro:content";
 import CourseLayout from "../layouts/CourseLayout.astro";
 import FormulaSheet from "../components/FormulaSheet.astro";
+import Glossary from "../components/Glossary.astro";
 import Flashcards from "../components/Flashcards.astro";
 import ExamList from "../components/ExamList.astro";
 import Icon from "../components/Icon.astro";
@@ -25,7 +26,7 @@ type Props =
       prev: Neighbor;
       next: Neighbor;
     }
-  | { kind: "formulas" | "flashcards" | "exams" };
+  | { kind: "formulas" | "glossary" | "flashcards" | "exams" };
 
 export async function getStaticPaths() {
   const { course, sections } = await loadCourse();
@@ -54,6 +55,11 @@ export async function getStaticPaths() {
     paths.push({
       params: { slug: TOOL_SLUGS.formulas },
       props: { kind: "formulas" },
+    });
+  if (tools.glossary)
+    paths.push({
+      params: { slug: TOOL_SLUGS.glossary },
+      props: { kind: "glossary" },
     });
   if (tools.flashcards)
     paths.push({
@@ -123,6 +129,8 @@ if (props.kind === "section") {
   };
 } else if (props.kind === "formulas") {
   pageTitle = course.ui.formulaSheetLabel;
+} else if (props.kind === "glossary") {
+  pageTitle = course.ui.glossaryLabel;
 } else if (props.kind === "flashcards") {
   pageTitle = course.ui.flashcardsLabel;
 } else {
@@ -197,6 +205,18 @@ if (props.kind === "section") {
           <h1>{course.ui.formulaSheetLabel}</h1>
         </header>
         <FormulaSheet formulas={course.formulas} />
+      </>
+    )
+  }
+
+  {
+    props.kind === "glossary" && (
+      <>
+        <header class="tool-head">
+          <div class="mod-kicker">Verktøy</div>
+          <h1>{course.ui.glossaryLabel}</h1>
+        </header>
+        <Glossary glossary={course.glossary} />
       </>
     )
   }
