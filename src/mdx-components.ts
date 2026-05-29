@@ -11,6 +11,7 @@ import Solution from "./components/Solution.astro";
 import Answer from "./components/Answer.astro";
 import LearningGoals from "./components/LearningGoals.astro";
 import ExamFocus from "./components/ExamFocus.astro";
+import Table from "./components/Table.astro";
 import Figure from "./components/Figure.astro";
 import Steps from "./components/Steps.astro";
 import Step from "./components/Step.astro";
@@ -45,6 +46,7 @@ export const mdxComponents = {
   Answer,
   LearningGoals,
   ExamFocus,
+  Table,
   Figure,
   Steps,
   Step,

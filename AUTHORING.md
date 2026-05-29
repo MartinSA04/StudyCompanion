@@ -64,6 +64,7 @@ Reach for a widget by intent. All are global in MDX — **no imports**.
 | Lay out a step-by-step procedure / method | `<Steps>` + `<Step>` |
 | Offer graduated hints (nudge → method → solution) | `<Hints>` + `<Hint>` |
 | Compare 2–3 concepts side by side | `<Compare>` + `<CompareCol>` |
+| Lay out a reference / complexity table (math cells, scrolls) | `<Table>` |
 | List module objectives / exam priorities | `<LearningGoals>` / `<ExamFocus>` |
 | Recap at the end of a module | `<KeyTakeaways>` |
 | Add a note / tip / warning | `<Callout type="…">` |

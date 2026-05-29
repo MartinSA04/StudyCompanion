@@ -141,6 +141,7 @@ $$ \Delta y \approx \frac{\lambda L}{d} $$ render server-side via KaTeX.
 | `<Answer>` | `label?` | Highlighted final answer; place inside `<Solution>`. |
 | `<LearningGoals>` | `title?` | Module objectives ("læringsmål"); slotted list. |
 | `<ExamFocus>` | `title?` | Exam-priority block ("eksamensfokus"); slotted MDX. |
+| `<Table>` | `columns`, `rows`, `caption?`, `rowHeader?`, `align?` | Data-driven reference/complexity table; cells may contain `$math$`. First column is a row header; scrolls horizontally on overflow. |
 | `<Callout>` | `type` = note\|tip\|warning, `title?` | Admonition box; slotted MDX body. |
 | `<Derivation>` | `title?`, `open?` | Collapsible worked steps (`<details>`). |
 | `<Steps>` / `<Step>` | `<Step title?>` | Numbered procedure as a vertical ribbon (a real `<ol>`). `title` may contain `$…$`. |

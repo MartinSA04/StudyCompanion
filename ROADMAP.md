@@ -576,15 +576,14 @@ prep for the algorithm course — **no algdat repo touched**.
 
 ---
 
-## P5 — Algorithm-course enablement (~`v1.2.0`, in progress)
+## P5 — Algorithm-course enablement (~`v1.2.0`) — ✅ Complete
 
 Scope set from a gap analysis of the real algdat course (TDT4120,
 `MartinSA04/TDT4120_companion`): its v0 is **SVG/DOM React visualizers** driven by
 a **frame-stepping engine**, displaying **Python** (Shiki handles it). Decisions
 with the maintainer: **port Norwegian-only** (no framework i18n) and **the
 framework owns the visualizer engine**. The DESIGN M7 "zero template edits"
-assumption does **not** hold — these are the additions. 5.1 + 5.2 are built;
-5.3 + 5.4 still to design.
+assumption does **not** hold — these are the additions, all built (5.1, 5.2, 5.4).
 
 ### 5.1 DOM/SVG render host for `<Simulation>` — `minor`, **M** — ✅ Done
 
@@ -624,19 +623,15 @@ errors). **Renderers
 (bars/graph/tree) stay course-owned for now — promote a shared set into the
 framework once a *second* course needs them** (the reduce-duplication trigger).
 
-### 5.3 Structured learning goals + per-goal mastery — `minor`, **M** — ⬜ Planned
-
-**Why.** algdat tracks individual goals (`{id, focus, text}`) with localStorage
-mastery; the framework `<LearningGoals>` is a static slotted list and progress is
-per-section only.
-**Plan.** Goals-as-data in the schema + a goals widget with mastery toggles + a
-new per-goal progress dimension alongside section progress.
-
-### 5.4 Complexity / reference `<Table>` — `minor`, **S–M** — ⬜ Planned
+### 5.4 Reference / complexity `<Table>` — `minor`, **S–M** — ✅ Done
 
 **Why.** Best/avg/worst/space tables (Θ/O/Ω) are pervasive; `<Compare>` is only
 2–3 column cards and `AUTHORING.md` bans ad-hoc Markdown tables.
-**Plan.** A KaTeX-aware, responsive table widget (data-driven rows/cols).
+**Done.** New data-driven `<Table columns rows caption? rowHeader? align?>`: a
+semantic `<table>` whose cells render `$math$` via `renderMathString` (the
+Quiz/CompareCol path). First column is a `<th scope="row">`; wide tables scroll
+horizontally inside a bordered viewport. No schema change. Verified in the demo
+(`/sammenligning`) in both themes (KaTeX cells, row headers, alignment, caption).
 
 **Deferred (not in `v1.2.0`):** the 152 KB interactive **exam bank**
 (`examData.js`) — its own project, beyond `<ExamList>`+`<Quiz>`; `<Statement>`
@@ -763,6 +758,9 @@ a **`minor`** release (suggest `v1.1.0`); `SCHEMA_VERSION` stays `1`.
 | ✅ 3.6 Exam page header | patch | S |
 | ✅ 3.7 Exam formula-sheet link | minor | S |
 | ✅ 3.8 `<CodeBlock active-line>` | minor | M |
+| ✅ 5.1 `<Simulation host="dom">` | minor | M |
+| ✅ 5.2 `<Stepper>` trace player | minor | L |
+| ✅ 5.4 `<Table>` | minor | S–M |
 
 > No item here requires a **major** bump. The first change that forces existing
 > courses to edit content (e.g. making `part` required, or restructuring

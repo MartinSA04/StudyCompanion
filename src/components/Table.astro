@@ -1,0 +1,128 @@
+---
+import { renderMathString } from "../lib/katex.ts";
+
+/**
+ * A data-driven reference table — complexity tables (best/avg/worst/space),
+ * comparison matrices, lookup grids. Authored as data, not a fragile Markdown
+ * table: every cell may contain `$inline$` math, rendered server-side with
+ * KaTeX (same path as <Quiz>/<CompareCol>).
+ *
+ *   <Table
+ *     columns={["Algoritme", "Best", "Verst", "Minne"]}
+ *     rows={[["Boblesortering", "$O(n)$", "$O(n^2)$", "$O(1)$"], …]}
+ *     caption="Kjøretider" />
+ *
+ * The first column is a row header (`<th scope="row">`) unless `rowHeader={false}`.
+ * Wide tables scroll horizontally inside a bordered viewport rather than wrapping.
+ */
+interface Props {
+  /** Header cells (one per column). May contain `$math$`. */
+  columns: string[];
+  /** Body rows; each is an array of cell strings. May contain `$math$`. */
+  rows: string[][];
+  caption?: string;
+  /** Treat the first cell of each row as a row header. Default true. */
+  rowHeader?: boolean;
+  /** Optional per-column text alignment. Defaults to left. */
+  align?: ("left" | "center" | "right")[];
+}
+const { columns, rows, caption, rowHeader = true, align = [] } = Astro.props;
+const alignOf = (i: number) => `text-align:${align[i] ?? "left"}`;
+---
+
+<figure class="data-table">
+  <div class="data-table-scroll">
+    <table>
+      <thead>
+        <tr>
+          {
+            columns.map((c, i) => (
+              <th
+                scope="col"
+                style={alignOf(i)}
+                set:html={renderMathString(c)}
+              />
+            ))
+          }
+        </tr>
+      </thead>
+      <tbody>
+        {
+          rows.map((row) => (
+            <tr>
+              {row.map((cell, i) =>
+                rowHeader && i === 0 ? (
+                  <th
+                    scope="row"
+                    style={alignOf(i)}
+                    set:html={renderMathString(cell)}
+                  />
+                ) : (
+                  <td style={alignOf(i)} set:html={renderMathString(cell)} />
+                ),
+              )}
+            </tr>
+          ))
+        }
+      </tbody>
+    </table>
+  </div>
+  {caption && <figcaption set:html={renderMathString(caption)} />}
+</figure>
+
+<style>
+  .data-table {
+    margin-block: var(--space-5);
+  }
+  .data-table-scroll {
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+  }
+  /* `.data-table table` (not bare `table`) to outweigh the prose flow's
+     `.prose table { margin-bottom }`, which otherwise leaves an ugly gap between
+     the last row and the viewport's bottom border. */
+  .data-table table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 0;
+    font-size: var(--text-sm);
+  }
+  thead th {
+    background: var(--card);
+    border-bottom: 1px solid var(--border-strong);
+    padding: var(--space-2) var(--space-4);
+    font-family: var(--font-display);
+    font-weight: var(--weight-semibold);
+    color: var(--fg);
+    white-space: nowrap;
+  }
+  tbody th,
+  tbody td {
+    padding: var(--space-2) var(--space-4);
+    border-bottom: 1px solid var(--border);
+    vertical-align: baseline;
+  }
+  tbody tr:last-child th,
+  tbody tr:last-child td {
+    border-bottom: 0;
+  }
+  tbody th {
+    font-weight: var(--weight-medium);
+    color: var(--fg);
+    white-space: nowrap;
+  }
+  tbody td {
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+  tbody tr:hover th,
+  tbody tr:hover td {
+    background: var(--card-hover);
+  }
+  figcaption {
+    margin-top: var(--space-2);
+    font-size: var(--text-xs);
+    color: var(--faint);
+  }
+</style>

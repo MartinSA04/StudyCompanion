@@ -11,6 +11,22 @@ part: "Del 2: Komponenter"
 De to siste komponentene: en sammenligning i kort og navngitte resultater med
 stabil ankerlenke.
 
+## Referansetabell
+
+`<Table>` bygger en tabell fra data — hver celle kan inneholde `$matte$`. Brede
+tabeller får vannrett rulling i stedet for å brytes stygt på mobil:
+
+<Table
+  columns={["Medium", "Brytningsindeks $n$", "Grensevinkel mot luft"]}
+  rows={[
+    ["Vann", "1.33", "$48.8^\\circ$"],
+    ["Glass (kron)", "1.52", "$41.1^\\circ$"],
+    ["Diamant", "2.42", "$24.4^\\circ$"],
+  ]}
+  align={["left", "right", "right"]}
+  caption="Typiske brytningsindekser og grensevinkelen for totalrefleksjon mot luft."
+/>
+
 ## Sammenligning
 
 `<Compare>` stiller to–tre begreper opp mot hverandre i kort som stables på smal
