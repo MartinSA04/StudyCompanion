@@ -1,0 +1,547 @@
+---
+/**
+ * <Stepper> — a generic algorithm trace-player (ROADMAP 5.2).
+ *
+ * The framework owns the player chrome (transport, seek, speed, the current-step
+ * caption, code-line sync + a variable strip on the linked <CodeBlock>, keyboard,
+ * a11y, theming) and the render *stage*. A course module in `public/` supplies only
+ * the domain pieces: the trace (`run`) and how to draw one frame (`render`).
+ *
+ * Course module contract (course `public/steppers/<algo>.js`, default export):
+ *
+ *   export default {
+ *     run(input) { return [frame, frame, …]; },          // required: the trace
+ *     render(stage, frame, api) { …paint SVG/HTML… },     // required: one frame
+ *     defaultData(size) { return [...]; },   // optional → enables shuffle
+ *     sizeRange: { min, max, default },       // optional → enables a size control
+ *     label(frame) { return "…"; },           // optional → overrides caption text
+ *   }
+ *
+ * Framework-recognised frame fields (everything else is opaque course payload
+ * passed straight to render): `line` (number | number[]) → the linked <CodeBlock>
+ * active line(s); `desc`/`label` → the step caption; `vars`/`variables` → the
+ * `key = value` strip on the linked <CodeBlock>.
+ */
+import PanelHeader from "./PanelHeader.astro";
+import Icon from "./Icon.astro";
+
+interface Props {
+  /** Path to the course-provided ES module, e.g. "/steppers/bubblesort.js". */
+  src: string;
+  /** `id` of the <CodeBlock> to drive (its active line follows `frame.line`). */
+  codeId?: string;
+  title?: string;
+  caption?: string;
+  /** CSS height of the stage in px. */
+  height?: number;
+}
+const { src, codeId, title, caption, height = 300 } = Astro.props;
+---
+
+<figure
+  class="stepper"
+  data-stepper
+  data-stepper-src={src}
+  data-stepper-code={codeId}
+  data-stepper-height={height}
+  tabindex="-1"
+>
+  {title && <PanelHeader dot title={title} titleSize="lg" align="center" />}
+
+  <div
+    class="stepper-stage"
+    role="img"
+    aria-label={title ?? "Algoritmevisualisering"}
+  >
+  </div>
+  <p class="stepper-fallback">Interaktiv visualisering krever JavaScript.</p>
+
+  <div class="stepper-body">
+    <div class="stepper-controls">
+      <div class="stepper-transport">
+        <button
+          class="stepper-btn"
+          data-act="back"
+          type="button"
+          aria-label="Forrige steg"
+          title="Forrige steg (←)"><Icon name="chevron-left" /></button
+        >
+        <button
+          class="stepper-btn stepper-play"
+          data-act="play"
+          type="button"
+          aria-pressed="false"
+          aria-label="Spill av"
+          title="Spill av / pause (mellomrom)"
+        >
+          <span class="ic-play"><Icon name="play" size={18} /></span>
+          <span class="ic-pause"><Icon name="pause" size={18} /></span>
+        </button>
+        <button
+          class="stepper-btn"
+          data-act="forward"
+          type="button"
+          aria-label="Neste steg"
+          title="Neste steg (→)"><Icon name="chevron-right" /></button
+        >
+      </div>
+
+      <input
+        class="stepper-scrub"
+        data-scrub
+        type="range"
+        min="0"
+        max="0"
+        value="0"
+        aria-label="Gå til steg"
+      />
+      <span class="stepper-count" data-count>0 / 0</span>
+
+      <div class="stepper-extra">
+        <button
+          class="stepper-ghost stepper-speed"
+          data-act="speed"
+          type="button"
+          aria-label="Avspillingsfart"
+          title="Avspillingsfart">1×</button
+        >
+        <button
+          class="stepper-ghost"
+          data-act="shuffle"
+          type="button"
+          aria-label="Stokk om"
+          title="Stokk om (S)"><Icon name="shuffle" size={15} /></button
+        >
+        <label class="stepper-size" data-size-ctrl title="Antall elementer">
+          <span class="stepper-size-n" data-size-n>n</span>
+          <input data-size type="range" aria-label="Størrelse" />
+        </label>
+      </div>
+    </div>
+
+    <p class="stepper-desc" aria-live="polite"></p>
+    {caption && <p class="stepper-caption">{caption}</p>}
+  </div>
+</figure>
+
+<style>
+  .stepper {
+    margin-block: var(--space-5);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--bg-elevated);
+    overflow: hidden;
+  }
+  .stepper:focus-visible {
+    outline: 2px solid var(--accent-ring);
+    outline-offset: 2px;
+  }
+
+  /* Stage: the visualization is the hero — no inner box, it sits on the panel. */
+  .stepper-stage {
+    margin: var(--space-5) var(--space-5) var(--space-4);
+  }
+  .stepper-body {
+    padding-bottom: var(--space-5);
+  }
+  .stepper-fallback {
+    padding: 0 var(--space-5) var(--space-5);
+    color: var(--muted);
+    font-size: var(--text-sm);
+  }
+  .stepper:not([data-ready]) .stepper-body {
+    display: none;
+  }
+  .stepper[data-ready] .stepper-fallback {
+    display: none;
+  }
+
+  /* Current-step narration: a quiet status line under the controls (the player
+     stays a single group). Variables live in the linked <CodeBlock>. */
+  .stepper-desc {
+    margin: 0;
+    padding: var(--space-3) var(--space-5) 0;
+    min-height: 1.4em;
+    font-family: var(--font-body);
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+    color: var(--muted);
+  }
+
+  /* One control bar: primary transport, a seek scrubber, count, quiet extras. */
+  .stepper-controls {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    flex-wrap: wrap;
+    padding: 0 var(--space-5);
+  }
+  .stepper-transport {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+  .stepper-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.1rem;
+    height: 2.1rem;
+    border: 0;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    transition:
+      background var(--dur-fast) var(--ease),
+      color var(--dur-fast) var(--ease);
+  }
+  .stepper-btn:hover {
+    background: var(--card-hover);
+    color: var(--fg);
+  }
+  .stepper-play {
+    width: 2.5rem;
+    height: 2.5rem;
+    background: var(--accent);
+    color: var(--accent-contrast);
+  }
+  .stepper-play:hover {
+    background: var(--accent);
+    color: var(--accent-contrast);
+    filter: saturate(1.15) brightness(1.05);
+  }
+  /* Icons sit as block svgs in flex buttons so they center (an inline svg
+     leaves baseline descender space → the glyph rides high). */
+  .stepper-btn :global(svg),
+  .stepper-ghost :global(svg) {
+    display: block;
+  }
+  .ic-play,
+  .ic-pause {
+    display: inline-flex;
+  }
+  .stepper-play .ic-pause {
+    display: none;
+  }
+  .stepper-play.is-playing .ic-play {
+    display: none;
+  }
+  .stepper-play.is-playing .ic-pause {
+    display: inline-flex;
+  }
+
+  .stepper-scrub {
+    flex: 1 1 8rem;
+    min-width: 6rem;
+    accent-color: var(--accent);
+    cursor: pointer;
+  }
+  .stepper-count {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--faint);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  .stepper-extra {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+  }
+  .stepper-ghost {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.9rem;
+    height: 1.9rem;
+    padding: 0 var(--space-2);
+    border: 0;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--faint);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    cursor: pointer;
+    transition:
+      background var(--dur-fast) var(--ease),
+      color var(--dur-fast) var(--ease);
+  }
+  .stepper-ghost:hover {
+    background: var(--card-hover);
+    color: var(--accent);
+  }
+  .stepper-speed {
+    font-variant-numeric: tabular-nums;
+  }
+  .stepper-size {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    color: var(--faint);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    padding-left: var(--space-1);
+  }
+  .stepper-size[hidden] {
+    display: none;
+  }
+  .stepper-size input[type="range"] {
+    width: 4.5rem;
+    accent-color: var(--accent);
+    cursor: pointer;
+  }
+
+  .stepper-caption {
+    margin: 0;
+    padding: var(--space-2) var(--space-5) 0;
+    font-size: var(--text-xs);
+    color: var(--faint);
+    line-height: var(--leading-snug);
+  }
+</style>
+
+<script>
+  import {
+    importCourseModule,
+    lazyMountAll,
+    makeCodeBlockController,
+    onThemeChange,
+  } from "../lib/simRuntime";
+  import {
+    normalizeFrame,
+    clampIndex,
+    stepIndex,
+    intervalFor,
+    nextSpeed,
+    tickPlay,
+    type Frame,
+  } from "../lib/stepper";
+
+  interface StepperDef {
+    run: (input: unknown) => Frame[];
+    render: (
+      stage: HTMLElement,
+      frame: Frame,
+      api: {
+        index: number;
+        total: number;
+        getSize: () => { w: number; h: number };
+      },
+    ) => void;
+    defaultData?: (size: number) => unknown;
+    sizeRange?: { min: number; max: number; default: number };
+    label?: (frame: Frame) => string;
+  }
+
+  const mount = (fig: HTMLElement) => {
+    const src = fig.dataset.stepperSrc;
+    if (!src) return;
+    const codeId = fig.dataset.stepperCode || undefined;
+    const cssH = Number(fig.dataset.stepperHeight) || 300;
+
+    const q = <T extends HTMLElement = HTMLElement>(s: string) =>
+      fig.querySelector<T>(s);
+    const stage = q(".stepper-stage");
+    const descEl = q(".stepper-desc");
+    const countEl = q("[data-count]");
+    const scrub = q<HTMLInputElement>("[data-scrub]");
+    const speedBtn = q<HTMLButtonElement>('[data-act="speed"]');
+    const shuffleBtn = q<HTMLButtonElement>('[data-act="shuffle"]');
+    const sizeWrap = q("[data-size-ctrl]");
+    const sizeEl = q<HTMLInputElement>("[data-size]");
+    const sizeN = q("[data-size-n]");
+    const playBtn = q<HTMLButtonElement>('[data-act="play"]');
+    if (!stage) return;
+
+    importCourseModule<{ default?: StepperDef } & Partial<StepperDef>>(src)
+      .then((mod) => {
+        const def = (mod.default ?? mod) as StepperDef;
+        if (typeof def?.run !== "function" || typeof def?.render !== "function")
+          throw new Error("stepper module must export run() and render()");
+        init(def);
+      })
+      .catch((err) =>
+        console.error(`study-companion: failed to load stepper ${src}`, err),
+      );
+
+    function init(def: StepperDef) {
+      stage!.style.height = cssH + "px";
+      fig.dataset.ready = "true";
+
+      const code = codeId ? makeCodeBlockController(codeId) : null;
+      const getSize = () => ({
+        w: stage!.clientWidth || fig.clientWidth,
+        h: cssH,
+      });
+
+      let size = def.sizeRange?.default ?? 0;
+      let speed = 1;
+      let frames: Frame[] = [];
+      let idx = 0;
+      let playing = false;
+      let timer: number | null = null;
+
+      // Capability-gated extras.
+      if (def.sizeRange && sizeEl) {
+        sizeEl.min = String(def.sizeRange.min);
+        sizeEl.max = String(def.sizeRange.max);
+        sizeEl.value = String(size);
+        if (sizeN) sizeN.textContent = String(size);
+      } else sizeWrap?.setAttribute("hidden", "");
+      if (!def.defaultData) shuffleBtn?.setAttribute("hidden", "");
+
+      function setPlaying(p: boolean) {
+        // Pressing play at the end replays from the start.
+        if (p && idx >= frames.length - 1) idx = 0;
+        playing = p;
+        if (playBtn) {
+          playBtn.classList.toggle("is-playing", p);
+          playBtn.setAttribute("aria-pressed", String(p));
+          playBtn.setAttribute("aria-label", p ? "Pause" : "Spill av");
+        }
+        if (timer != null) {
+          clearInterval(timer);
+          timer = null;
+        }
+        if (p) {
+          paint();
+          startLoop();
+        }
+      }
+      function startLoop() {
+        if (!frames.length) return;
+        timer = window.setInterval(() => {
+          const t = tickPlay(idx, frames.length);
+          idx = t.index;
+          paint();
+          if (t.atEnd) setPlaying(false);
+        }, intervalFor(speed));
+      }
+
+      function regen() {
+        setPlaying(false);
+        const input = def.defaultData ? def.defaultData(size) : [];
+        try {
+          frames = def.run(input) || [];
+        } catch (e) {
+          console.error(e);
+          frames = [];
+        }
+        idx = 0;
+        if (scrub) scrub.max = String(Math.max(0, frames.length - 1));
+        paint();
+      }
+
+      function paint() {
+        if (!frames.length) {
+          if (descEl) descEl.textContent = "Ingen steg.";
+          code?.setVars([]);
+          return;
+        }
+        idx = clampIndex(idx, frames.length);
+        const frame = frames[idx];
+        try {
+          def.render(stage!, frame, {
+            index: idx,
+            total: frames.length,
+            getSize,
+          });
+        } catch (e) {
+          console.error(e);
+        }
+        const n = normalizeFrame(frame);
+        const desc = def.label ? def.label(frame) : n.desc;
+        if (descEl) descEl.textContent = desc;
+        if (countEl) countEl.textContent = `${idx + 1} / ${frames.length}`;
+        if (scrub) {
+          scrub.value = String(idx);
+          scrub.setAttribute(
+            "aria-valuetext",
+            desc || `Steg ${idx + 1} av ${frames.length}`,
+          );
+        }
+        if (code) {
+          code.setActiveLines(n.lines);
+          code.setVars(n.vars);
+        }
+      }
+
+      const go = (next: number) => {
+        setPlaying(false);
+        idx = next;
+        paint();
+      };
+
+      // Transport + extras.
+      q('[data-act="back"]')?.addEventListener("click", () =>
+        go(stepIndex(idx, frames.length, -1)),
+      );
+      q('[data-act="forward"]')?.addEventListener("click", () =>
+        go(stepIndex(idx, frames.length, +1)),
+      );
+      playBtn?.addEventListener("click", () => setPlaying(!playing));
+      shuffleBtn?.addEventListener("click", () => regen());
+      scrub?.addEventListener("input", () =>
+        go(clampIndex(Number(scrub.value), frames.length)),
+      );
+      speedBtn?.addEventListener("click", () => {
+        speed = nextSpeed(speed);
+        speedBtn.textContent = `${speed}×`;
+        if (playing) setPlaying(true); // restart loop at the new interval
+      });
+      sizeEl?.addEventListener("input", () => {
+        size = Number(sizeEl.value);
+        if (sizeN) sizeN.textContent = String(size);
+        regen();
+      });
+
+      // Keyboard, scoped to the widget so it can't fight the page's global
+      // arrow-key module paging (stopPropagation on the arrows).
+      fig.addEventListener("keydown", (e) => {
+        if (e.metaKey || e.ctrlKey || e.altKey) return;
+        switch (e.key) {
+          case "ArrowRight":
+            e.preventDefault();
+            e.stopPropagation();
+            go(stepIndex(idx, frames.length, +1));
+            break;
+          case "ArrowLeft":
+            e.preventDefault();
+            e.stopPropagation();
+            go(stepIndex(idx, frames.length, -1));
+            break;
+          case " ":
+            e.preventDefault();
+            setPlaying(!playing);
+            break;
+          case "r":
+          case "R":
+            go(0);
+            break;
+          case "s":
+          case "S":
+            if (def.defaultData) regen();
+            break;
+        }
+      });
+
+      // Repaint the current frame on resize + theme change so the course's
+      // SVG/HTML re-lays-out and picks up new theme tokens.
+      let raf = 0;
+      window.addEventListener("resize", () => {
+        if (raf) return;
+        raf = requestAnimationFrame(() => {
+          raf = 0;
+          paint();
+        });
+      });
+      onThemeChange(() => paint());
+
+      regen();
+    }
+  };
+
+  lazyMountAll(document.querySelectorAll<HTMLElement>("[data-stepper]"), mount);
+</script>

@@ -144,6 +144,41 @@ export default function init({ codeBlock /* … */ }) {
 }
 ```
 
+### Stepped algorithm traces — `<Stepper>`
+
+For **algorithms you step through**, prefer `<Stepper>` over a hand-rolled
+`<Simulation>`: the framework owns the whole player (transport, scrubber, speed,
+step caption, code-line sync + a variable strip on the linked code block,
+keyboard, a11y) and
+the render *stage*. The course module (in `public/steppers/`) supplies only the
+**trace** and how to **draw one frame**:
+
+```mdx
+<CodeBlock id="maks" lang="python" code={`def maks(a): ...`} />
+<Stepper src="/steppers/maks.js" codeId="maks" title="Lineært søk etter største" />
+```
+
+```js
+// public/steppers/maks.js — default export
+export default {
+  run(input) { return [frame, frame, …]; },     // required: build the trace
+  render(stage, frame, api) { /* paint SVG/HTML into `stage` */ }, // required
+  defaultData(size) { return [...]; },  // optional → adds a shuffle button
+  sizeRange: { min, max, default },      // optional → adds a size slider
+  label(frame) { /* override step text */ },     // optional
+};
+```
+
+The framework reads only three fields off each frame — `line` (number | number[],
+drives the linked `<CodeBlock>`), `desc`/`label` (the step text), and
+`vars`/`variables` (a `key = value` strip on the linked code block). Everything
+else is **your** payload, passed
+straight back to `render`. Draw with SVG/HTML (not canvas) so labels stay crisp;
+use `var(--accent)`, `var(--green)`, etc. via inline `style` so frames re-theme.
+Keep `run(input)` deterministic for a given input (shuffle re-calls
+`defaultData`). For a non-stepped interactive diagram, use
+`<Simulation host="dom">` and draw into `api.stage` instead.
+
 ---
 
 ## 6. Conventions

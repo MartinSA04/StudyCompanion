@@ -5,6 +5,7 @@ import CodeBlock from "./components/CodeBlock.astro";
 import SelfCheck from "./components/SelfCheck.astro";
 import Quiz from "./components/Quiz.astro";
 import Simulation from "./components/Simulation.astro";
+import Stepper from "./components/Stepper.astro";
 import Example from "./components/Example.astro";
 import Solution from "./components/Solution.astro";
 import Answer from "./components/Answer.astro";
@@ -38,6 +39,7 @@ export const mdxComponents = {
   SelfCheck,
   Quiz,
   Simulation,
+  Stepper,
   Example,
   Solution,
   Answer,

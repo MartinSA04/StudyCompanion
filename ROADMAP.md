@@ -576,6 +576,76 @@ prep for the algorithm course — **no algdat repo touched**.
 
 ---
 
+## P5 — Algorithm-course enablement (~`v1.2.0`, in progress)
+
+Scope set from a gap analysis of the real algdat course (TDT4120,
+`MartinSA04/TDT4120_companion`): its v0 is **SVG/DOM React visualizers** driven by
+a **frame-stepping engine**, displaying **Python** (Shiki handles it). Decisions
+with the maintainer: **port Norwegian-only** (no framework i18n) and **the
+framework owns the visualizer engine**. The DESIGN M7 "zero template edits"
+assumption does **not** hold — these are the additions. 5.1 + 5.2 are built;
+5.3 + 5.4 still to design.
+
+### 5.1 DOM/SVG render host for `<Simulation>` — `minor`, **M** — ✅ Done
+
+**Why.** `<Simulation>` handed the course module a `<canvas>` + 2D ctx only, but
+every algdat visualizer (graphs, trees, bars) is SVG/DOM with labeled nodes —
+rewriting to canvas would be a quality/a11y regression (no crisp labels, no
+selectable text).
+**Done.** `<Simulation host="dom">` renders an empty themed stage and the module
+gets `api.stage` (an element) instead of `canvas`/`ctx`; `host="canvas"` is the
+unchanged default. Mount/import/codeBlock/theme logic now lives in a shared
+`src/lib/simRuntime.ts` used by both `<Simulation>` and `<Stepper>`. Additive prop,
+no schema change → `minor`.
+
+### 5.2 `<Stepper>` — generic algorithm trace player — `minor`, **L** — ✅ Done
+
+**Why.** The player (prev/play/next + seek + speed), the current-step caption,
+a variable strip on the linked code block, and code-line sync are generic across every algorithm
+visualizer — the reduce-duplication principle. Each sim would otherwise hand-roll
+all the chrome.
+**Done.** New `<Stepper src codeId? title? caption? height?>` widget. A course
+module in `public/steppers/` exports `run(input)` (the trace) + `render(stage,
+frame)` (one frame), optional `defaultData`/`sizeRange` (→ shuffle + size control)
+and `label`. The framework owns the player, restructured for a clean,
+hierarchy-driven layout: a hero stage, a prominent serif step caption, and one
+control bar — ghost prev/next, a filled primary play/pause (replays at end), a
+seek scrubber, an `n / total` counter, a compact speed toggle (0.5×/1×/2×), plus
+quiet shuffle + size when offered. The frame's variables render as a `key = value`
+strip on the linked `<CodeBlock>` (state belongs with the code). Scoped
+keyboard (←/→/space/r/s, `stopPropagation` so it never fights the page's arrow
+paging), `prefers-reduced-motion` (no autoplay), theme repaint, and `<CodeBlock>`
+line-sync (reuses 3.8 `codeBlock()`). Recognised frame fields: `line`,
+`desc`/`label`, `vars`/`variables`; all else is opaque course payload. Pure logic
+in `src/lib/stepper.ts` (`test/stepper.test.ts`, TDD); the island is exercised by
+the demo (`/simulering`, a linear-max scan) — verified end-to-end in a headless
+browser, both themes (frame render, step, speed toggle, line-sync, no console
+errors). **Renderers
+(bars/graph/tree) stay course-owned for now — promote a shared set into the
+framework once a *second* course needs them** (the reduce-duplication trigger).
+
+### 5.3 Structured learning goals + per-goal mastery — `minor`, **M** — ⬜ Planned
+
+**Why.** algdat tracks individual goals (`{id, focus, text}`) with localStorage
+mastery; the framework `<LearningGoals>` is a static slotted list and progress is
+per-section only.
+**Plan.** Goals-as-data in the schema + a goals widget with mastery toggles + a
+new per-goal progress dimension alongside section progress.
+
+### 5.4 Complexity / reference `<Table>` — `minor`, **S–M** — ⬜ Planned
+
+**Why.** Best/avg/worst/space tables (Θ/O/Ω) are pervasive; `<Compare>` is only
+2–3 column cards and `AUTHORING.md` bans ad-hoc Markdown tables.
+**Plan.** A KaTeX-aware, responsive table widget (data-driven rows/cols).
+
+**Deferred (not in `v1.2.0`):** the 152 KB interactive **exam bank**
+(`examData.js`) — its own project, beyond `<ExamList>`+`<Quiz>`; `<Statement>`
+`lemma`/`proof` kinds; inline concept cards; CLRS-ref chips. **Non-issues (already
+covered):** Python via Shiki, code-line stepping (3.8), `<Quiz>`,
+`<Glossary>`/`<Term>`, `<Figure>`, `<Callout>` pitfalls, exam PDFs via `<ExamList>`.
+
+---
+
 ## P4 — Speculative (demand-driven)
 
 - **`<Tabs>`** — alternative explanations / approaches / languages. *(minor, M)*

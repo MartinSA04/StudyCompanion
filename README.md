@@ -150,7 +150,8 @@ $$ \Delta y \approx \frac{\lambda L}{d} $$ render server-side via KaTeX.
 | `<CodeBlock>` | `code`, `lang?`, `title?`, `id?`, `activeLine?`, `activeLines?` | Shiki-highlighted block (+ auto copy button). `activeLine`/`activeLines` emphasise 1-based line(s); with an `id`, a `<Simulation>` can step the highlight via `api.codeBlock(id)`. |
 | `<SelfCheck>` | `question` | Prompt with answer behind a reveal. |
 | `<Quiz>` | `question`, `options[]`, `answer` (0-based), `explanation?` | Single-answer MCQ; text may contain `$…$`. |
-| `<Simulation>` | `src`, `title?`, `caption?`, `height?` | Mounts a course-owned canvas simulation (see below). |
+| `<Simulation>` | `src`, `title?`, `caption?`, `height?`, `host?` (canvas\|dom) | Mounts a course-owned simulation (see below). `host="dom"` gives the module an SVG/HTML stage (`api.stage`) instead of a canvas. |
+| `<Stepper>` | `src`, `codeId?`, `title?`, `caption?`, `height?` | Generic algorithm trace-player: the framework owns transport/seek/speed/variables + `<CodeBlock>` line-sync; a course module (`public/steppers/`) supplies `run(input)` + `render(stage, frame)`. See `AUTHORING.md` §5. |
 
 Fenced code blocks (` ```py `) are highlighted by Shiki and get a copy button automatically.
 
