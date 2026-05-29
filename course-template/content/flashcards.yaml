@@ -1,0 +1,10 @@
+# Optional flashcard deck → the Flashcards tool page (gated by features.flashcards).
+# `section` is optional and powers the deck's section filter chips. Delete this
+# file if the course has no deck.
+cards:
+  - front: "Hva kalles den lengste siden i en rettvinklet trekant?"
+    back: "Hypotenusen."
+    section: "Eksempeldel"
+  - front: "Hva forteller diskriminanten $b^2 - 4ac$?"
+    back: "Antall reelle løsninger: to (>0), én (=0) eller ingen (<0)."
+    section: "Eksempeldel"

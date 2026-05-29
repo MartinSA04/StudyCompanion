@@ -6,6 +6,7 @@ import FormulaSheet from "../components/FormulaSheet.astro";
 import Glossary from "../components/Glossary.astro";
 import Flashcards from "../components/Flashcards.astro";
 import ExamList from "../components/ExamList.astro";
+import ExamSummary from "../components/ExamSummary.astro";
 import Icon from "../components/Icon.astro";
 import PageToc from "../components/PageToc.astro";
 import ImportanceTag from "../components/ImportanceTag.astro";
@@ -205,6 +206,18 @@ if (props.kind === "section") {
           <div class="mod-kicker">Verktøy</div>
           <h1>{course.ui.formulaSheetLabel}</h1>
         </header>
+        {course.exam?.formulaSheetUrl && (
+          <a
+            class="official-sheet"
+            href={course.exam.formulaSheetUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <Icon name="file" size={18} />
+            <span class="os-label">{course.ui.officialFormulaSheetLabel}</span>
+            <Icon name="external" size={14} />
+          </a>
+        )}
         <FormulaSheet formulas={course.formulas} />
       </>
     )
@@ -241,6 +254,9 @@ if (props.kind === "section") {
           <div class="mod-kicker">Verktøy</div>
           <h1>{course.ui.examsLabel}</h1>
         </header>
+        {course.exam && (
+          <ExamSummary exam={course.exam} language={course.language} />
+        )}
         <ExamList exams={course.exams} language={course.language} />
       </>
     )

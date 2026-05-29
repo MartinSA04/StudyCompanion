@@ -12,6 +12,11 @@ A *course* is authored as **data** — a `course.yaml` plus `sections/*.mdx` —
 
 A course repo contains **three thin files** plus a `content/` folder — no pages, components, or toolchain config.
 
+> **Starting a course?** Scaffold from the starter instead of by hand:
+> `npx degit MartinSA04/StudyCompanion/course-template course-mycode`. Then read
+> **`AUTHORING.md`** — the content author's guide (archetypes, widget decision
+> guide, conventions, per-section definition-of-done).
+
 `package.json`
 
 ```jsonc
@@ -58,6 +63,8 @@ public/
 
 Run `pnpm dev` to preview, `pnpm build` for static output to `dist/`. Search (Pagefind) is built into `dist/pagefind/` and only works in `build`/`preview`, not `dev`.
 
+`pnpm build` also **validates cross-references** and fails on any dead link: a `<Term name>` / `<FormulaRef id>` with no matching `course.yaml` entry, or a duplicate `<Statement>` / formula anchor. The error names the section file and the unresolved target.
+
 ---
 
 ## Authoring content
@@ -75,10 +82,13 @@ accent: "#2f6df6"          # per-course theme colour, LIGHT mode (any CSS colour
 accentDark: "#6ea9d8"      # optional — accent for DARK mode (defaults to `accent`)
 repoUrl: "https://github.com/you/optikk"   # optional → footer "edit this page" links
 repoBranch: main           # optional — branch the edit links target (default: main)
-exam:                       # optional upcoming-exam card
+courseUrl: "https://www.ntnu.no/studier/emner/TFY4195"  # optional → canonical course page (hero + footer)
+exam:                       # optional upcoming-exam card + Eksamen-page header
   date: 2026-05-20          #   (optional) ISO date; build-time countdown
+  durationMinutes: 240      #   (optional) structured duration
   format: 4t skriftlig
   aids: Godkjent kalkulator + formelark
+  formulaSheetUrl: "https://www.ntnu.no/.../formelark.pdf"  # optional → official sheet on Formelsamling
 features: { progress: true, search: true, flashcards: true, theme: true }
 links:
   - { label: "Emneside (NTNU)", url: "https://www.ntnu.no/studier/emner/TFY4195" }
@@ -136,7 +146,7 @@ $$ \Delta y \approx \frac{\lambda L}{d} $$ render server-side via KaTeX.
 | `<KeyTakeaways>` | `title?` | End-of-module recap; the slotted bullet list renders as a checklist. |
 | `<Hints>` / `<Hint>` | `<Hint solution? label? open?>` | Progressive hint ladder — auto "Hint 1", "Hint 2", …; `solution` makes the "Løsning" closer. Works with no JS. |
 | `<Compare>` / `<CompareCol>` | `<CompareCol title>` | Side-by-side comparison of 2–3 concepts; cards auto-stack on mobile. `title` may contain `$…$`. |
-| `<CodeBlock>` | `code`, `lang?`, `title?` | Shiki-highlighted block (+ auto copy button). |
+| `<CodeBlock>` | `code`, `lang?`, `title?`, `id?`, `activeLine?`, `activeLines?` | Shiki-highlighted block (+ auto copy button). `activeLine`/`activeLines` emphasise 1-based line(s); with an `id`, a `<Simulation>` can step the highlight via `api.codeBlock(id)`. |
 | `<SelfCheck>` | `question` | Prompt with answer behind a reveal. |
 | `<Quiz>` | `question`, `options[]`, `answer` (0-based), `explanation?` | Single-answer MCQ; text may contain `$…$`. |
 | `<Simulation>` | `src`, `title?`, `caption?`, `height?` | Mounts a course-owned canvas simulation (see below). |
@@ -169,7 +179,9 @@ export default function init({ canvas, ctx, controls, getSize, onResize }) {
 }
 ```
 
-`api` = `{ canvas, ctx, controls, getSize:()=>({w,h}), onResize:(cb)=>void }`. The context is pre-scaled for `devicePixelRatio`, so you work in CSS pixels. The framework owns the chrome, DPR sizing, and lazy mount.
+`api` = `{ canvas, ctx, controls, getSize:()=>({w,h}), onResize:(cb)=>void, codeBlock:(id?)=>controller|null }`. The context is pre-scaled for `devicePixelRatio`, so you work in CSS pixels. The framework owns the chrome, DPR sizing, and lazy mount.
+
+`api.codeBlock(id)` returns a controller for a `<CodeBlock id="…">` on the page — `{ setActiveLine(n), setActiveLines([…]), clear() }` — so a simulation can walk the highlighted source line(s) in lockstep with what it paints (e.g. animate an algorithm). Returns `null` if no such block exists.
 
 ---
 

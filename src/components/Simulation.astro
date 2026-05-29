@@ -17,8 +17,18 @@
  *       draw();
  *     }
  *
- * `api` = { canvas, ctx, controls, getSize:()=>({w,h}), onResize:(cb)=>void }.
+ * `api` = {
+ *   canvas, ctx, controls,
+ *   getSize: () => ({ w, h }),
+ *   onResize: (cb) => void,
+ *   codeBlock: (id?) => { setActiveLine, setActiveLines, clear } | null,
+ * }.
  * Coordinates are CSS pixels (the context is pre-scaled for devicePixelRatio).
+ *
+ * `codeBlock(id)` (ROADMAP 3.8) returns a controller for a course <CodeBlock>
+ * (matched by its `id`, or the first one when omitted), so a sim can step the
+ * highlighted line(s) in lockstep with what it paints — e.g. animate an
+ * algorithm walking its source. Returns null if no such block is on the page.
  */
 import PanelHeader from "./PanelHeader.astro";
 
@@ -146,13 +156,48 @@ const { src, title, caption, height = 300 } = Astro.props;
 </style>
 
 <script>
+  interface CodeBlockController {
+    /** Highlight a single 1-based line (null/0 clears). */
+    setActiveLine: (n: number | null) => void;
+    /** Highlight several 1-based lines at once. */
+    setActiveLines: (lines: number[]) => void;
+    /** Remove all active-line highlighting. */
+    clear: () => void;
+  }
+
   interface SimApi {
     canvas: HTMLCanvasElement;
     ctx: CanvasRenderingContext2D;
     controls: HTMLElement;
     getSize: () => { w: number; h: number };
     onResize: (cb: () => void) => void;
+    codeBlock: (id?: string) => CodeBlockController | null;
   }
+
+  // Resolve a <CodeBlock> (by id, or the first on the page) into a controller
+  // that toggles the `.cb-line-active` class the CodeBlock styles. Lets a sim
+  // step through code while it paints the matching state — see ROADMAP 3.8.
+  const codeBlock = (id?: string): CodeBlockController | null => {
+    const fig = id
+      ? document.querySelector<HTMLElement>(
+          `.codeblock[data-code-block="${id}"]`,
+        )
+      : document.querySelector<HTMLElement>(".codeblock");
+    if (!fig) return null;
+    const lines = [...fig.querySelectorAll<HTMLElement>(".line")];
+    const apply = (want: number[]) => {
+      const set = new Set(want.filter((n) => n > 0));
+      lines.forEach((ln, i) =>
+        ln.classList.toggle("cb-line-active", set.has(i + 1)),
+      );
+      fig.dataset.activeLines = [...set].join(",");
+    };
+    return {
+      setActiveLine: (n) => apply(n == null ? [] : [n]),
+      setActiveLines: (arr) => apply(arr),
+      clear: () => apply([]),
+    };
+  };
 
   const mount = (fig: HTMLElement) => {
     const src = fig.dataset.simSrc;
@@ -195,6 +240,7 @@ const { src, title, caption, height = 300 } = Astro.props;
       onResize: (cb) => {
         resizeCb = cb;
       },
+      codeBlock,
     };
 
     // The simulation lives in the COURSE repo's public/ folder, so it is a

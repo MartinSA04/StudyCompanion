@@ -1,0 +1,55 @@
+---
+order: 2
+title: Metodemodul (mal)
+summary: Eksempel på en metode-modul — en oppskrift, et gjennomregnet eksempel og en hint-stige.
+importance: core
+estMinutes: 30
+part: "Del 1: Eksempler"
+---
+
+{/*
+  ARKETYPE: METODE-/OPPGAVEMODUL — lærer en framgangsmåte for en oppgavetype.
+  Anbefalt skjelett:
+    <Steps> → gjennomregnet <Example> med <Solution>/<Answer>
+    → <Hints> (stige) → <SelfCheck>
+*/}
+
+Andregradslikninger $ax^2 + bx + c = 0$ løses med <FormulaRef id="andregrad" />.
+Antall reelle løsninger styres av <Term name="Diskriminant">diskriminanten</Term>.
+
+<Steps>
+<Step title="Skriv likningen på standardform">
+Få alt over på én side: $ax^2 + bx + c = 0$.
+</Step>
+<Step title="Les av $a$, $b$ og $c$">
+Identifiser koeffisientene.
+</Step>
+<Step title="Sett inn i løsningsformelen">
+$x = \dfrac{-b \pm \sqrt{b^2 - 4ac}}{2a}$
+</Step>
+<Step title="Forenkle">
+Regn ut diskriminanten først, så de to løsningene.
+</Step>
+</Steps>
+
+<Example title="Løs $x^2 - 5x + 6 = 0$">
+Bruk metoden over.
+
+<Solution>
+Her er $a = 1$, $b = -5$, $c = 6$. Diskriminanten er $b^2 - 4ac = 25 - 24 = 1$.
+
+$$ x = \frac{5 \pm \sqrt{1}}{2} = \frac{5 \pm 1}{2} $$
+
+<Answer>$x = 3$ eller $x = 2$</Answer>
+</Solution>
+</Example>
+
+<Hints>
+<Hint>Hva er $a$, $b$ og $c$ når likningen er på standardform?</Hint>
+<Hint>Regn ut diskriminanten $b^2 - 4ac$ før du setter inn.</Hint>
+<Hint solution>Sett inn i løsningsformelen og forenkle $\frac{5 \pm 1}{2}$.</Hint>
+</Hints>
+
+<SelfCheck question="Hva betyr det at diskriminanten er negativ?">
+Da finnes ingen reelle løsninger — kvadratrota av et negativt tall er ikke reell.
+</SelfCheck>

@@ -9,16 +9,33 @@ import { Code } from "astro:components";
  *
  * For ordinary code, authors can also just use Markdown fenced code blocks —
  * those are highlighted by Shiki and get the same copy button automatically.
+ *
+ * Active-line stepping (ROADMAP 3.8): `activeLine` / `activeLines` emphasise
+ * 1-based line(s). Give the block an `id` and a course-owned <Simulation> can
+ * drive it over time via `api.codeBlock(id)` — walking the highlight in lockstep
+ * with whatever it paints on its canvas. With no active line (and no JS) it is
+ * just a plain highlighted block.
  */
 interface Props {
   code: string;
   lang?: string;
   title?: string;
+  /** 1-based line to emphasise. */
+  activeLine?: number;
+  /** Several 1-based lines to emphasise (alternative to `activeLine`). */
+  activeLines?: number[];
+  /** Stable id so a <Simulation> can target THIS block: `api.codeBlock("id")`. */
+  id?: string;
 }
-const { code, lang = "text", title } = Astro.props;
+const { code, lang = "text", title, activeLine, activeLines, id } = Astro.props;
+const initial = activeLines ?? (activeLine != null ? [activeLine] : []);
 ---
 
-<figure class="codeblock">
+<figure
+  class="codeblock"
+  data-code-block={id}
+  data-active-lines={initial.length ? initial.join(",") : undefined}
+>
   {title && <figcaption class="codeblock-title">{title}</figcaption>}
   <Code code={code} lang={lang as any} />
 </figure>
@@ -40,4 +57,43 @@ const { code, lang = "text", title } = Astro.props;
   .codeblock-title + :global(pre) {
     border-radius: 0 0 var(--radius) var(--radius);
   }
+
+  /* Active-line highlight. The Shiki output is unscoped, so reach its lines with
+     :global(). `code` is forced block so a line's % width fills the <pre>. Only
+     the active line changes layout (full-width tinted band that bleeds into the
+     pre's padding); inactive lines keep Shiki's natural inline flow, so blank
+     lines never collapse. */
+  .codeblock :global(pre code) {
+    display: block;
+  }
+  .codeblock :global(.line) {
+    transition: background var(--dur-fast) var(--ease);
+  }
+  .codeblock :global(.line.cb-line-active) {
+    display: inline-block;
+    width: 100%;
+    margin-inline: calc(-1 * var(--space-4));
+    padding-inline: var(--space-4);
+    background: var(--accent-soft);
+    box-shadow: inset 2px 0 0 var(--accent);
+  }
 </style>
+
+<script>
+  // Apply any author-set static active lines on load (a sim, if present, takes
+  // over afterwards). Selecting on [data-active-lines] skips untagged blocks.
+  document
+    .querySelectorAll<HTMLElement>(".codeblock[data-active-lines]")
+    .forEach((fig) => {
+      const want = new Set(
+        (fig.dataset.activeLines ?? "")
+          .split(",")
+          .map(Number)
+          .filter((n) => n > 0),
+      );
+      const lines = fig.querySelectorAll<HTMLElement>(".line");
+      lines.forEach((ln, i) =>
+        ln.classList.toggle("cb-line-active", want.has(i + 1)),
+      );
+    });
+</script>

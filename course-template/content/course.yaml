@@ -1,0 +1,100 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# course.yaml — course metadata + data-driven content (formulas, glossary, exams)
+#
+# This is the heart of a course. Every field below is documented; the OPTIONAL
+# blocks ship filled with tiny working examples so the template builds and shows
+# each shape — replace them with your course's data (or delete blocks you don't
+# need). See ../AUTHORING.md for the full guide.
+# ─────────────────────────────────────────────────────────────────────────────
+
+schemaVersion: 1 # MUST equal the framework's SCHEMA_VERSION (the build checks it).
+
+# ── Identity (required) ──────────────────────────────────────────────────────
+code: CODE101 # Course code, e.g. "TFY4195".
+title: Kurstittel # Course name.
+subtitle: Interaktiv pensumguide # Optional one-liner under the title.
+term: V2026 # Semester label, e.g. "V2026" / "H2025".
+language: nb # nb (bokmål) | nn (nynorsk) | en. Drives chrome + date formats.
+
+# ── Brand accent (explicit per theme — no auto-derivation) ───────────────────
+accent: "#2f6df6" # Accent for LIGHT mode (any CSS colour).
+accentDark: "#6ea9d8" # Accent for DARK mode. Pick a lighter shade so links stay
+#                         legible on the dark ground (the build warns if not).
+
+# ── Official links ───────────────────────────────────────────────────────────
+# Canonical university course page — rendered in the hero + footer. Set it.
+courseUrl: "https://example.com/emne/CODE101"
+
+# Source repo of THIS course → footer "edit this page" links + freshness.
+# repoUrl: "https://github.com/you/course-code101"
+# repoBranch: main
+
+# ── Upcoming exam (optional) ─────────────────────────────────────────────────
+exam:
+  date: 2026-06-01 # ISO date → build-time countdown on the overview + exam page.
+  durationMinutes: 240 # Optional structured duration.
+  format: 4t skriftlig # Free text.
+  aids: Godkjent kalkulator + formelark # Permitted aids.
+  # Link the OFFICIAL exam formula sheet (distinct from the guide's own below).
+  # Prefer a university-hosted PDF; only if none exists, vendor it in public/
+  # and link that, e.g. "/formelark.pdf".
+  formulaSheetUrl: "https://example.com/exam/formelark.pdf"
+
+# ── Reference formulas (optional → Formelsamling page + inline <FormulaRef>) ──
+# YAML LaTeX must be DOUBLE-QUOTED with ESCAPED backslashes: "\\dfrac{a}{b}".
+# Give an `id` to any formula you cross-reference from prose.
+formulas:
+  - {
+      tex: "a^2 + b^2 = c^2",
+      label: "Pytagoras' setning",
+      section: "Eksempeldel",
+      id: pytagoras,
+    }
+  - {
+      tex: "x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}",
+      label: "Løsningsformelen for andregradslikning",
+      section: "Eksempeldel",
+      id: andregrad,
+      memorize: true, # Gets a "må pugges" badge …
+      onSheet: false, # … and an off-sheet stripe (not on the exam sheet).
+    }
+
+# ── Glossary (optional → Begreper page + inline <Term name="…">) ─────────────
+glossary:
+  - {
+      term: "Hypotenus",
+      definition: "Den lengste siden i en rettvinklet trekant, motstående den rette vinkelen.",
+      section: "Eksempeldel",
+    }
+  - {
+      term: "Diskriminant",
+      definition: "Uttrykket $b^2 - 4ac$ som avgjør antall reelle løsninger.",
+      section: "Eksempeldel",
+    }
+
+# ── Past exams (optional → Eksamen page) ─────────────────────────────────────
+# Link UNIVERSITY-HOSTED PDFs when they exist; only vendor in public/ as a
+# fallback (then use a "/exams/…" path).
+exams:
+  - {
+      label: "Eksamen V2025",
+      date: 2025-06-02,
+      url: "https://example.com/exams/2025.pdf",
+      solutionUrl: "https://example.com/exams/2025-losning.pdf",
+    }
+
+# ── Feature flags ────────────────────────────────────────────────────────────
+features: { progress: true, search: true, flashcards: true, theme: true }
+
+# ── Free-form sidebar links (optional) ───────────────────────────────────────
+# links:
+#   - { label: "Forelesningsnotater", url: "https://…" }
+
+# ── UI string overrides (optional — defaults are Norwegian) ──────────────────
+# Override any chrome label, e.g. for an English course:
+# ui:
+#   progressLabel: Progress
+#   searchLabel: Search
+#   examsLabel: Exam
+#   formulaSheetLabel: Formula sheet
+#   courseLabel: Course page

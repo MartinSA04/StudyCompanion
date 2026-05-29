@@ -17,7 +17,7 @@ Each item carries:
   governs the release it can ship in. Bump `SCHEMA_VERSION` + `MIGRATIONS.md`
   only for `major`.
 - **Effort** — S (≲half-day) · M (1–2 sessions) · L (multi-session).
-- **Priority** — P0 foundations → P3 speculative.
+- **Priority** — P0 foundations → P4 speculative.
 
 ## Guiding principles (keep these honest)
 
@@ -307,6 +307,27 @@ the single source of truth, unit-tested). Verified in the demo (`<FormulaRef>` i
 > Keep these **minor**: all optional, no `SCHEMA_VERSION` bump. The first item
 > that *requires* restructuring existing content is the next `major`.
 
+### 2.9 Build-time cross-reference validation — `patch`/infra, **S** — ✅ Done
+
+**Why.** `<Term name>` (2.3) and `<FormulaRef id>` (2.4) only `console.warn` on an
+unresolved target, and **only** in `import.meta.env.DEV`. A production `astro build`
+happily emits dead links to non-existent glossary/formula anchors — exactly the
+regression a pinned course can't catch without running the dev server. (Surfaced
+while auditing the optics course: link integrity had to be checked with an external
+ad-hoc script because the build stays green.)
+**Done.** Pure `validateXrefs` in `src/lib/xref.ts` (unit-tested — `test/xref.test.ts`,
+11 cases) scans each section's raw MDX for `<Term name>`, `<FormulaRef id>` and
+`<Statement>` anchors (code fences + inline code stripped first, so documentation
+that *shows* a widget never false-positives) and diffs them against the `course.yaml`
+glossary/formula sets via the shared `slugify`. Catches a `<Term>`/`<FormulaRef>`
+with no matching entry, a duplicate `formulas[].id`, and a duplicate `<Statement>`
+anchor. Wired into `src/pages/index.astro` (the always-built `/` route): it
+**throws and fails `astro build`** on any error, and only `console.error`s in DEV so
+the dev page still renders (the widgets already warn inline). Unreferenced glossary
+terms are a soft DEV-only warning. Verified end-to-end — injecting a dead ref fails
+the build with a message naming the section file + target. Purely a guard, no schema
+change → `patch`.
+
 ---
 
 ## P2 — Performance & infrastructure
@@ -380,7 +401,167 @@ Demo now spans all three tiers (Simulering → `extra`) to exercise the ring.
 
 ---
 
-## P3 — Speculative (only if a course needs it)
+## P3 — Authoring kit & course onboarding — ✅ Complete
+
+The framework (P0–P2) is feature-complete; the gap now is **authoring**. A course
+still goes from empty repo to shippable guide on tribal knowledge — there is widget
+*reference* (README) and *architecture* (DESIGN), but no guide for the **author**,
+no copyable starter, and no explicit per-section goals or quality bar. **All four
+shipped** — see each item's **Done** note; the `course-template/` builds clean as a
+smoke test (8 routes, all cross-refs resolve).
+
+**Goal.** Take a course from an empty repo to a shippable guide with explicit,
+verifiable goals and a clear quality bar — **without ever editing the framework**.
+The audience is a content author, **including an authoring agent**: every item below
+is written so an agent has concrete working goals and can self-check its work.
+
+These are all `docs`/infra: **no schema change, no `SCHEMA_VERSION` bump.** The
+template is excluded from the published package (`files`/`.npmignore`).
+
+### 3.1 `course-template/` scaffold — infra, **M** — ✅ Done
+
+**Why.** Every new course re-derives the three thin files + `content/` layout from
+DESIGN §5 by hand. A copyable starter makes "new course" a one-liner and encodes the
+conventions by example.
+**Done.** A `course-template/` directory holding: the three thin files
+(`package.json` pinning `github:MartinSA04/StudyCompanion#v1.0.1` + a `link:` dev
+note in the README, `astro.config.mjs`, `src/content.config.ts`) plus `tsconfig.json`
+and `.gitignore`; an annotated `content/course.yaml` documenting every field inline
+(it ships with tiny *working* `exam`/`formulas`/`glossary`/`exams` examples rather
+than commented-out blocks, since 2.9 now fails the build on dead refs — a buildable
+complete example beats dead stubs); a `flashcards.yaml` stub; a `sections/` folder
+with **one worked example per archetype** (3.3); `public/` with a favicon + figure
+placeholder and a **minimal `public/sims/example.js`** surfacing course-owned canvas
+sims via `<Simulation>`; and the course-repo **`CLAUDE.md`** pointing the authoring
+agent at `AUTHORING.md`. `degit`-able; excluded from the npm package (the `files:
+["src"]` allowlist). Smoke-tested: a real `astro build` of the template emits 8
+routes with every cross-reference resolving.
+
+### 3.2 `AUTHORING.md` — the content author's guide — docs, **M** — ✅ Done
+
+**Why.** README is *reference* (each widget's props); DESIGN is *architecture*.
+Neither tells an author **how to write a good module** or which widget to reach for.
+An authoring agent needs that as its primary brief.
+**Done.** A top-level `AUTHORING.md` (the first thing the course `CLAUDE.md` points
+at), with: the **mental model** (a course is data; never edit the framework; links
+to DESIGN/README/MIGRATIONS); the **workflow** (`course.yaml` first → outline by
+`order`/`part` → draft → wire cross-refs → verify); a **widget decision guide**
+("want X → use `<Y>`") covering the full set including course-owned `<Simulation>`
+canvas sims **and** sim-driven `<CodeBlock>` stepping (§5, with the `init(api)` /
+`api.codeBlock(id)` contracts); **conventions** (KaTeX + YAML backslash-escaping,
+the explicit-numbering stance, Norwegian defaults, anchor slugging); an **external
+references** section (`courseUrl`; university-hosted exam PDFs first, `public/`
+fallback; `exam.formulaSheetUrl`); the **reduce-duplication** rule; and the **quality
+bar**. The per-section definition-of-done (3.4) lives in §8.
+
+### 3.3 Module archetypes & section anatomy — docs, **S–M** — ✅ Done
+
+**Why.** "Clear goals for sections": an agent authoring a module needs a concrete
+shape to fill, not a blank page.
+**Done.** Three archetypes documented in `AUTHORING.md` §4 **and** seeded as real,
+build-verified example sections in the template:
+
+- **Concept** (`01-konsept.mdx`) — `<LearningGoals>` → prose with `<Formula>` /
+  `<Statement>` / `<Figure>` → a `<Simulation>` → `<Example>` → `<SelfCheck>` →
+  `<KeyTakeaways>`.
+- **Method / problem** (`02-metode.mdx`) — `<Steps>` → a worked `<Example>` with
+  `<Solution>`/`<Answer>` → a `<Hints>` ladder → `<SelfCheck>`.
+- **Reference / overview** (`03-referanse.mdx`) — `<Compare>` + tight prose linking
+  out via `<Term>`/`<FormulaRef>`.
+
+Each example carries an honest `importance` tier and a realistic `estMinutes`, and
+opens with an MDX comment naming the archetype + its shape. Starting points, **not**
+rigid rules.
+
+### 3.4 Per-section definition-of-done + section-brief template — docs, **S** — ✅ Done
+
+**Why.** Mirrors DESIGN §9's per-*course* DoD at *section* granularity, so an agent
+can self-verify a module is finished and a course owner can hand an agent a bounded
+goal.
+**Done.**
+
+- **Section DoD checklist** — `AUTHORING.md` §8: frontmatter complete; learning goals
+  and at least one takeaway; all math renders; every `<Term>`/`<FormulaRef>`/`<Statement>`
+  cross-ref resolves (now *enforced* by 2.9, not just by eye); a self-check/quiz where
+  the material supports it; reads in both themes at AA; honest `importance`; no ad-hoc
+  table where a widget exists; plausible `estMinutes`.
+- **Section-brief template** — `course-template/SECTION-BRIEF.md`: a fillable
+  one-pager (archetype, order/part, importance, goals, key formulas/terms, statements,
+  a widget checklist, source material, scope boundary) that turns a syllabus into
+  per-section **work orders** an authoring agent can execute against.
+
+> **Backstop — 2.9 build-time xref validation (shipped).** The "cross-refs resolve"
+> line in the DoD is now machine-enforced: `pnpm build` *fails* on a dead
+> `<Term>`/`<FormulaRef>`/`<Statement>` target. The course-repo `CLAUDE.md` and
+> `AUTHORING.md` both state this.
+
+---
+
+## P3 — Exam & official-reference surfacing — ✅ Complete
+
+Surface the *authoritative* external references every course has — the university
+course page, the official exam, the exam-provided formula sheet — as first-class,
+consistently-placed elements instead of ad-hoc `links[]` entries. These build on data
+the schema mostly already carries. **All three shipped** — verified in the demo
+build (hero/footer link, exam-page header, official-sheet link).
+
+### 3.5 `course.courseUrl` — canonical link to the university course page — `minor`, **S** — ✅ Done
+
+**Why.** Every course has an official emneside (e.g. the NTNU course page); today it
+can only go in the free-form `links[]` list, so its placement and label drift between
+courses. It deserves a canonical slot.
+**Done.** Optional `course.courseUrl` (`z.url()`) rendered in two consistent places —
+a quiet mono **`.hero-meta`** link under the overview description and a footer link
+(both labelled by the new `ui.courseLabel`, default "Emneside") — distinct from the
+generic `links`. `AUTHORING.md` makes setting it part of the per-course DoD.
+Backward-compatible new optional field → `minor`.
+
+### 3.6 Exam page header — when / format / aids — `patch`, **S** — ✅ Done
+
+**Why.** `course.exam` (date, durationMinutes, format, aids) only renders as a card on
+the overview. The **Eksamen** tool page — where a student goes to revise — opens
+straight into the past-exam list with no summary of the exam they're actually sitting.
+**Done.** New `ExamSummary.astro` atop the `eksamen` page: an accent-bordered panel
+with the date + a build-time countdown ("om N dager" / "i dag" / "i morgen" /
+"avholdt") and a fact grid for duration (formatted from `durationMinutes`), format and
+aids. Pure presentation of the existing `course.exam` (renders only present fields,
+nothing if empty) → no schema change → `patch`.
+
+### 3.7 Official exam formula-sheet link on Formelsamling — `minor`, **S** — ✅ Done
+
+**Why.** The **Formelsamling** page is the *guide's* formula collection; it must not be
+confused with the **official sheet handed out at the exam**. Students need a direct
+link to that authoritative document.
+**Done.** Optional `course.exam.formulaSheetUrl` → a prominent `.official-sheet`
+link/button at the top of the Formelsamling page (file icon + the new
+`ui.officialFormulaSheetLabel`, default "Offisiell formelsamling til eksamen", +
+external icon). The authoring convention (3.2) tells authors to link the
+**university-hosted** PDF when one exists and only vendor in `public/` as a fallback.
+New optional field → `minor`.
+
+---
+
+## P3 — Content-widget upgrades — ✅ Complete
+
+### 3.8 `<CodeBlock active-line>` — sim-drivable code stepping — `minor`, **M** — ✅ Done
+
+**Why.** Algorithm-heavy courses (the planned algorithm-visualizer course) want to
+*animate stepping through code* in lockstep with a visualization — highlight line 3,
+then 4, then the loop body — which the current static Shiki `<CodeBlock>` can't do.
+**Done.** `<CodeBlock>` gains `activeLine` / `activeLines` (1-based) and an optional
+`id`; active lines render as a full-width tinted band (bleeding into the `pre`
+padding, blank lines preserved) applied to Shiki's `.line` spans. A tiny script
+applies author-set static active lines on load. The `<Simulation>` `api` gains
+**`codeBlock(id?)`** → a controller `{ setActiveLine, setActiveLines, clear }` so a
+course-owned sim can walk the highlight as it paints (matched by id, or the first
+block). No active line + no JS = the plain highlighted block, unchanged. New optional
+prop + additive API surface → `minor`. Exercised in the demo (`/simulering`): a
+"step through the loop" sim drives a linked `sum.js` block, both themes. Written in
+prep for the algorithm course — **no algdat repo touched**.
+
+---
+
+## P4 — Speculative (demand-driven)
 
 - **`<Tabs>`** — alternative explanations / approaches / languages. *(minor, M)*
 - **`<Embed>`** — privacy-friendly lecture-video facade with aspect-ratio box.
@@ -404,16 +585,28 @@ Demo now spans all three tiers (Simulering → `extra`) to exercise the ring.
    progress (1.10), in-page TOC (1.9). → `minor`/`patch`.
 4. **Release N+3 (scale):** parts (2.1), glossary (2.3), edit-this-page (2.2),
    self-hosted fonts (2.5). → `minor`/`patch`.
-5. **Ongoing:** visual-regression CI (2.6) and design-system unification
+5. **Release N+4 (authoring kit & onboarding) — ✅ shipped:** the `course-template/`
+   scaffold (3.1), `AUTHORING.md` with module archetypes + a widget decision guide
+   (3.2–3.3), the per-section definition-of-done + brief template (3.4), and
+   build-time xref validation (2.9) as the DoD's automated backstop.
+   → `docs`/infra + `patch`.
+6. **Release N+5 (exam & reference + code stepping) — ✅ shipped:** canonical
+   `courseUrl` (3.5), the exam-page header (3.6), the official formula-sheet link
+   (3.7), and the `<CodeBlock active-line>` sim-driven code-stepping upgrade (3.8,
+   built in prep for the algorithm course). → `minor`/`patch`.
+7. **Ongoing:** visual-regression CI (2.6) and design-system unification
    (2.7–2.8) as capacity allows.
 
-**Status:** **All of P0–P2 is complete.** Releases N, N+1, N+2 and N+3 (scale —
-parts 2.1, edit-this-page 2.2, glossary 2.3, formula cross-refs 2.4) shipped, plus
-the perf + design-system pass: self-hosted fonts (2.5), the importance visual
-system (2.8), the unified panel header (2.7), and the visual-regression CI scaffold
-(2.6, baselines pending a first Linux run). Only the **P3 speculative** items
-(`<Tabs>`, `<Embed>`, Preact/Keystatic escalation) remain — pull them only when a
-course needs one.
+**Status:** **All of P0–P3 is complete** (plus 2.9). Releases N through N+3 shipped
+the foundations, the P1 widget set, the UX pass, and the scale + perf +
+design-system work. Releases **N+4** (authoring kit — `course-template/` 3.1,
+`AUTHORING.md` 3.2–3.3, section DoD + brief 3.4, build-time xref validation 2.9) and
+**N+5** (exam & reference surfacing 3.5–3.7 + sim-driven `<CodeBlock>` stepping 3.8)
+are now shipped and verified against the demo build. The framework is feature- *and*
+onboarding-complete: a new course can go empty → shippable from the template against
+`AUTHORING.md`, and `pnpm build` enforces cross-reference integrity. What remains:
+generating the **2.6** visual baselines on Linux, and the **P4 speculative** items
+(`<Tabs>`, `<Embed>`, Preact/Keystatic escalation) — demand-driven only.
 
 - **N (P0 foundations):** dev fixture, tests, heading fix, print, docs — all
   shipped and verified against the demo.
@@ -424,10 +617,26 @@ course needs one.
 - **N+2 (UX):** all five P1 UX items — keyboard control for islands (1.7),
   arrow-key paging (1.8), in-page TOC (1.9), overview progress (1.10), flashcard
   filtering (1.11) — all `patch`/`minor`, verified via `pnpm build`.
+- **N+3 (scale + perf + design system):** parts (2.1), edit-this-page (2.2),
+  glossary (2.3), formula cross-refs (2.4), self-hosted fonts (2.5), panel-header
+  unification (2.7), importance visual system (2.8), visual-regression scaffold (2.6).
+- **N+4 (authoring kit):** `course-template/` (3.1), `AUTHORING.md` + archetypes
+  (3.2–3.3), section DoD + `SECTION-BRIEF.md` (3.4), and build-time xref validation
+  (2.9) — the template builds clean (8 routes) as a smoke test.
+- **N+5 (exam & reference + stepping):** `courseUrl` (3.5), exam-page header (3.6),
+  official formula-sheet link (3.7), sim-driven `<CodeBlock>` stepping (3.8) — all
+  verified in the demo build.
 
-**Do next:** nothing queued — P0–P2 are done. Before the next release, generate the
-2.6 visual baselines on Linux (`pnpm test:visual:update`) and commit them. Beyond
-that, P3 items are demand-driven.
+**Do next:** the framework is feature- and onboarding-complete, so the next real work
+is **content, not framework**: migrate the first real course (optics) onto the pinned
+framework using `course-template/` + `AUTHORING.md`, and let `pnpm build`'s xref
+validation (2.9) catch dead links during the port. Then exercise the **3.8** code
+stepping for real when the algorithm-visualizer course starts. The only open
+*framework* chores are infra: generate the **2.6** visual baselines on Linux
+(`pnpm test:visual:update`, then commit) so the CI has something to diff against.
+**P4 — Speculative** (`<Tabs>`, `<Embed>`, Preact/Keystatic) stays demand-driven —
+pull an item only when a course needs it. These shipped items are all additive →
+a **`minor`** release (suggest `v1.1.0`); `SCHEMA_VERSION` stays `1`.
 
 ## SemVer ledger (at a glance)
 
@@ -455,10 +664,19 @@ that, P3 items are demand-driven.
 | ✅ 2.2 Edit-this-page | minor | S |
 | ✅ 2.3 Glossary | minor | M |
 | ✅ 2.4 Formula cross-refs | minor | S–M |
+| ✅ 2.9 Build-time xref validation | patch | S |
 | ✅ 2.5 Self-host fonts | patch | M |
 | ✅ 2.6 Visual regression CI | infra | L |
 | ✅ 2.7 Unify panel header | patch | S–M |
 | ✅ 2.8 `importance` visual system | patch | S |
+| ✅ 3.1 `course-template/` scaffold | infra | M |
+| ✅ 3.2 `AUTHORING.md` guide | docs | M |
+| ✅ 3.3 Module archetypes | docs | S–M |
+| ✅ 3.4 Section DoD + brief | docs | S |
+| ✅ 3.5 `course.courseUrl` | minor | S |
+| ✅ 3.6 Exam page header | patch | S |
+| ✅ 3.7 Exam formula-sheet link | minor | S |
+| ✅ 3.8 `<CodeBlock active-line>` | minor | M |
 
 > No item here requires a **major** bump. The first change that forces existing
 > courses to edit content (e.g. making `part` required, or restructuring

@@ -4,6 +4,8 @@ import CourseLayout from "../layouts/CourseLayout.astro";
 import Icon from "../components/Icon.astro";
 import ImportanceTag from "../components/ImportanceTag.astro";
 import { loadCourse } from "../lib/loadCourse.ts";
+import { validateXrefs } from "../lib/xref.ts";
+import { readFileSync } from "node:fs";
 import {
   sectionNav,
   sectionNumbers,
@@ -13,6 +15,42 @@ import {
 } from "../lib/nav.ts";
 
 const { course, sections } = await loadCourse();
+
+// 2.9 — Build-time cross-reference validation. The `/` route is always built,
+// so validating here scans the whole course once and FAILS the build on a dead
+// <Term>/<FormulaRef> target or a duplicate <Statement>/formula anchor. In DEV
+// it only logs (the page must still render; the widgets already warn inline).
+{
+  const sectionInputs = sections.map((s) => {
+    const e = s as { id: string; body?: string; filePath?: string };
+    let body = e.body ?? "";
+    if (!body && e.filePath) {
+      try {
+        body = readFileSync(e.filePath, "utf8");
+      } catch {
+        /* leave empty — nothing to scan */
+      }
+    }
+    return { label: e.id, body };
+  });
+  const report = validateXrefs({
+    glossaryTerms: course.glossary.map((g) => g.term),
+    formulaIds: course.formulas.flatMap((f) => (f.id ? [f.id] : [])),
+    sections: sectionInputs,
+  });
+  if (report.errors.length) {
+    const msg =
+      "study-companion: cross-reference validation failed —\n" +
+      report.errors.map((e) => `  • ${e}`).join("\n");
+    if (import.meta.env.DEV) console.error(`[study-companion] ${msg}`);
+    else throw new Error(msg);
+  }
+  if (import.meta.env.DEV && report.unusedGlossary.length) {
+    console.warn(
+      `[study-companion] ${report.unusedGlossary.length} glossary term(s) not referenced by an inline <Term>: ${report.unusedGlossary.join(", ")}`,
+    );
+  }
+}
 
 const flashcards = course.features.flashcards
   ? ((await getCollection("flashcards"))[0]?.data.cards ?? [])
@@ -64,6 +102,21 @@ const hasExamCard =
       {sections.length} moduler med læringsmål, kjerneteori, formler og selvtest —
       velg en modul i menyen, eller en flis nedenfor.
     </p>
+    {
+      course.courseUrl && (
+        <p class="hero-meta">
+          <a
+            class="hero-course-link"
+            href={course.courseUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {course.ui.courseLabel}
+            <Icon name="external" size={14} />
+          </a>
+        </p>
+      )
+    }
     {
       stats.length > 0 && (
         <div class="hero-stats">

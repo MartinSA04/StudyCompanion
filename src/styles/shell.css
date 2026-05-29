@@ -266,6 +266,24 @@
   max-width: 62ch;
   margin: 0 0 var(--gap-6);
 }
+/* Canonical "Emneside" link (course.courseUrl) — a quiet mono meta line under
+   the description, distinct from the body copy above it. */
+.hero .hero-meta {
+  margin: calc(-1 * var(--gap-3)) 0 var(--gap-6);
+  font-size: var(--text-sm);
+}
+.hero-course-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: var(--accent);
+  text-decoration: none;
+}
+.hero-course-link:hover {
+  text-decoration: underline;
+}
 .hero-stats {
   display: flex;
   flex-wrap: wrap;
@@ -641,6 +659,35 @@
 .tool-head h1 {
   font-size: var(--text-2xl);
   margin: 0;
+}
+
+/* Official exam formula sheet (course.exam.formulaSheetUrl) — a prominent
+   document link atop the Formelsamling page, set apart from the guide's own
+   formula collection below it. */
+.official-sheet {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-5);
+  padding: var(--space-3) var(--space-4);
+  background: var(--accent-soft);
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--border));
+  border-radius: var(--radius);
+  color: var(--fg);
+  text-decoration: none;
+  transition: border-color var(--dur-fast) var(--ease);
+}
+.official-sheet:hover {
+  border-color: var(--accent);
+}
+.official-sheet .os-label {
+  flex: 1;
+  font-weight: var(--weight-medium);
+  font-size: var(--text-sm);
+}
+.official-sheet svg {
+  color: var(--accent);
+  flex: none;
 }
 
 /* ====== footer ====== */

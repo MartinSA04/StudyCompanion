@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200" width="320" height="200" role="img" aria-label="Rettvinklet trekant">
+  <!-- Placeholder figure for the template. Replace with your own diagram. -->
+  <rect width="320" height="200" fill="#f5f7fa"/>
+  <polygon points="60,160 260,160 60,40" fill="#2f6df620" stroke="#2f6df6" stroke-width="2.5" stroke-linejoin="round"/>
+  <!-- right-angle marker -->
+  <path d="M60,144 L76,144 L76,160" fill="none" stroke="#2f6df6" stroke-width="2"/>
+  <text x="160" y="180" text-anchor="middle" font-family="monospace" font-size="16" fill="#11161d">b</text>
+  <text x="40" y="104" text-anchor="middle" font-family="monospace" font-size="16" fill="#11161d">a</text>
+  <text x="170" y="92" text-anchor="middle" font-family="monospace" font-size="16" fill="#11161d">c</text>
+</svg>

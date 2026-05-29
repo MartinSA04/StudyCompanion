@@ -69,6 +69,14 @@ export const courseSchema = z.object({
       durationMinutes: z.number().optional(),
       format: z.string().optional(),
       aids: z.string().optional(),
+      /**
+       * Link to the OFFICIAL formula sheet handed out at the exam — distinct
+       * from the guide's own Formelsamling. Prefer the university-hosted PDF
+       * when one exists; only if it does not, vendor the PDF in the course's
+       * `public/` and point here at that path. May be an absolute URL or a
+       * `public/` path (same convention as `exams[].url`).
+       */
+      formulaSheetUrl: z.string().optional(),
     })
     .optional(),
 
@@ -80,6 +88,14 @@ export const courseSchema = z.object({
 
   /** Glossary terms for the <Glossary> tool page + inline <Term> links. */
   glossary: z.array(glossaryEntrySchema).default([]),
+
+  /**
+   * Canonical link to the OFFICIAL university course page (e.g. the NTNU
+   * emneside). Distinct from the free-form `links` list: it has one consistent
+   * home (the overview hero + footer) so its placement never drifts between
+   * courses. Setting it is part of the per-course definition-of-done (AUTHORING).
+   */
+  courseUrl: z.url().optional(),
 
   links: z.array(z.object({ label: z.string(), url: z.url() })).default([]),
 
@@ -113,7 +129,11 @@ export const courseSchema = z.object({
       flashcardsLabel: z.string().default("Flashcards"),
       examsLabel: z.string().default("Eksamen"),
       formulaSheetLabel: z.string().default("Formelsamling"),
+      officialFormulaSheetLabel: z
+        .string()
+        .default("Offisiell formelsamling til eksamen"),
       glossaryLabel: z.string().default("Begreper"),
+      courseLabel: z.string().default("Emneside"),
       tocLabel: z.string().default("Innhold"),
       editPageLabel: z.string().default("Rediger denne siden"),
       updatedLabel: z.string().default("Oppdatert"),

@@ -1,0 +1,70 @@
+---
+order: 1
+title: Konseptmodul (mal)
+summary: Eksempel på en konsept-modul — teori, et resultat, et regneeksempel og en oppsummering.
+importance: core # core | useful | extra
+estMinutes: 25
+part: "Del 1: Eksempler"
+---
+
+{/*
+  ARKETYPE: KONSEPTMODUL — introduserer og forklarer ett begrep eller resultat.
+  Anbefalt skjelett (juster fritt):
+    <LearningGoals> → kjerneteori med <Formula>/<Statement>/<Figure>
+    → (valgfritt) <Simulation> → <Example> → <SelfCheck>/<Quiz> → <KeyTakeaways>
+  Se ../../AUTHORING.md for valg av widget og kvalitetskravene.
+*/}
+
+<LearningGoals>
+- Forklare hva en rettvinklet trekant er
+- Bruke Pytagoras' setning til å finne en ukjent side
+- Kjenne igjen <Term name="Hypotenus">hypotenusen</Term> i en figur
+</LearningGoals>
+
+En rettvinklet trekant har én vinkel på $90^\circ$. Den lengste siden, som ligger
+motstående den rette vinkelen, kalles <Term name="Hypotenus" />. Sammenhengen
+mellom de tre sidene er gitt av <FormulaRef id="pytagoras" />.
+
+<Statement kind="theorem" name="Pytagoras' setning">
+I en rettvinklet trekant med kateter $a$ og $b$ og hypotenus $c$ gjelder
+$a^2 + b^2 = c^2$.
+</Statement>
+
+<Figure
+  src="/figures/example.svg"
+  alt="Rettvinklet trekant med kateter a og b og hypotenus c"
+  caption="Sidene $a$, $b$ og $c$ i en rettvinklet trekant."
+  number={1}
+  width={320}
+  height={200}
+/>
+
+{/* Course-owned canvas simulation. The module lives in THIS repo's
+   public/sims/ — never in the framework. See AUTHORING.md → "Simulations". */}
+<Simulation
+  src="/sims/example.js"
+  title="Dra i kateten"
+  caption="Endre $b$ og se hvordan hypotenusen $c$ vokser."
+  height={220}
+/>
+
+<Example title="Finn hypotenusen">
+En rettvinklet trekant har kateter $a = 3$ og $b = 4$. Hvor lang er hypotenusen?
+
+<Solution>
+Sett inn i $a^2 + b^2 = c^2$:
+
+$$ c = \sqrt{3^2 + 4^2} = \sqrt{25} = 5 $$
+
+<Answer>$c = 5$</Answer>
+</Solution>
+</Example>
+
+<SelfCheck question="Hvorfor må c alltid være den lengste siden?">
+Fordi $c^2 = a^2 + b^2 \ge a^2$ og $\ge b^2$, så $c \ge a$ og $c \ge b$.
+</SelfCheck>
+
+<KeyTakeaways>
+- Hypotenusen er den lengste siden og ligger motstående den rette vinkelen
+- Pytagoras: $a^2 + b^2 = c^2$ knytter de tre sidene sammen
+</KeyTakeaways>

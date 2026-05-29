@@ -272,6 +272,19 @@ const hasTools = toolNav.some((t) => t.show);
             )
           }
           <p>{course.code} · {course.title} · {course.term}</p>
+          {
+            course.courseUrl && (
+              <p>
+                <a
+                  class="accent-text"
+                  href={course.courseUrl}
+                  target="_blank"
+                  rel="noopener noreferrer">
+                  {ui.courseLabel}
+                </a>
+              </p>
+            )
+          }
           <p>
             Bygget med
             <a

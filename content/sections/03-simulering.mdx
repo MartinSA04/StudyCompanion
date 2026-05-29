@@ -23,3 +23,31 @@ glidebryteren:
 Bytt tema i topplinja — simuleringen tegnes på nytt med riktig aksentfarge, fordi
 rammeverket sender et `sc:themechange`-event.
 </Callout>
+
+## Kodegjennomgang styrt av en simulering
+
+En simulering kan også **styre en kodeblokk**: `<CodeBlock id="…">` får en stabil
+id, og simuleringen henter en kontroller med `api.codeBlock(id)` for å markere
+linjer mens den tegner tilstanden. Trykk **Neste steg** — den aktive linja flytter
+seg i takt med søylene.
+
+<CodeBlock
+  id="sum-loop"
+  title="sum.js"
+  lang="js"
+  activeLine={2}
+  code={`function sum(xs) {
+  let total = 0;
+  for (const x of xs) {
+    total += x;
+  }
+  return total;
+}`}
+/>
+
+<Simulation
+  src="/sims/code-step.js"
+  title="Steg gjennom løkka"
+  caption="Søylene er elementene i xs; den aktive linja over markeres for hvert steg."
+  height={220}
+/>

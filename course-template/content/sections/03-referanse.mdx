@@ -1,0 +1,41 @@
+---
+order: 3
+title: Referansemodul (mal)
+summary: Eksempel på en referanse-modul — sammenligninger og tett prosa som lenker ut.
+importance: useful
+estMinutes: 15
+part: "Del 1: Eksempler"
+---
+
+{/*
+  ARKETYPE: REFERANSE-/OVERSIKTSMODUL — oppsummerer og kontrasterer, tett prosa.
+  Anbefalt skjelett:
+    <Compare> kort → tett prosa som lenker ut via <Term>/<FormulaRef>
+*/}
+
+Denne modulen samler trådene og lenker tilbake til definisjoner og formler i
+stedet for å gjenta dem.
+
+<Compare>
+<CompareCol title="Diskriminant $> 0$">
+- To ulike reelle løsninger
+- Parabelen krysser $x$-aksen i to punkter
+</CompareCol>
+<CompareCol title="Diskriminant $= 0$">
+- Én (dobbel) løsning
+- Parabelen tangerer $x$-aksen
+</CompareCol>
+<CompareCol title="Diskriminant $< 0$">
+- Ingen reelle løsninger
+- Parabelen krysser ikke $x$-aksen
+</CompareCol>
+</Compare>
+
+Antallet løsninger avgjøres altså av <Term name="Diskriminant" />, mens selve
+løsningene kommer fra <FormulaRef id="andregrad" />. For rettvinklede trekanter
+er nøkkelresultatet <FormulaRef id="pytagoras" />.
+
+<Callout type="tip">
+En referansemodul skal være rask å skumme. Bruk <code>importance: useful</code>
+eller <code>extra</code>, og hold prosaen kort.
+</Callout>
