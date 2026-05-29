@@ -365,6 +365,21 @@ sandbox, so the suite is authored but unrun here — baselines must be generated
 on Linux (`pnpm install && pnpm test:visual:update`) and committed; CI then
 compares. Catches the scoped-CSS regression class (the theme-toggle icon-scope bug).
 
+### 2.10 Privacy-friendly analytics (GoatCounter) — `minor`, **S** — ✅ Done
+
+**Why.** Course owners want traffic numbers, but the framework's privacy stance
+(self-hosted fonts, no third-party CDN) rules out cookie-based analytics.
+GoatCounter is cookieless and needs no consent banner — the same privacy thread
+as 2.5.
+**Done.** New optional `course.yaml` field `analytics.goatcounter` (a `z.url()`
+count endpoint, e.g. `https://code.goatcounter.com/count`). When set,
+`CourseLayout` injects GoatCounter's `async` `count.js` into `<head>` —
+**production builds only** (`import.meta.env.PROD`), never in `astro dev`.
+Presence-gated (omit the block to disable); the endpoint is taken verbatim (no
+`/count` derivation, per "explicit over derived"). Additive → no
+`SCHEMA_VERSION` bump. Covered by `test/schema.test.ts`; the demo course stays
+clean (analytics has no visual surface), so no visual-baseline churn.
+
 ---
 
 ## P2 — Design-system consistency
@@ -667,6 +682,7 @@ a **`minor`** release (suggest `v1.1.0`); `SCHEMA_VERSION` stays `1`.
 | ✅ 2.9 Build-time xref validation | patch | S |
 | ✅ 2.5 Self-host fonts | patch | M |
 | ✅ 2.6 Visual regression CI | infra | L |
+| ✅ 2.10 GoatCounter analytics | minor | S |
 | ✅ 2.7 Unify panel header | patch | S–M |
 | ✅ 2.8 `importance` visual system | patch | S |
 | ✅ 3.1 `course-template/` scaffold | infra | M |

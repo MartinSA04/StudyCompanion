@@ -213,3 +213,24 @@ widget or a `course.yaml` field** — not be re-authored per file. Spot the
 repetition, then request the feature in the framework (see `ROADMAP.md`); don't
 work around it with copy-pasted markup. New widgets earn their place by removing
 repetition, not by adding surface area.
+
+---
+
+## 10. Analytics (optional)
+
+To measure traffic, set a [GoatCounter](https://www.goatcounter.com/) count
+endpoint in `course.yaml`:
+
+```yaml
+analytics:
+  goatcounter: "https://yourcode.goatcounter.com/count"
+```
+
+The framework then injects GoatCounter's async script on every page. Notes:
+
+- **Production only.** The tag is emitted by `pnpm build`, never by `pnpm dev`,
+  so local development sends no traffic.
+- **Cookieless.** GoatCounter sets no cookies and collects no personal data, so
+  no consent banner is required.
+- **Verbatim endpoint.** Use the full count URL including the `/count` path; it
+  is taken as-is (no derivation). Omit the whole `analytics` block to disable.

@@ -50,7 +50,7 @@ export { collections } from "study-companion/content";
 
 ```text
 content/
-├── course.yaml          # metadata, formulas, exams, features, ui strings
+├── course.yaml          # metadata, formulas, exams, features, analytics, ui strings
 ├── flashcards.yaml      # optional deck
 └── sections/
     ├── 01-intro.mdx
@@ -90,6 +90,7 @@ exam:                       # optional upcoming-exam card + Eksamen-page header
   aids: Godkjent kalkulator + formelark
   formulaSheetUrl: "https://www.ntnu.no/.../formelark.pdf"  # optional → official sheet on Formelsamling
 features: { progress: true, search: true, flashcards: true, theme: true }
+analytics: { goatcounter: "https://yourcode.goatcounter.com/count" }  # optional → privacy-friendly analytics; prod builds only, cookieless. Endpoint must include /count
 links:
   - { label: "Emneside (NTNU)", url: "https://www.ntnu.no/studier/emner/TFY4195" }
 formulas:                   # optional → rendered as the Formelsamling section + flashcards

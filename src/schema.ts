@@ -100,6 +100,24 @@ export const courseSchema = z.object({
   links: z.array(z.object({ label: z.string(), url: z.url() })).default([]),
 
   /**
+   * Privacy-friendly analytics. Optional and additive: omit the whole object to
+   * disable analytics entirely. The framework owns the wiring; a course only
+   * provides the endpoint here.
+   */
+  analytics: z
+    .object({
+      /**
+       * GoatCounter count endpoint, e.g. "https://mycode.goatcounter.com/count"
+       * — must include the /count path (taken verbatim, no derivation). When
+       * set, the framework injects GoatCounter's async count.js on every page IN
+       * PRODUCTION BUILDS ONLY (never in `astro dev`). GoatCounter is cookieless,
+       * so no consent banner is needed.
+       */
+      goatcounter: z.url().optional(),
+    })
+    .optional(),
+
+  /**
    * Source repository for THIS course's content (not the framework). When set,
    * each module page gets a footer "edit this page" deep-link built from this
    * URL + the section's file path. GitHub-style `/edit/<branch>/<path>` URLs.

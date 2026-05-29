@@ -86,6 +86,13 @@ exams:
 # ── Feature flags ────────────────────────────────────────────────────────────
 features: { progress: true, search: true, flashcards: true, theme: true }
 
+# ── Privacy-friendly analytics (optional) ────────────────────────────────────
+# Set your GoatCounter count endpoint to enable. Only emitted in PRODUCTION
+# builds (never in `pnpm dev`); GoatCounter is cookieless, so no consent banner
+# is needed. The value must include the /count path.
+# analytics:
+#   goatcounter: "https://yourcode.goatcounter.com/count"
+
 # ── Free-form sidebar links (optional) ───────────────────────────────────────
 # links:
 #   - { label: "Forelesningsnotater", url: "https://…" }

@@ -128,6 +128,18 @@ const hasTools = toolNav.some((t) => t.show);
         </script>
       )
     }
+    {
+      /* Privacy-friendly analytics. Production builds only (never in `astro
+         dev`); GoatCounter is cookieless, so no consent banner is needed.
+         `is:inline` emits the third-party CDN tag verbatim (no Astro bundling). */
+      import.meta.env.PROD && course.analytics?.goatcounter && (
+        <script
+          is:inline
+          data-goatcounter={course.analytics.goatcounter}
+          async
+          src="https://gc.zgo.at/count.js"></script>
+      )
+    }
   </head>
   <body data-progress-key={progressKey} data-section-total={nav.length}>
     <a class="skip-link" href="#content">{ui.skipToContent}</a>
