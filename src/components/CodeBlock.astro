@@ -69,13 +69,19 @@ const initial = activeLines ?? (activeLine != null ? [activeLine] : []);
   .codeblock :global(.line) {
     transition: background var(--dur-fast) var(--ease);
   }
+  /* The Shiki block is ALWAYS dark (github-dark), independent of the page
+     light/dark theme — so the active-line marker must be tuned for a dark
+     surface, NOT the theme-switched --accent-soft/--accent (which track the
+     light page ground and wash out on #24292e). Use --accent-dark (the course's
+     bright dark-mode accent, always set on <html>) + a translucent wash of it,
+     so the highlight reads in both page themes. */
   .codeblock :global(.line.cb-line-active) {
     display: inline-block;
     width: 100%;
     margin-inline: calc(-1 * var(--space-4));
     padding-inline: var(--space-4);
-    background: var(--accent-soft);
-    box-shadow: inset 2px 0 0 var(--accent);
+    background: color-mix(in srgb, var(--accent-dark) 22%, transparent);
+    box-shadow: inset 2px 0 0 var(--accent-dark);
   }
 </style>
 
