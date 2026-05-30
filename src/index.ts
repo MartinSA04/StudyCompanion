@@ -35,7 +35,7 @@ export default function studyCompanion(
   return {
     name: "study-companion",
     hooks: {
-      "astro:config:setup": ({ updateConfig, injectRoute }) => {
+      "astro:config:setup": ({ config, updateConfig, injectRoute }) => {
         // 1. Toolchain: MDX + server-rendered KaTeX math. The math plugins are
         //    set under `markdown`; @astrojs/mdx extends the markdown config by
         //    default, so they apply to both .md and .mdx with no client cost.
@@ -48,14 +48,22 @@ export default function studyCompanion(
           vite: {
             server: {
               fs: {
-                // Course repos consume this framework as a `link:`ed dependency
-                // that lives OUTSIDE their project root. Vite's fs.allow would
-                // then 403 anything served from here — most visibly KaTeX's web
-                // fonts (its CSS is imported from this package), so display math
-                // falls back to a serif face with non-stretchy delimiters. Allow
-                // serving from the framework root. Dev-only; production bundles
-                // the fonts into the static output.
-                allow: [PACKAGE_ROOT],
+                // Let the dev server serve framework-owned assets that don't
+                // live under the consumer's src/. Most visibly KaTeX's CSS +
+                // web fonts (imported from this package); without this they
+                // 403 and display math falls back to a serif face with
+                // non-stretchy delimiters.
+                //
+                // Under pnpm each package's real files sit in its own
+                // `.pnpm/<pkg>@<ver>/node_modules/<pkg>` subtree, so `katex`
+                // is a *sibling* of this package, not a child — allowing only
+                // this package's root leaves it outside the list. So allow:
+                //   - the consumer project root, which contains the whole
+                //     `.pnpm` store (covers KaTeX and any other framework dep);
+                //   - this package's root, for a `link:`ed checkout that lives
+                //     OUTSIDE the consumer's project root.
+                // Dev-only; production bundles every asset into static output.
+                allow: [fileURLToPath(config.root), PACKAGE_ROOT],
               },
             },
           },
