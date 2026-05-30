@@ -77,11 +77,33 @@ export const courseSchema = z.object({
        * `public/` path (same convention as `exams[].url`).
        */
       formulaSheetUrl: z.string().optional(),
+      /**
+       * Does the exam hand out a formula sheet at all? Default `true`. Set
+       * `false` for closed-book / no-aids exams: the Formelsamling page then
+       * shows a clear "no sheet is provided" notice and drops the
+       * on-sheet/must-memorize chips and per-row badges (they are meaningless
+       * when nothing is on a sheet — everything must be known). Prefer this over
+       * marking every `formulas[]` entry `onSheet: false` / `memorize: true`.
+       */
+      formulaSheet: z.boolean().default(true),
     })
     .optional(),
 
   /** Past exam papers for <ExamList>. Additive since v1 (optional). */
   exams: z.array(examPaperSchema).default([]),
+
+  /**
+   * Link to the official, COMPLETE past-exam archive (e.g. the institute's
+   * arkiv page). When set, the Eksamen page shows a short note that `exams[]`
+   * is a curated selection and appends an "open the full archive" row to the
+   * list. Use when you hand-pick the most relevant papers but more exist.
+   */
+  examArchive: z
+    .object({
+      url: z.url(),
+      label: z.string().default("Hele eksamensarkivet"),
+    })
+    .optional(),
 
   /** Reference-sheet formulas for <FormulaSheet>. Additive since v1 (optional). */
   formulas: z.array(formulaEntrySchema).default([]),
@@ -150,7 +172,22 @@ export const courseSchema = z.object({
       officialFormulaSheetLabel: z
         .string()
         .default("Offisiell formelsamling til eksamen"),
+      /**
+       * Notice shown atop the Formelsamling page when `exam.formulaSheet` is
+       * `false` (the exam provides no sheet). Override per course for `nn`/`en`.
+       */
+      noFormulaSheetNote: z
+        .string()
+        .default(
+          "Til eksamen i dette emnet deles det ikke ut noen formelsamling. Oversikten under er en studieressurs — på eksamen må alt kunnes uten hjelpemidler.",
+        ),
       glossaryLabel: z.string().default("Begreper"),
+      /** Note above <ExamList> when `examArchive` is set (curated selection). */
+      examArchiveNote: z
+        .string()
+        .default(
+          "Utvalget under er de mest relevante settene. Eldre eksamener finnes i det fullstendige arkivet.",
+        ),
       courseLabel: z.string().default("Emneside"),
       tocLabel: z.string().default("Innhold"),
       editPageLabel: z.string().default("Rediger denne siden"),

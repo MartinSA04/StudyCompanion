@@ -218,7 +218,11 @@ if (props.kind === "section") {
             <Icon name="external" size={14} />
           </a>
         )}
-        <FormulaSheet formulas={course.formulas} />
+        <FormulaSheet
+          formulas={course.formulas}
+          examFormulaSheet={course.exam?.formulaSheet ?? true}
+          noFormulaSheetNote={course.ui.noFormulaSheetNote}
+        />
       </>
     )
   }
@@ -257,7 +261,14 @@ if (props.kind === "section") {
         {course.exam && (
           <ExamSummary exam={course.exam} language={course.language} />
         )}
-        <ExamList exams={course.exams} language={course.language} />
+        {course.examArchive && (
+          <p class="exam-archive-note">{course.ui.examArchiveNote}</p>
+        )}
+        <ExamList
+          exams={course.exams}
+          language={course.language}
+          archive={course.examArchive}
+        />
       </>
     )
   }

@@ -21,8 +21,16 @@ Additive since the first tag (no migration, available when present):
   **Formelsamling** section + auto-generated flashcards. `memorize: true` (with
   `onSheet: false`) flags "må pugges" and enables the on-sheet/memorize filter.
 - `course.exams[]` — `{ label, date?, url?, solutionUrl? }` → renders **ExamList**.
+- `course.examArchive` — `{ url, label? }` → a "full archive" row appended to
+  **ExamList** + a curated-selection note (`ui.examArchiveNote`) above it.
+- `course.exam.formulaSheet` — boolean, default `true`. Set `false` for a
+  closed-book exam: the **Formelsamling** page shows a "no sheet provided" notice
+  and drops the on-sheet/must-memorize chips + badges (no need to mark every
+  formula). Pair with `ui.noFormulaSheetNote` to localize the notice.
 - `ui.formulaSheetLabel` — heading for the formula-sheet section (default "Formelsamling").
-- `<Simulation>` MDX widget + the course `public/sims/` scaffold contract.
+- `ui.noFormulaSheetNote` — notice text shown when `exam.formulaSheet: false`.
+- `<Simulation>` / `<Stepper>` MDX widgets + the course `public/sims/` &
+  `public/steppers/` scaffold contracts.
 
 _No migrations have been required yet; this section will grow when a future major
 release changes the schema._

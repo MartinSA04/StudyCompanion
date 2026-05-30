@@ -212,9 +212,27 @@ not ad-hoc `links[]` entries:
 - **`course.exams[]`** — link **university-hosted** exam and solution PDFs when
   they exist. Only if one does *not* exist, vendor the PDF in `public/` and link
   that path (`/exams/2024.pdf`).
+- **`course.examArchive`** — `{ url, label? }` to the official **complete**
+  archive. When the `exams[]` you list are a hand-picked selection, set this: the
+  Eksamen page then shows a "these are the most relevant; older sets are in the
+  archive" note (`ui.examArchiveNote`) and appends an "open the full archive" row.
 - **`course.exam.formulaSheetUrl`** — link the **official formula sheet handed out
   at the exam** (distinct from the guide's own Formelsamling). University-hosted
   PDF first; vendor in `public/` only as a fallback.
+- **`course.exam.formulaSheet`** — defaults to `true`. Set `false` for a
+  **closed-book / no-aids exam**: the Formelsamling page then shows a clear
+  "no sheet is provided" notice and drops the on-sheet / must-memorize chips and
+  per-row badges (they are meaningless when nothing is on a sheet). Use this
+  instead of marking every `formulas[]` entry `onSheet: false` / `memorize: true`.
+  Override the notice wording with `ui.noFormulaSheetNote` for `nn`/`en` courses.
+
+> **Accuracy is non-negotiable — these pages are a source of truth.** Never seed a
+> placeholder or guessed value (an exam date, a duration, a room, a syllabus
+> reference) into `course.yaml` or a module. A plausible-but-wrong fact is worse
+> than an absent one. Every schema field is optional with a sensible default, so
+> **omit what you cannot verify** rather than inventing it — e.g. leave
+> `exam.date` unset until the official date is published, and add it later. If a
+> value is genuinely needed but unknown, ask; do not fabricate.
 
 ---
 
@@ -230,6 +248,8 @@ The polish bar is **library-grade**. A module is done when:
       in display mode.
 - [ ] **Cross-refs resolve** — every `<Term>` / `<FormulaRef>` / `<Statement>`
       target exists and is unique. *Enforced: `pnpm build` fails otherwise.*
+- [ ] **No fabricated facts** — every concrete value (dates, durations, syllabus
+      refs, figures) is verified; anything unknown is **omitted**, never guessed.
 - [ ] **A self-check** — a `<SelfCheck>` or `<Quiz>` where the material supports it.
 - [ ] **Both themes read** — light *and* dark, AA contrast, no clipped widgets.
 - [ ] **Honest `importance`** — core vs useful vs extra reflects the syllabus.

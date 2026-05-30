@@ -9,8 +9,10 @@ import Icon from "./Icon.astro";
 interface Props {
   exams: ExamPaper[];
   language?: string;
+  /** Optional link to the full archive, rendered as the final list row. */
+  archive?: { url: string; label: string };
 }
-const { exams, language = "nb" } = Astro.props;
+const { exams, language = "nb", archive } = Astro.props;
 
 const fmt = new Intl.DateTimeFormat(language, { dateStyle: "medium" });
 const sorted = [...exams].sort((a, b) => {
@@ -49,6 +51,22 @@ const sorted = [...exams].sort((a, b) => {
         </div>
       </li>
     ))
+  }
+  {
+    archive && (
+      <li class="exam-row exam-archive">
+        <a
+          class="exam-archive-link"
+          href={archive.url}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <Icon name="archive" size={15} />
+          <span>{archive.label}</span>
+          <Icon name="external" size={13} />
+        </a>
+      </li>
+    )
   }
 </ul>
 
@@ -105,6 +123,24 @@ const sorted = [...exams].sort((a, b) => {
     color: var(--muted);
   }
   .exam-solution:hover {
+    color: var(--accent);
+  }
+
+  /* Final row: a link out to the complete archive. Tinted to read as a
+     "see also" footer of the list rather than another exam paper. */
+  .exam-archive {
+    background: var(--card);
+  }
+  .exam-archive-link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    text-decoration: none;
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+    color: var(--accent);
+  }
+  .exam-archive-link :global(svg) {
     color: var(--accent);
   }
 </style>

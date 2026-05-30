@@ -188,12 +188,20 @@
   color: var(--fg);
   border-color: var(--border-strong);
 }
-/* Importance: a left rule flags core ("study first") modules. Its presence (vs
-   absence on useful/extra) is the non-colour cue; the --core hue reinforces it.
-   The labelled <ImportanceTag> on tiles + the module header carries the full
-   three-tier detail — same vocabulary, the density the sidebar allows. */
+/* Importance: a left rule flags the modules whose tier *differs* from the
+   course's dominant tier (computed in CourseLayout) — the exceptions, not the
+   norm. So a mostly-core course marks only its scattered useful/extra modules,
+   and an all-core course shows nothing. The rule's hue matches the tier (same
+   vocabulary as <ImportanceTag> on tiles + the module header); presence vs
+   absence is the non-colour cue. */
 .nav-link[data-importance="core"] {
   box-shadow: inset 2px 0 0 var(--core);
+}
+.nav-link[data-importance="useful"] {
+  box-shadow: inset 2px 0 0 var(--useful);
+}
+.nav-link[data-importance="extra"] {
+  box-shadow: inset 2px 0 0 var(--extra);
 }
 .nav-num {
   font-family: var(--font-mono);
@@ -688,6 +696,15 @@
 .official-sheet svg {
   color: var(--accent);
   flex: none;
+}
+
+/* Note above <ExamList> (course.examArchive): the listed papers are a curated
+   selection; older sets live in the full archive linked at the list's end. */
+.exam-archive-note {
+  margin: 0 0 var(--space-4);
+  color: var(--muted);
+  font-size: var(--text-sm);
+  line-height: var(--leading-snug);
 }
 
 /* ====== footer ====== */

@@ -13,8 +13,20 @@ import Icon from "./Icon.astro";
  */
 interface Props {
   formulas: FormulaEntry[];
+  /**
+   * Whether the exam hands out a formula sheet. When `false`, the on-sheet /
+   * must-memorize distinction is meaningless (nothing is on a sheet), so the
+   * filter chips and per-row badges are dropped and a notice is shown instead.
+   */
+  examFormulaSheet?: boolean;
+  /** Notice text shown when `examFormulaSheet` is false. */
+  noFormulaSheetNote?: string;
 }
-const { formulas } = Astro.props;
+const {
+  formulas,
+  examFormulaSheet = true,
+  noFormulaSheetNote = "",
+} = Astro.props;
 
 // Group by section, preserving first-seen order of both groups and entries.
 const groups: { section: string; items: FormulaEntry[] }[] = [];
@@ -50,8 +62,20 @@ const haystack = (f: FormulaEntry) =>
       .replace(/\\[a-zA-Z]+/g, " ")
   ).toLowerCase();
 
-const hasMemorize = formulas.some((f) => f.memorize);
+// The on-sheet / must-memorize distinction only makes sense when the exam
+// actually provides a sheet. Closed-book courses (examFormulaSheet=false) get a
+// plain reference list — no chips, no per-row "off the sheet" badges.
+const hasMemorize = examFormulaSheet && formulas.some((f) => f.memorize);
 ---
+
+{
+  !examFormulaSheet && noFormulaSheetNote && (
+    <p class="fs-notice" role="note">
+      <Icon name="info" size={24} />
+      <span>{noFormulaSheetNote}</span>
+    </p>
+  )
+}
 
 <div class="fs-controls">
   <div class="fs-search">
@@ -113,14 +137,14 @@ const hasMemorize = formulas.some((f) => f.memorize);
               class="fs-row"
               id={f.id}
               data-onsheet={String(f.onSheet)}
-              data-memorize={String(f.memorize)}
+              data-memorize={String(examFormulaSheet && f.memorize)}
               data-text={haystack(f)}
             >
               <span class="fs-render" set:html={html(f.tex)} />
               {f.label && (
                 <span class="fs-label" set:html={renderMathString(f.label)} />
               )}
-              {f.memorize && (
+              {examFormulaSheet && f.memorize && (
                 <span
                   class="fs-badge"
                   title="Står ikke på formelarket – må pugges"
@@ -149,6 +173,28 @@ const hasMemorize = formulas.some((f) => f.memorize);
 </div>
 
 <style>
+  /* Notice shown for closed-book courses: no formula sheet at the exam. A
+     prominent banner — this is the single most important fact on the page. */
+  .fs-notice {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-3);
+    margin: 0 0 var(--space-6);
+    padding: var(--space-4) var(--space-5);
+    background: var(--accent-soft);
+    border: 1px solid var(--accent);
+    border-left: 4px solid var(--accent);
+    border-radius: var(--radius);
+    color: var(--fg);
+    font-size: var(--text-base);
+    line-height: var(--leading-normal);
+  }
+  .fs-notice :global(svg) {
+    flex: none;
+    margin-top: 1px;
+    color: var(--accent);
+  }
+
   /* Controls: a search field plus the on-sheet / must-memorize chips. */
   .fs-controls {
     display: flex;
