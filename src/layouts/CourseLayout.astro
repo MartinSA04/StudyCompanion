@@ -6,6 +6,7 @@ import ThemeToggle from "../components/ThemeToggle.astro";
 import SearchPalette from "../components/SearchPalette.astro";
 import Icon from "../components/Icon.astro";
 import { contrastText, accentOnBg } from "../lib/color.ts";
+import { faviconDataUri } from "../lib/favicon.ts";
 import "katex/dist/katex.min.css";
 import "../styles/fonts.css";
 import "../styles/tokens.css";
@@ -108,7 +109,10 @@ const hasTools = toolNav.some((t) => t.show);
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="icon" href="/favicon.svg" />
+    {/* The `>_` mark, tinted to this course's accent so each tab is
+        identifiable. Uses the dark-surface accent since the mark's ground is
+        near-black; inlined per render, so no per-course favicon file. */}
+    <link rel="icon" type="image/svg+xml" href={faviconDataUri(accentDark)} />
     <title>{title}</title>
     {
       course.subtitle && (
@@ -168,7 +172,14 @@ const hasTools = toolNav.some((t) => t.show);
           aria-controls="sidebar"
           aria-expanded="false"><Icon name="menu" size={18} /></button>
         <a class="brand" href="/">
-          <span class="prism" aria-hidden="true"></span>
+          {/* Same `>_` mark as the favicon (geometry mirrors lib/favicon.ts),
+              but transparent rather than on the black ground, and using the
+              live `--accent` so it tracks the theme. */}
+          <svg class="brand-mark" viewBox="0 0 64 64" aria-hidden="true">
+            <rect x="4" y="6" width="56" height="52" rx="9" fill="none" stroke="currentColor" stroke-width="5"></rect>
+            <path d="M18 21l11 11-11 11" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+            <rect x="34" y="41" width="17" height="6" rx="2" fill="currentColor"></rect>
+          </svg>
           <span>
             {course.code} {course.title}
             <span class="brand-sub">

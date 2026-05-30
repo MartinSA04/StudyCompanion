@@ -53,23 +53,11 @@
   color: var(--fg);
   white-space: nowrap;
 }
-.prism {
+.brand-mark {
   width: 30px;
   height: 30px;
   flex: none;
-  border-radius: var(--radius-sm);
-  background: var(--bg-elevated);
-  border: 2px solid var(--accent);
-  position: relative;
-}
-.prism::after {
-  content: "";
-  position: absolute;
-  left: 6px;
-  right: 6px;
-  top: 13px;
-  border-top: 2px solid var(--accent);
-  transform: rotate(-28deg);
+  color: var(--accent);
 }
 .brand-sub {
   font-family: var(--font-mono);
