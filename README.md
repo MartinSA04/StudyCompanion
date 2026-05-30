@@ -10,56 +10,19 @@ A *course* is authored as **data** — a `course.yaml` plus `sections/*.mdx` —
 
 ## Consuming the framework (a course repo)
 
-A course repo contains **three thin files** plus a `content/` folder — no pages, components, or toolchain config.
+A course repo is **three thin files** — `package.json` (pins this framework via a git tag), `astro.config.mjs`, and `src/content.config.ts` — plus a `content/` folder. No pages, components, or toolchain config; the framework injects all of it.
 
-> **Starting a course?** Scaffold from the starter instead of by hand:
-> `npx degit MartinSA04/StudyCompanion/course-template course-mycode`. Then read
-> **`AUTHORING.md`** — the content author's guide (archetypes, widget decision
-> guide, conventions, per-section definition-of-done).
+Don't hand-write these. The canonical, ready-to-copy example is **[`course-template/`](course-template/)** — scaffold a new course from it:
 
-`package.json`
-
-```jsonc
-{
-  "type": "module",
-  "scripts": { "dev": "astro dev", "build": "astro build", "preview": "astro preview" },
-  "dependencies": {
-    "astro": "^6",
-    "study-companion": "github:martinsundal/study-companion#v1.0.0"
-  }
-}
+```bash
+npx degit MartinSA04/StudyCompanion/course-template course-mycode
 ```
 
-> During local development you can use `"study-companion": "link:../path/to/study-companion"` instead of the GitHub tag.
+It ships the framework pin, a GitHub Pages deploy workflow, an annotated `content/course.yaml`, and example sections. Then read **`AUTHORING.md`** — the content author's guide (archetypes, widget decision guide, conventions, per-section definition-of-done).
 
-`astro.config.mjs`
+You author **only** under `content/` — `course.yaml` (metadata, formulas, glossary, exams, features, analytics, ui strings), `flashcards.yaml`, and `sections/NN-slug.mdx` — and drop static assets in `public/` (favicon, `figures/`, `sims/`). See `course-template/` for the exact file layout and an annotated `course.yaml`.
 
-```js
-import { defineConfig } from "astro/config";
-import studyCompanion from "study-companion";
-export default defineConfig({ integrations: [studyCompanion()] });
-```
-
-`src/content.config.ts`
-
-```ts
-export { collections } from "study-companion/content";
-```
-
-`content/` — the only place you author:
-
-```text
-content/
-├── course.yaml          # metadata, formulas, exams, features, analytics, ui strings
-├── flashcards.yaml      # optional deck
-└── sections/
-    ├── 01-intro.mdx
-    └── 02-...mdx
-public/
-├── favicon.svg          # courses provide their own favicon
-├── figures/             # optional images/diagrams referenced by <Figure src="/figures/…">
-└── sims/                # optional course-owned simulation modules (see below)
-```
+> For local framework development, point the `study-companion` dependency at a `link:../path/to/study-companion` instead of the git tag (see `course-template/package.json`).
 
 Run `pnpm dev` to preview, `pnpm build` for static output to `dist/`. Search (Pagefind) is built into `dist/pagefind/` and only works in `build`/`preview`, not `dev`.
 
@@ -69,63 +32,10 @@ Run `pnpm dev` to preview, `pnpm build` for static output to `dist/`. Search (Pa
 
 ## Authoring content
 
-### `course.yaml`
+Author under `content/` only. **[`course-template/content/`](course-template/content/)** is a complete, annotated example — `course.yaml` documents every field, and `sections/*.mdx` show the section shapes; **`AUTHORING.md`** is the full guide (archetypes, conventions, per-section definition-of-done). Two things that bite:
 
-```yaml
-schemaVersion: 1            # must match the framework's SCHEMA_VERSION
-code: TFY4195               # course code
-title: Optikk
-subtitle: Interaktiv pensumguide
-term: V2026
-language: nb               # nb | nn | en
-accent: "#2f6df6"          # per-course theme colour, LIGHT mode (any CSS colour)
-accentDark: "#6ea9d8"      # optional — accent for DARK mode (defaults to `accent`)
-repoUrl: "https://github.com/you/optikk"   # optional → footer "edit this page" links
-repoBranch: main           # optional — branch the edit links target (default: main)
-courseUrl: "https://www.ntnu.no/studier/emner/TFY4195"  # optional → canonical course page (hero + footer)
-exam:                       # optional upcoming-exam card + Eksamen-page header
-  date: 2026-05-20          #   (optional) ISO date; build-time countdown
-  durationMinutes: 240      #   (optional) structured duration
-  format: 4t skriftlig
-  aids: Godkjent kalkulator + formelark
-  formulaSheetUrl: "https://www.ntnu.no/.../formelark.pdf"  # optional → official sheet on Formelsamling
-features: { progress: true, search: true, flashcards: true, theme: true }
-analytics: { goatcounter: "https://yourcode.goatcounter.com/count" }  # optional → privacy-friendly analytics; prod builds only, cookieless. Endpoint must include /count
-links:
-  - { label: "Emneside (NTNU)", url: "https://www.ntnu.no/studier/emner/TFY4195" }
-formulas:                   # optional → rendered as the Formelsamling section + flashcards
-  - { tex: "n_1\\sin\\theta_1 = n_2\\sin\\theta_2", label: "Snells lov", section: "Geometrisk optikk", id: snells }   # id → <FormulaRef id="snells">
-  - { tex: "\\sin\\theta_c = n_2/n_1", label: "Grensevinkel", section: "Geometrisk optikk", memorize: true, onSheet: false }
-glossary:                   # optional → Begreper tool page + inline <Term name="…">
-  - { term: "Koherens", definition: "Konstant faseforskjell mellom to bølger.", section: "Bølgeoptikk" }
-exams:                      # optional past-exam list (<ExamList>)
-  - { label: "Eksamen V2023", date: 2023-05-24, url: "/exams/2023.pdf", solutionUrl: "/exams/2023-sol.pdf" }
-ui: { progressLabel: Fremgang, searchLabel: Søk, ... }   # optional chrome string overrides
-```
-
-YAML scalars containing LaTeX must be double-quoted with **escaped backslashes**, e.g. `tex: "\\dfrac{a}{b}"`.
-
-### `sections/NN-slug.mdx`
-
-Frontmatter is the contract; `order` (not the filename) is the source of truth for sequence.
-
-```mdx
----
-order: 2
-title: Interferens
-summary: Superposisjon, koherens og tofelt-interferens.   # optional
-importance: core            # core | useful | extra (core gets a TOC dot)
-estMinutes: 45              # optional
-tags: [bølger, koherens]    # optional
-part: "Del 2: Bølgeoptikk"  # optional — chapter grouping in sidebar + overview
-updated: 2026-05-20         # optional — footer freshness line ("Oppdatert …")
----
-
-Markdown body. Inline math `$d\sin\theta = m\lambda$` and display math
-$$ \Delta y \approx \frac{\lambda L}{d} $$ render server-side via KaTeX.
-
-<Formula tex="d\sin\theta = m\lambda" caption="Maksima" />
-```
+- **`course.yaml`** — YAML scalars containing LaTeX must be double-quoted with **escaped backslashes**: `tex: "\\dfrac{a}{b}"`.
+- **`sections/NN-slug.mdx`** — frontmatter is the contract; `order` (not the filename) is the source of truth for sequence. Inline `$…$` and display `$$…$$` math render server-side via KaTeX.
 
 ### Widgets (available in every MDX section — no imports needed)
 

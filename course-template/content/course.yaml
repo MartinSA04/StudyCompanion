@@ -39,6 +39,11 @@ exam:
   # Prefer a university-hosted PDF; only if none exists, vendor it in public/
   # and link that, e.g. "/formelark.pdf".
   formulaSheetUrl: "https://example.com/exam/formelark.pdf"
+  # Does the exam hand out a formula sheet at all? Default true. Set false for a
+  # closed-book / no-aids exam → the Formelsamling page shows a "no sheet given"
+  # notice and drops the on-sheet / must-memorize chips + badges (so you don't
+  # mark every formula). Override the wording with ui.noFormulaSheetNote.
+  formulaSheet: true
 
 # ── Reference formulas (optional → Formelsamling page + inline <FormulaRef>) ──
 # YAML LaTeX must be DOUBLE-QUOTED with ESCAPED backslashes: "\\dfrac{a}{b}".
@@ -83,6 +88,13 @@ exams:
       solutionUrl: "https://example.com/exams/2025-losning.pdf",
     }
 
+# ── Full exam archive (optional → a "see full archive" row on the Eksamen page) ─
+# Use when the `exams` above are a hand-picked selection and a complete archive
+# exists elsewhere. Shows a curated-selection note (ui.examArchiveNote) too.
+# examArchive:
+#   url: "https://example.com/exams/"
+#   label: "Hele eksamensarkivet"
+
 # ── Feature flags ────────────────────────────────────────────────────────────
 features: { progress: true, search: true, flashcards: true, theme: true }
 
@@ -98,10 +110,20 @@ features: { progress: true, search: true, flashcards: true, theme: true }
 #   - { label: "Forelesningsnotater", url: "https://…" }
 
 # ── UI string overrides (optional — defaults are Norwegian) ──────────────────
-# Override any chrome label, e.g. for an English course:
+# Every chrome label is overridable (e.g. for an English course). Defaults shown.
 # ui:
-#   progressLabel: Progress
-#   searchLabel: Search
-#   examsLabel: Exam
-#   formulaSheetLabel: Formula sheet
-#   courseLabel: Course page
+#   progressLabel: Fremgang
+#   searchLabel: Søk
+#   resetLabel: Nullstill
+#   skipToContent: Hopp til innhold
+#   flashcardsLabel: Flashcards
+#   examsLabel: Eksamen
+#   formulaSheetLabel: Formelsamling
+#   officialFormulaSheetLabel: Offisiell formelsamling til eksamen
+#   noFormulaSheetNote: "Til eksamen i dette emnet deles det ikke ut noen formelsamling. Oversikten under er en studieressurs — på eksamen må alt kunnes uten hjelpemidler."
+#   examArchiveNote: "Utvalget under er de mest relevante settene. Eldre eksamener finnes i det fullstendige arkivet."
+#   glossaryLabel: Begreper
+#   courseLabel: Emneside
+#   tocLabel: Innhold
+#   editPageLabel: Rediger denne siden
+#   updatedLabel: Oppdatert
