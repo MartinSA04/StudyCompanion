@@ -3,8 +3,7 @@
 This is the guide for **writing course content** with study-companion — the
 primary brief for a content author, including an authoring agent. It tells you
 *how to write a good module* and *which widget to reach for*; for the exhaustive
-prop reference see `README.md`, and for the architecture see
-`study-companion-DESIGN.md`.
+prop reference and architecture see `README.md`.
 
 > Start a new course from `course-template/` (`npx degit
 > MartinSA04/StudyCompanion/course-template course-mycode`). It encodes
@@ -104,7 +103,9 @@ rather than re-deriving. Usually `importance: useful` or `extra`.
 
 **Section frontmatter** is the contract — `order` (the source of truth for
 sequence, not the filename), `title`, `importance`, optional `summary`,
-`estMinutes`, `tags`, `part`, `updated`.
+`estMinutes`, `tags`, `part`, `updated`, plus `draft: true` (hide the module from
+**production** builds while you draft it — still visible in `astro dev`) and
+`noindex: true` (keep it in-site but out of search + the sitemap).
 
 ---
 

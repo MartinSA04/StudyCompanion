@@ -5,7 +5,7 @@ and the **SEO / social / Apple-mobile / PWA** surface (§4). This is a *menu*, n
 a commitment — each item is sized and tagged so we can pull the highest-value
 ones into a release.
 
-> Scope reminder (see `CLAUDE.md` + `study-companion-DESIGN.md`): everything must
+> Scope reminder (see `CLAUDE.md`): everything must
 > stay **data-driven off the schema**, with **zero per-course logic** in the
 > framework. Course repos pin a tag and only author `content/`.
 
@@ -337,7 +337,7 @@ change → `patch`.
 
 **Why.** Fonts load from the Google CDN via a render-blocking `<link>`
 (`CourseLayout.astro:80-85`) — a third-party dependency, a privacy footprint, and
-a render/CLS cost. DESIGN.md targets Lighthouse ≥95.
+a render/CLS cost. The project targets Lighthouse ≥95.
 **Done.** `scripts/fetch-fonts.mjs` vendors Fraunces/Spectral/IBM Plex Mono woff2
 into `src/styles/fonts/` and generates `src/styles/fonts.css` (`@font-face`,
 `font-display: swap`). Imported from `CourseLayout`, so Vite fingerprints the woff2
@@ -421,7 +421,7 @@ Demo now spans all three tiers (Simulering → `extra`) to exercise the ring.
 
 The framework (P0–P2) is feature-complete; the gap now is **authoring**. A course
 still goes from empty repo to shippable guide on tribal knowledge — there is widget
-*reference* (README) and *architecture* (DESIGN), but no guide for the **author**,
+*reference* (README), but no guide for the **author**,
 no copyable starter, and no explicit per-section goals or quality bar. **All four
 shipped** — see each item's **Done** note; the `course-template/` builds clean as a
 smoke test (8 routes, all cross-refs resolve).
@@ -437,10 +437,10 @@ template is excluded from the published package (`files`/`.npmignore`).
 ### 3.1 `course-template/` scaffold — infra, **M** — ✅ Done
 
 **Why.** Every new course re-derives the three thin files + `content/` layout from
-DESIGN §5 by hand. A copyable starter makes "new course" a one-liner and encodes the
+the README setup by hand. A copyable starter makes "new course" a one-liner and encodes the
 conventions by example.
 **Done.** A `course-template/` directory holding: the three thin files
-(`package.json` pinning `github:MartinSA04/StudyCompanion#v1.0.1` + a `link:` dev
+(`package.json` pinning the newest `github:MartinSA04/StudyCompanion#vX.Y.Z` tag + a `link:` dev
 note in the README, `astro.config.mjs`, `src/content.config.ts`) plus `tsconfig.json`
 and `.gitignore`; an annotated `content/course.yaml` documenting every field inline
 (it ships with tiny *working* `exam`/`formulas`/`glossary`/`exams` examples rather
@@ -455,12 +455,12 @@ routes with every cross-reference resolving.
 
 ### 3.2 `AUTHORING.md` — the content author's guide — docs, **M** — ✅ Done
 
-**Why.** README is *reference* (each widget's props); DESIGN is *architecture*.
+**Why.** README is *reference* (each widget's props) + architecture.
 Neither tells an author **how to write a good module** or which widget to reach for.
 An authoring agent needs that as its primary brief.
 **Done.** A top-level `AUTHORING.md` (the first thing the course `CLAUDE.md` points
 at), with: the **mental model** (a course is data; never edit the framework; links
-to DESIGN/README/MIGRATIONS); the **workflow** (`course.yaml` first → outline by
+to README/MIGRATIONS); the **workflow** (`course.yaml` first → outline by
 `order`/`part` → draft → wire cross-refs → verify); a **widget decision guide**
 ("want X → use `<Y>`") covering the full set including course-owned `<Simulation>`
 canvas sims **and** sim-driven `<CodeBlock>` stepping (§5, with the `init(api)` /
@@ -491,7 +491,7 @@ rigid rules.
 
 ### 3.4 Per-section definition-of-done + section-brief template — docs, **S** — ✅ Done
 
-**Why.** Mirrors DESIGN §9's per-*course* DoD at *section* granularity, so an agent
+**Why.** Mirrors the per-*course* DoD at *section* granularity, so an agent
 can self-verify a module is finished and a course owner can hand an agent a bounded
 goal.
 **Done.**
@@ -583,7 +583,7 @@ Scope set from a gap analysis of the real algdat course (TDT4120,
 `MartinSA04/TDT4120_companion`): its v0 is **SVG/DOM React visualizers** driven by
 a **frame-stepping engine**, displaying **Python** (Shiki handles it). Decisions
 with the maintainer: **port Norwegian-only** (no framework i18n) and **the
-framework owns the visualizer engine**. The DESIGN M7 "zero template edits"
+framework owns the visualizer engine**. The earlier "zero template edits"
 assumption does **not** hold — these are the additions, all built (5.1, 5.2, 5.4).
 
 ### 5.1 DOM/SVG render host for `<Simulation>` — `minor`, **M** — ✅ Done
@@ -869,7 +869,7 @@ Emits `404.html`.
 
 ### 4.13 Lighthouse CI budget (SEO/PWA/perf guard) — infra, **M** — ✅ Done
 
-**Why.** DESIGN targets Lighthouse ≥95 but nothing enforces it; the SEO/PWA tags
+**Why.** The project targets Lighthouse ≥95 but nothing enforces it; the SEO/PWA tags
 above can silently regress. Visual-regression (2.6) guards pixels, not metadata
 or Core Web Vitals.
 **What.** An `@lhci/cli` GitHub workflow that builds + previews the demo and
@@ -922,9 +922,9 @@ tweaks, `<meta name=author>`.
 - **`<Tabs>`** — alternative explanations / approaches / languages. *(minor, M)*
 - **`<Embed>`** — privacy-friendly lecture-video facade with aspect-ratio box.
   *(minor, M)*
-- **Preact escalation** for Quiz/Flashcards *only if* state grows (DESIGN.md
-  §10). Not needed at current complexity.
-- **Keystatic** content editing (DESIGN.md non-goal v1) — revisit if non-technical
+- **Preact escalation** for Quiz/Flashcards *only if* state grows. Not needed at
+  current complexity.
+- **Keystatic** content editing (a v1 non-goal) — revisit if non-technical
   authors appear.
 
 ---

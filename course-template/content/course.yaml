@@ -25,9 +25,19 @@ accentDark: "#6ea9d8" # Accent for DARK mode. Pick a lighter shade so links stay
 # Canonical university course page — rendered in the hero + footer. Set it.
 courseUrl: "https://example.com/emne/CODE101"
 
+# Institution / provider name → the `provider` on the overview Course JSON-LD
+# (explicit, never guessed from a URL). Omit to emit no provider.
+institution: "Example University"
+
 # Source repo of THIS course → footer "edit this page" links + freshness.
 # repoUrl: "https://github.com/you/course-code101"
 # repoBranch: main
+
+# ── SEO / social card (optional) ─────────────────────────────────────────────
+# Absolute-URL features (canonical, Open Graph, sitemap) need `site` set in
+# astro.config.mjs. The handle below adds twitter:site / twitter:creator.
+# seo:
+#   twitter: "@yourhandle"
 
 # ── Upcoming exam (optional) ─────────────────────────────────────────────────
 exam:

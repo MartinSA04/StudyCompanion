@@ -16,11 +16,14 @@ pnpm dev
 
 Then:
 
-1. Edit `package.json` → set `name` and pin the framework tag you want.
-2. Edit `content/course.yaml` → identity, accent, `courseUrl`, exam, formulas,
-   glossary.
-3. Replace the example sections under `content/sections/` with your modules.
-4. Drop your favicon, figures, sims and any vendored exam PDFs into `public/`.
+1. Edit `package.json` → set `name` and pin the framework tag. Use the **newest**
+   `vX.Y.Z` tag, and keep it current — bump it to pick up new widgets and fixes.
+2. Set `site` in `astro.config.mjs` to your public origin (needed for the
+   canonical link, social cards and the sitemap).
+3. Edit `content/course.yaml` → identity, accent, `courseUrl`, `institution`,
+   exam, formulas, glossary.
+4. Replace the example sections under `content/sections/` with your modules.
+5. Drop your favicon, figures, sims and any vendored exam PDFs into `public/`.
 
 ## Local framework development
 

@@ -4,7 +4,7 @@ A versioned, data-driven **Astro 6 integration + component library** for interac
 
 A *course* is authored as **data** — a `course.yaml` plus `sections/*.mdx` — and pins a version of this framework. The framework owns **all** design, schema, page wiring, and widgets; course repos stay thin and upgrade-safe. Static output, server-rendered KaTeX, near-zero client JS except small interactive islands.
 
-> Build order, architecture, and contracts: see `study-companion-DESIGN.md`. Per-release content migrations: see `MIGRATIONS.md`.
+> Roadmap & open work: see `ROADMAP.md`. Per-release content migrations: see `MIGRATIONS.md`.
 
 ---
 
