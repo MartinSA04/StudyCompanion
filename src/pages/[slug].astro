@@ -12,6 +12,13 @@ import PageToc from "../components/PageToc.astro";
 import ImportanceTag from "../components/ImportanceTag.astro";
 import { loadCourse } from "../lib/loadCourse.ts";
 import { IMPORTANCE_LABELS } from "../lib/importance.ts";
+import { absoluteUrl, truncateDescription, stripInline } from "../lib/seo.ts";
+import {
+  breadcrumbList,
+  learningResourceLd,
+  definedTermSetLd,
+} from "../lib/jsonLd.ts";
+import { slugify } from "../lib/slug.ts";
 import { mdxComponents } from "../mdx-components.ts";
 import {
   sectionNav,
@@ -135,6 +142,68 @@ if (props.kind === "section") {
 } else {
   pageTitle = course.ui.examsLabel;
 }
+
+// ---- SEO + JSON-LD (4.2–4.4, 4.6) ----
+// Module pages are `article`s (with a modified time + LearningResource); tool
+// pages are `website`s. Every page gets a breadcrumb; the glossary also gets a
+// DefinedTermSet. Absolute URLs resolve against `site` (relative without it).
+const abs = (p: string) => absoluteUrl(p, Astro.site);
+const overviewCrumb = { name: "Oversikt", url: abs("/") };
+const pageUrl = abs(`/${active}`);
+
+let seoDescription = course.subtitle
+  ? `${course.title} — ${course.subtitle}`
+  : course.title;
+let ogType: "website" | "article" = "website";
+let modifiedTime: string | undefined;
+let noindex = false;
+const jsonLd: Record<string, unknown>[] = [];
+
+if (props.kind === "section") {
+  const d = props.entry.data;
+  seoDescription = d.summary ?? `${d.title} — ${course.title}`;
+  ogType = "article";
+  modifiedTime = d.updated?.toISOString();
+  noindex = d.noindex;
+  jsonLd.push(
+    learningResourceLd({
+      name: d.title,
+      description: truncateDescription(seoDescription),
+      url: pageUrl,
+      inLanguage: course.language,
+      dateModified: modifiedTime,
+      isPartOf: { name: `${course.code} ${course.title}`, url: abs("/") },
+    }),
+    breadcrumbList([overviewCrumb, { name: d.title, url: pageUrl }]),
+  );
+} else {
+  // Tool pages: a localized stock description from the page's own label.
+  seoDescription = `${pageTitle} — ${course.title}`;
+  jsonLd.push(
+    breadcrumbList([overviewCrumb, { name: pageTitle, url: pageUrl }]),
+  );
+  if (props.kind === "glossary" && course.glossary.length) {
+    jsonLd.push(
+      definedTermSetLd({
+        name: pageTitle,
+        url: pageUrl,
+        inLanguage: course.language,
+        terms: course.glossary.map((g) => ({
+          term: g.term,
+          definition: stripInline(g.definition),
+          id: slugify(g.term),
+        })),
+      }),
+    );
+  }
+}
+
+const seo = {
+  description: truncateDescription(seoDescription),
+  ogType,
+  modifiedTime,
+  noindex,
+};
 ---
 
 <CourseLayout
@@ -145,6 +214,8 @@ if (props.kind === "section") {
   pageTitle={pageTitle}
   editUrl={editUrl}
   updated={updated}
+  seo={seo}
+  jsonLd={jsonLd}
 >
   {
     props.kind === "section" && head && Content && (

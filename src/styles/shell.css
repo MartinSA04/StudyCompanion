@@ -52,12 +52,27 @@
   text-decoration: none;
   color: var(--fg);
   white-space: nowrap;
+  /* Let a long course name shrink and ellipsize instead of forcing the row
+     wider than the viewport (which squished the search/theme/reset buttons and
+     scrolled the page sideways on phones). */
+  min-width: 0;
+  overflow: hidden;
 }
 .brand-mark {
   width: 30px;
   height: 30px;
   flex: none;
   color: var(--accent);
+}
+.brand-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0; /* allow the title/subtitle to truncate within the flex item */
+}
+.brand-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .brand-sub {
   font-family: var(--font-mono);
@@ -68,6 +83,9 @@
   letter-spacing: 0.02em;
   display: block;
   margin-top: -2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .topbar .spacer {
   flex: 1;
@@ -785,6 +803,51 @@
   .card {
     padding: var(--gap-5) var(--gap-4);
   }
+}
+
+/* ====== safe-area insets & installed-app polish (PWA / iOS, 4.10) ======
+   `viewport-fit=cover` (set on the head viewport meta) lets the page extend
+   under the notch / Dynamic Island / home indicator; inset the sticky chrome so
+   nothing hides there. `env(safe-area-inset-*)` is 0 on devices without a
+   cutout (and in headless Chrome), so `max(token, env)` is a no-op everywhere
+   except a notched phone in standalone/landscape — zero desktop regression. */
+.topbar-inner {
+  padding-left: max(var(--gap-6), env(safe-area-inset-left));
+  padding-right: max(var(--gap-6), env(safe-area-inset-right));
+}
+.layout {
+  padding-left: max(var(--gutter), env(safe-area-inset-left));
+  padding-right: max(var(--gutter), env(safe-area-inset-right));
+}
+.site-footer {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+@media (max-width: 980px) {
+  /* The fixed nav drawer: clear the status bar / Dynamic Island (top), the
+     notch (left, landscape) and the home indicator (bottom). */
+  .sidebar {
+    padding-top: max(
+      var(--gap-11),
+      calc(env(safe-area-inset-top) + var(--gap-6))
+    );
+    padding-left: max(var(--gap-4), env(safe-area-inset-left));
+    padding-bottom: max(var(--gap-5), env(safe-area-inset-bottom));
+  }
+  /* Comfortable touch targets on the nav rows. */
+  .nav-link {
+    min-height: 44px;
+  }
+}
+
+/* Drop the grey iOS tap-flash on interactive chrome — every one of these has
+   its own hover/active/focus feedback already. */
+a,
+button,
+summary,
+.nav-link,
+.module-tile {
+  -webkit-tap-highlight-color: transparent;
 }
 
 @media (max-width: 560px) {

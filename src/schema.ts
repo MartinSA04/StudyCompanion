@@ -119,7 +119,30 @@ export const courseSchema = z.object({
    */
   courseUrl: z.url().optional(),
 
+  /**
+   * Institution / provider name (e.g. "NTNU"), used as the schema.org `provider`
+   * on the overview's `Course` JSON-LD (4.4). Explicit, not derived from a URL
+   * host — omit it and no provider is emitted (no guessing).
+   */
+  institution: z.string().optional(),
+
   links: z.array(z.object({ label: z.string(), url: z.url() })).default([]),
+
+  /**
+   * Optional SEO / social-card metadata. Additive: omit the object and every
+   * value below falls back to data derived from the rest of `course.yaml`
+   * (title, subtitle, accent, language). Absolute-URL features additionally
+   * need `site` in astro.config.mjs (see ROADMAP 4.1).
+   */
+  seo: z
+    .object({
+      /**
+       * X / Twitter handle (with or without a leading "@") for
+       * `twitter:site` / `twitter:creator` on the social card.
+       */
+      twitter: z.string().optional(),
+    })
+    .optional(),
 
   /**
    * Privacy-friendly analytics. Optional and additive: omit the whole object to
@@ -218,6 +241,20 @@ export const sectionSchema = z.object({
   part: z.string().optional(),
   /** Last-updated date, shown as a freshness line in the module footer. */
   updated: z.coerce.date().optional(),
+  /**
+   * Keep this module out of search results: emits
+   * `<meta name="robots" content="noindex">` and drops it from the sitemap (4.5)
+   * and Open Graph. The page is still built and linked in-site — only crawlers
+   * are told to skip it. Use for low-value or duplicate pages.
+   */
+  noindex: z.boolean().default(false),
+  /**
+   * Hide this module from a PRODUCTION build: dropped from the nav, the overview
+   * and routing (no page emitted), and from the sitemap. Stays fully visible in
+   * `astro dev` so you can keep drafting it. Use to publish a guide before every
+   * module is finished. Additive optional field → backward-compatible.
+   */
+  draft: z.boolean().default(false),
 });
 
 export const flashcardsSchema = z.object({

@@ -1,6 +1,6 @@
 {
   "name": "study-companion",
-  "version": "1.2.1",
+  "version": "1.4.0",
   "description": "A versioned, data-driven Astro integration + component library for interactive course study guides.",
   "type": "module",
   "license": "MIT",
@@ -19,6 +19,7 @@
     "./styles/*": "./src/styles/*",
     "./pages/index.astro": "./src/pages/index.astro",
     "./pages/[slug].astro": "./src/pages/[slug].astro",
+    "./pages/*": "./src/pages/*",
     "./components/*": "./src/components/*",
     "./mdx-components": "./src/mdx-components.ts"
   },

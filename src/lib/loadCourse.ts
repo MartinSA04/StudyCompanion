@@ -46,9 +46,15 @@ export async function loadCourse(): Promise<LoadedCourse> {
     );
   }
 
-  const sections = (await getCollection("sections")).sort(
-    (a, b) => a.data.order - b.data.order,
-  );
+  // Draft modules (`draft: true`) are hidden from a PRODUCTION build — no route,
+  // no nav entry, no overview tile, no sitemap row — but stay visible in
+  // `astro dev` so they can be drafted in place. Filtering here is the single
+  // chokepoint: every consumer (overview, [slug] routing, sitemap, xref
+  // validation) reads through loadCourse, so they all agree. `import.meta.env.PROD`
+  // is true during `astro build`, false during `astro dev`.
+  const sections = (await getCollection("sections"))
+    .filter((s) => !(import.meta.env.PROD && s.data.draft))
+    .sort((a, b) => a.data.order - b.data.order);
 
   return { course, sections };
 }

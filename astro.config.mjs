@@ -17,6 +17,11 @@ import studyCompanion from "./src/index.ts";
  * `src/pages/` would be auto-discovered AND injected, colliding on every route.
  */
 export default defineConfig({
+  // A real course sets its own canonical origin here (one of the "three thin
+  // files"); the framework reads it for canonical / Open Graph / sitemap
+  // absolute URLs (ROADMAP 4.1). The reserved example domain stands in for the
+  // demo harness so those features are exercised in the standalone build.
+  site: "https://demo.example.com",
   srcDir: "./demo",
   integrations: [studyCompanion()],
 });

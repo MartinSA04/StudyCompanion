@@ -37,7 +37,9 @@ See also: `README.md` (widget + `course.yaml` reference), `MIGRATIONS.md`
 
 1. **`course.yaml` first.** Identity (`code`, `title`, `term`, `language`),
    `accent` + `accentDark`, `courseUrl`, the `exam` block, and the `formulas` /
-   `glossary` you already know. This is the spine everything hangs off.
+   `glossary` you already know. This is the spine everything hangs off. Also set
+   **`site`** in `astro.config.mjs` to the guide's public origin — the framework
+   needs it for the canonical link, social cards and the sitemap.
 2. **Outline the sections** by `order` (and optional `part` for chapters). One
    `NN-slug.mdx` per module. Sketch the brief for each first — see
    `course-template/SECTION-BRIEF.md`.
@@ -257,8 +259,9 @@ The polish bar is **library-grade**. A module is done when:
       `<Steps>`, `<Statement>`, …).
 - [ ] **Plausible `estMinutes`.**
 
-Per-course (in addition): `courseUrl` set; exam metadata + `formulaSheetUrl` where
-the exam is known; screenshot-compared against the source guide.
+Per-course (in addition): **`site`** set in `astro.config.mjs` (canonical / social
+cards / sitemap); `courseUrl` set; exam metadata + `formulaSheetUrl` where the exam
+is known; screenshot-compared against the source guide.
 
 ---
 

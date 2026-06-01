@@ -1,0 +1,31 @@
+name: Lighthouse
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+# SEO / PWA / perf guard (ROADMAP 4.13). DESIGN targets Lighthouse ≥95 but
+# nothing enforced it; the §4 metadata can silently regress. Complements the
+# visual-regression workflow (2.6, which guards pixels, not metadata / CWV).
+jobs:
+  lighthouse:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --no-frozen-lockfile
+      - run: pnpm build
+      # `pnpm dlx` fetches the CI-only tool ephemerally — no project dependency,
+      # keeping the near-zero-dependency stance. Asserts the budgets in
+      # lighthouserc.json against the static demo build.
+      - run: pnpm dlx @lhci/cli@^0.15 autorun --config=lighthouserc.json
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: lighthouse-report
+          path: lhci-report/
+          retention-days: 14

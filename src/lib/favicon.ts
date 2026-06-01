@@ -10,10 +10,10 @@
  */
 
 /** Near-black ground, neutral so it sits under any accent hue. */
-const GROUND = "#0b0e14";
+export const GROUND = "#0b0e14";
 
 /** The `>_` mark as an SVG string, foreground tinted with `accent`. */
-function faviconSvg(accent: string): string {
+export function faviconSvg(accent: string): string {
   return (
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="study-companion">` +
     `<rect x="4" y="6" width="56" height="52" rx="9" fill="${GROUND}" stroke="${accent}" stroke-width="5"/>` +
@@ -30,4 +30,19 @@ function faviconSvg(accent: string): string {
  */
 export function faviconDataUri(accent: string): string {
   return "data:image/svg+xml," + encodeURIComponent(faviconSvg(accent));
+}
+
+/**
+ * The `>_` mark as a single-layer monochrome silhouette for Safari's pinned-tab
+ * `mask-icon` (the chevron + underscore only, no ground). Safari masks by the
+ * shapes' alpha and tints with the `<link … color>` attribute, so the fill here
+ * is irrelevant — only the geometry matters. Emitted as a real file at build.
+ */
+export function maskIconSvg(): string {
+  return (
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">` +
+    `<path d="M18 21l11 11-11 11" fill="none" stroke="#000" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>` +
+    `<rect x="34" y="41" width="17" height="6" rx="2" fill="#000"/>` +
+    `</svg>`
+  );
 }

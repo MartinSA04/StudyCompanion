@@ -7,6 +7,8 @@ import SearchPalette from "../components/SearchPalette.astro";
 import Icon from "../components/Icon.astro";
 import { contrastText, accentOnBg } from "../lib/color.ts";
 import { faviconDataUri } from "../lib/favicon.ts";
+import { ogLocale, trimTrailingSlash, warnMissingSiteOnce } from "../lib/seo.ts";
+import { serializeLd } from "../lib/jsonLd.ts";
 import "katex/dist/katex.min.css";
 import "../styles/fonts.css";
 import "../styles/tokens.css";
@@ -32,8 +34,34 @@ interface Props {
   editUrl?: string;
   /** Last-updated date for the footer freshness line (section pages only). */
   updated?: Date;
+  /**
+   * Per-page SEO / social meta, computed in the page where the data lives. The
+   * layout renders the tags; every value is optional and degrades gracefully.
+   */
+  seo?: {
+    /** `<meta name="description">` + `og:description`; pages always supply one (4.3). */
+    description?: string;
+    /** `og:type` — "article" for modules, "website" for overview/tools (4.2). */
+    ogType?: "website" | "article";
+    /** ISO date → `article:modified_time` (module pages with `updated`). */
+    modifiedTime?: string;
+    /** Keep out of search (4.6) → `<meta name="robots" content="noindex">`. */
+    noindex?: boolean;
+  };
+  /** schema.org objects → one `<script type="application/ld+json">` each (4.4). */
+  jsonLd?: Record<string, unknown>[];
 }
-const { course, nav, tools, active, pageTitle, editUrl, updated } = Astro.props;
+const {
+  course,
+  nav,
+  tools,
+  active,
+  pageTitle,
+  editUrl,
+  updated,
+  seo,
+  jsonLd,
+} = Astro.props;
 const { ui, features } = course;
 
 // The framework's own source — linked from the "Bygget med" footer attribution.
@@ -93,6 +121,37 @@ const progressKey = `sc:progress:${course.code}`;
 const title = pageTitle
   ? `${pageTitle} · ${course.code}`
   : `${course.code} · ${course.title}`;
+const ogTitle = pageTitle ?? course.title;
+
+// ---- SEO / social metadata (4.1–4.4, 4.7) ----
+// All derived from course.yaml + the page props. Absolute-URL features need
+// `site` in the course's astro.config.mjs; without it they degrade (skipped +
+// one DEV warning) rather than emitting unusable relative URLs.
+const site = Astro.site;
+const canonicalUrl = site
+  ? new URL(trimTrailingSlash(Astro.url.pathname), site).href
+  : null;
+if (import.meta.env.DEV && !site) warnMissingSiteOnce();
+
+const metaDescription =
+  seo?.description ??
+  (course.subtitle ? `${course.title} — ${course.subtitle}` : course.title);
+const ogType = seo?.ogType ?? "website";
+const siteName = `${course.code} ${course.title}`;
+const locale = ogLocale(course.language);
+// Interim social-card image: the build-time raster app icon (4.9). A square
+// logo → a `summary` Twitter card; 4.11 will add a 1200×630 `summary_large_image`.
+const ogImage = site ? new URL("/icon-512.png", site).href : null;
+const twitterHandle = course.seo?.twitter
+  ? course.seo.twitter.startsWith("@")
+    ? course.seo.twitter
+    : `@${course.seo.twitter}`
+  : null;
+
+// Browser-chrome / native-control colours — verbatim from tokens.css grounds
+// (explicit over derived), so the mobile toolbar matches the page per theme.
+const THEME_COLOR_LIGHT = "#f5f7fa"; // --bg (light)
+const THEME_COLOR_DARK = "#11161d"; // --bg (dark)
 
 type IconName = "sigma" | "book" | "layers" | "file";
 const toolNav: { slug: string; icon: IconName; label: string; show: boolean }[] = [
@@ -108,17 +167,80 @@ const hasTools = toolNav.some((t) => t.show);
 <html lang={course.language} style={accentVars}>
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
     {/* The `>_` mark, tinted to this course's accent so each tab is
         identifiable. Uses the dark-surface accent since the mark's ground is
         near-black; inlined per render, so no per-course favicon file. */}
     <link rel="icon" type="image/svg+xml" href={faviconDataUri(accentDark)} />
     <title>{title}</title>
+    <meta name="description" content={metaDescription} />
+    {seo?.noindex && <meta name="robots" content="noindex" />}
+    {canonicalUrl && <link rel="canonical" href={canonicalUrl} />}
+
+    {/* Browser-chrome + native-control theming (4.7). Grounds are verbatim from
+        tokens.css; `format-detection` stops iOS auto-linking decimals/ranges
+        (e.g. 1.5, 240) in a physics/maths guide as tap-to-call numbers. */}
+    <meta
+      name="theme-color"
+      media="(prefers-color-scheme: light)"
+      content={THEME_COLOR_LIGHT}
+    />
+    <meta
+      name="theme-color"
+      media="(prefers-color-scheme: dark)"
+      content={THEME_COLOR_DARK}
+    />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="format-detection" content="telephone=no" />
+
+    {/* Installable PWA + Apple home-screen (4.8–4.10, 4.15). The raster icons
+        and pinned-tab mask are emitted per-course at build (astro:build:done);
+        the manifest is an injected endpoint. */}
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="mask-icon" href="/safari-pinned-tab.svg" color={accentDark} />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+    <meta name="apple-mobile-web-app-title" content={course.code} />
+    <meta name="application-name" content={course.code} />
+    <meta name="generator" content="study-companion" />
+
+    {/* Open Graph + Twitter card (4.2) — link unfurls in chats / search. */}
+    <meta property="og:type" content={ogType} />
+    <meta property="og:title" content={ogTitle} />
+    <meta property="og:description" content={metaDescription} />
+    <meta property="og:site_name" content={siteName} />
+    <meta property="og:locale" content={locale} />
+    {canonicalUrl && <meta property="og:url" content={canonicalUrl} />}
+    {ogImage && <meta property="og:image" content={ogImage} />}
+    {ogImage && <meta property="og:image:alt" content={siteName} />}
     {
-      course.subtitle && (
-        <meta name="description" content={`${course.title} — ${course.subtitle}`} />
+      ogType === "article" && seo?.modifiedTime && (
+        <meta property="article:modified_time" content={seo.modifiedTime} />
       )
     }
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content={ogTitle} />
+    <meta name="twitter:description" content={metaDescription} />
+    {ogImage && <meta name="twitter:image" content={ogImage} />}
+    {twitterHandle && <meta name="twitter:site" content={twitterHandle} />}
+    {twitterHandle && <meta name="twitter:creator" content={twitterHandle} />}
+
+    {/* schema.org structured data (4.4) — Course / LearningResource /
+        BreadcrumbList / DefinedTermSet, built per page kind in the page. */}
+    {
+      jsonLd?.map((obj) => (
+        <script type="application/ld+json" set:html={serializeLd(obj)} />
+      ))
+    }
+
     <link
       rel="preload"
       as="font"
@@ -180,8 +302,8 @@ const hasTools = toolNav.some((t) => t.show);
             <path d="M18 21l11 11-11 11" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
             <rect x="34" y="41" width="17" height="6" rx="2" fill="currentColor"></rect>
           </svg>
-          <span>
-            {course.code} {course.title}
+          <span class="brand-text">
+            <span class="brand-title">{course.code} {course.title}</span>
             <span class="brand-sub">
               {course.subtitle ? `${course.subtitle} · ` : ""}{course.term}
             </span>

@@ -1,0 +1,85 @@
+---
+import { getCollection } from "astro:content";
+import CourseLayout from "../layouts/CourseLayout.astro";
+import Icon from "../components/Icon.astro";
+import { loadCourse } from "../lib/loadCourse.ts";
+import { sectionNav, toolFlags } from "../lib/nav.ts";
+
+// Branded 404 (4.12). The integration injects only `/` and `/[slug]`, so a bad
+// URL would otherwise hit Astro's unstyled default — off-brand and a soft-404
+// SEO smell. This renders the normal shell (topbar search, sidebar nav) so a
+// mistyped link is a soft landing back into the guide, not a dead end.
+const { course, sections } = await loadCourse();
+const flashcards = course.features.flashcards
+  ? ((await getCollection("flashcards"))[0]?.data.cards ?? [])
+  : [];
+const nav = sectionNav(sections);
+const tools = toolFlags(course, flashcards.length);
+
+const seo = { description: "Siden finnes ikke.", noindex: true };
+---
+
+<CourseLayout
+  course={course}
+  nav={nav}
+  tools={tools}
+  active=""
+  pageTitle="Siden finnes ikke"
+  seo={seo}
+>
+  <section class="notfound">
+    <p class="nf-code">404</p>
+    <h1>Siden finnes ikke</h1>
+    <p class="nf-lead">
+      Lenken er kanskje utdatert, eller siden er flyttet. Velg en modul i
+      menyen, eller søk etter det du leter etter.
+    </p>
+    <p class="nf-actions">
+      <a class="nf-home" href="/">
+        <Icon name="grid" size={16} />
+        Til oversikt
+      </a>
+    </p>
+  </section>
+</CourseLayout>
+
+<style>
+  .notfound {
+    max-width: 40rem;
+    margin: var(--space-6, 3rem) auto;
+    text-align: center;
+  }
+  .nf-code {
+    font-family: var(--font-mono);
+    font-size: clamp(3rem, 12vw, 6rem);
+    font-weight: 700;
+    line-height: 1;
+    color: var(--accent);
+    margin: 0;
+  }
+  .notfound h1 {
+    margin: 0.25em 0 0.4em;
+  }
+  .nf-lead {
+    color: var(--muted);
+    margin: 0 auto 1.5rem;
+    max-width: 32rem;
+  }
+  .nf-actions {
+    margin: 0;
+  }
+  .nf-home {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5em;
+    padding: 0.6em 1.1em;
+    border-radius: var(--radius, 10px);
+    background: var(--accent);
+    color: var(--accent-contrast);
+    font-weight: 600;
+    text-decoration: none;
+  }
+  .nf-home:hover {
+    filter: brightness(1.05);
+  }
+</style>

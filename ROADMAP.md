@@ -1,8 +1,9 @@
 # study-companion — Improvement Roadmap
 
-Forward-looking plan for the framework: new widgets, UX/a11y, schema, perf, and
-DX. This is a *menu*, not a commitment — each item is sized and tagged so we can
-pull the highest-value ones into a release.
+Forward-looking plan for the framework: new widgets, UX/a11y, schema, perf, DX,
+and the **SEO / social / Apple-mobile / PWA** surface (§4). This is a *menu*, not
+a commitment — each item is sized and tagged so we can pull the highest-value
+ones into a release.
 
 > Scope reminder (see `CLAUDE.md` + `study-companion-DESIGN.md`): everything must
 > stay **data-driven off the schema**, with **zero per-course logic** in the
@@ -641,6 +642,281 @@ covered):** Python via Shiki, code-line stepping (3.8), `<Quiz>`,
 
 ---
 
+## P1 — SEO & social metadata — ✅ Complete
+
+The framework renders a near-bare `<head>`: `title`, a **single** `description`
+(emitted only when `course.subtitle` is set, and identical on every page), the
+font preloads, the no-flash theme script and the inline SVG-`data:`-URI favicon
+(`CourseLayout.astro:107-161`). There are **no Open Graph / Twitter tags, no
+canonical link, no structured data, no sitemap, no `robots.txt`, no
+`theme-color`**. These guides ship to their own public subdomains and get passed
+around class group chats — so search ranking, link-unfurl previews
+(Slack/Discord/iMessage/Teams) and rich results are all currently left on the
+table. Everything below stays **data-driven off `course.yaml` + section
+frontmatter**, **server-rendered at build** (no client cost, no third-party
+calls — same privacy stance as self-hosted fonts and GoatCounter), and carries
+**zero per-course logic** in the framework.
+
+> **One contract touch.** Several items need an absolute origin (`Astro.site`),
+> which lives in the *course's* `astro.config.mjs` — one of its "three thin
+> files". Supplying `site:` is a one-line addition the course owns (same spirit
+> as it owning `accent`): the framework stays generic, the course declares its
+> canonical origin. This is the only place the SEO work touches the course
+> contract; everything else is pure framework. See 4.1.
+
+### 4.1 `site` origin + canonical URLs — `patch`/infra, **S** — ✅ Done
+
+**Why.** Absolute URLs — `rel=canonical`, `og:url`, sitemap `<loc>`, an absolute
+`og:image` src — all need `Astro.site`, which is unset today (the demo
+`astro.config.mjs` omits it and course repos own their own config). Without it
+Astro can only emit relative URLs, which social crawlers and `rel=canonical`
+can't use.
+**What.** Document `site: "https://<course>.<domain>"` as a required line in the
+course `astro.config.mjs`; add it to `course-template/` and the AUTHORING
+per-course DoD. The framework emits `<link rel="canonical" href={new
+URL(Astro.url.pathname, Astro.site)}>` when `Astro.site` is set and **degrades
+gracefully** (skips canonical + absolute OG, one DEV warning) when it isn't. The
+single source of truth for every absolute-URL feature below.
+**Done.** `CourseLayout` emits `rel=canonical` + `og:url` (the path is
+origin-normalised — a trailing slash is trimmed so it agrees with the
+sitemap/JSON-LD) when `site` is set, else skips the absolute-URL features with a
+once-per-build DEV warning (`lib/seo.ts:warnMissingSiteOnce`). `site` added to the
+demo + `course-template` config and the AUTHORING per-course DoD.
+
+### 4.2 Open Graph + Twitter Card meta — `minor`, **M** — ✅ Done
+
+**Why.** Shared links unfurl as bare URLs. A titled, described, imaged card
+dramatically lifts click-through when a guide gets dropped in a study chat.
+**What.** A per-page OG/Twitter block in `CourseLayout` (it already has `course`,
+`pageTitle`, and the page `kind`): `og:type` (`website` for overview/tools,
+`article` for modules), `og:title`, `og:description` (4.3), `og:url` (canonical),
+`og:site_name` (`${code} ${title}`), `og:locale` mapped from `language`
+(`nb`→`nb_NO`, `nn`→`nn_NO`, `en`→`en_US`), `article:modified_time` from a
+section's `updated`, plus Twitter `summary_large_image` and
+`og:image`/`og:image:alt` (4.11). All derived from existing data — no new
+required schema.
+**Done.** Full OG + Twitter block in `CourseLayout`: `og:type` (`article` for
+modules, `website` else), title/description/url/`og:site_name`, `og:locale` from
+`language` (`lib/seo.ts:ogLocale`), `article:modified_time` from `updated`,
+`og:image`/`twitter:image` = the 512 raster icon (interim → a `summary` card
+until 4.11) + `og:image:alt`, and `twitter:site`/`creator` from the new optional
+`course.seo.twitter`.
+
+### 4.3 Per-page derived meta description — `patch`, **S** — ✅ Done
+
+**Why.** Today `description` is emitted only when `course.subtitle` exists and is
+the **same string on every page** — duplicate descriptions hurt SEO and say
+nothing on a module/tool page.
+**What.** A per-page description resolver: module pages use the section `summary`
+(already in schema); tool pages use a localized stock line ("Formelsamling for
+…", "Begreper i …"); the overview uses `subtitle`/title. Always emit one,
+soft-truncated to ~155 chars. Feeds both `<meta name="description">` and
+`og:description` (4.2).
+**Done.** `lib/seo.ts` resolver (unit-tested): modules use `summary`, tools a
+localized `"<label> — <course>"` line, the overview `subtitle`/title; always
+emitted, whitespace-collapsed and soft-truncated to ~155 chars at a word boundary.
+
+### 4.4 Structured data (JSON-LD) — `minor`, **M** — ✅ Done
+
+**Why.** No schema.org markup, so Google can't surface rich results (course,
+breadcrumbs, defined terms, Q&A) and machine readers / LLM crawlers get no
+structured shape of the guide.
+**What.** Server-rendered `<script type="application/ld+json">` per page kind:
+`Course` (+ `provider` from `courseUrl`/institution, `inLanguage`) on the
+overview; `LearningResource`/`Article` with `dateModified` from `updated` per
+module; `BreadcrumbList` from the nav model; `DefinedTermSet`/`DefinedTerm` from
+the glossary; optionally `Quiz`/`FAQPage` from `<Quiz>`/`<SelfCheck>`. All built
+from data already present; validate against Google's Rich Results test.
+**Done.** Pure, unit-tested `lib/jsonLd.ts`: `Course` (+ explicit `provider` from
+the new `institution` field — never guessed from a URL host) on the overview;
+`LearningResource` (+ `dateModified`, `isPartOf`) + `BreadcrumbList` per module;
+`DefinedTermSet`/`DefinedTerm` (anchors via the shared `slugify`) on Begreper.
+Each renders as a `<`-escaped `ld+json` script. (`Quiz`/`FAQPage` left
+demand-driven.)
+
+### 4.5 Sitemap + `robots.txt` — `minor`, **S–M** — ✅ Done
+
+**Why.** No `sitemap.xml` and no `robots.txt`, so crawlers get no index of the
+prerendered module/tool pages and no sitemap pointer.
+**What.** Wire `@astrojs/sitemap` from inside the integration's
+`astro:config:setup` (`updateConfig({ integrations: [sitemap()] })` — the
+framework owns config, so every course gets it for free) with `lastmod` from
+section `updated`; emit `robots.txt` (allow-all + a `Sitemap:` line) in
+`astro:build:done` or as an injected endpoint. Both need `site` (4.1) — skip with
+a DEV warning when unset. Honours `noindex` (4.6).
+**Done.** Hand-rolled injected endpoints — **not** `@astrojs/sitemap` — to keep
+the near-zero-dependency stance and fully control `lastmod` (from `updated`) and
+`noindex`/draft exclusion: `/sitemap.xml` and `/robots.txt` (allow-all +
+`Sitemap:`), both gated on `site`. Verified: the demo's `noindex` `/mer` is absent
+from the sitemap.
+
+### 4.6 Per-section `draft` / `noindex` — `minor`, **S** — ✅ Done
+
+**Why.** No way to publish a guide while one module is still rough, or to keep a
+low-value page out of search.
+**What.** Optional `draft?: boolean` / `noindex?: boolean` on `sectionSchema`.
+`noindex` → `<meta name="robots" content="noindex">` + dropped from the sitemap
+(4.5) and OG. `draft` additionally hides the module from nav/overview **in
+production** but keeps it visible in `astro dev`. Additive optional fields →
+`minor`.
+**Done.** `draft`/`noindex` on `sectionSchema` (schema-tested). `loadCourse` drops
+`draft` in PROD only — the single chokepoint, so nav, routing, sitemap and
+xref-validation all agree — and keeps it visible in `astro dev`; `noindex` →
+`<meta robots noindex>` + sitemap/OG exclusion.
+
+---
+
+## P1 — Apple, mobile & installable (PWA) — ✅ Complete
+
+The Apple/mobile surface is essentially unconfigured. The headline wins are cheap
+meta tags entirely absent today; the rest make the guide a real installable,
+home-screen study app. All course-derived, no per-course code.
+
+### 4.7 `theme-color`, `color-scheme` & `format-detection` — `patch`, **S** — ✅ Done
+
+**Why.** Three cheap mobile-Safari wins, all missing. (a) No `theme-color`, so
+the iOS/Android browser toolbar stays default grey instead of matching the page
+ground. (b) No `color-scheme`, so native controls/scrollbars don't follow the
+dark theme. (c) No `format-detection`, so iOS Safari auto-links decimals and
+numeric ranges in a physics/maths guide as fake "phone numbers"
+(tap-to-call on `1.5` or `240`).
+**What.** `<meta name="theme-color" media="(prefers-color-scheme: light)"
+content="…light ground…">` + a dark counterpart (values taken verbatim from the
+real `tokens.css` grounds, not derived — explicit-over-derived); a `color-scheme:
+light dark` meta + CSS; `<meta name="format-detection" content="telephone=no">`.
+Pure additive, no schema.
+**Done.** Per-scheme `theme-color` (light `#f5f7fa` / dark `#11161d`, verbatim from
+`tokens.css`), `color-scheme: light dark`, and `format-detection: telephone=no` in
+`CourseLayout`.
+
+### 4.8 Web app manifest (installable PWA) — `minor`, **M** — ✅ Done
+
+**Why.** No `manifest.webmanifest`, so the guide can't be "Add to Home
+Screen"/installed — a natural fit for a revision tool a student opens daily in
+exam season.
+**What.** An injected `/manifest.webmanifest` endpoint (same `loadCourse()`
+pattern as the pages) emitting `name`/`short_name` (`code`), `description`,
+`lang`, per-theme `theme_color` + `background_color`, `display: standalone`,
+`start_url: "/"`, `categories: ["education"]`, and `icons` (192/512 + a
+`maskable` variant, 4.9). `<link rel="manifest">` in the head. Course-derived, no
+per-course code.
+**Done.** Injected `/manifest.webmanifest` from `loadCourse()`
+(name/short_name/description/lang, `display: standalone`,
+`categories:["education"]`, 192/512 + maskable icons) + `<link rel=manifest>`.
+
+### 4.9 Apple touch icon + raster app icons — `minor`, **M** — ✅ Done
+
+**Why.** The favicon is an SVG `data:` URI only. iOS ignores SVG for the
+home-screen icon, and the manifest (4.8) needs raster PNGs — so an
+installed/home-screened guide currently gets a blank/letter icon.
+**What.** Rasterize the accent-tinted `>_` mark (reuse `lib/favicon.ts`
+geometry) to 180×180 (`apple-touch-icon`) and 192/512 + maskable (manifest) at
+build. Needs a rasterizer (`@resvg/resvg-js` or `sharp`) — a deliberate new
+**build-time** dep weighed against the near-zero-dependency stance; mirror the
+`scripts/fetch-fonts.mjs` pattern (a generator script whose output is
+emitted/committed) so the runtime stays clean. Adds `<link rel="apple-touch-icon"
+sizes="180x180" …>`.
+**Done.** Per-course accent-tinted rasters generated in `astro:build:done` via a
+**guarded dynamic `sharp` import** — located in the pnpm store / hoisted tree, so
+**zero declared dependency** (same trick as the Pagefind import), degrading with a
+warning if absent: `apple-touch-icon.png` (180, opaque), `icon-192/512.png`,
+`icon-maskable-512.png`, plus a monochrome `safari-pinned-tab.svg`. Verified in the
+demo build — no `@resvg`/extra dep after all.
+
+### 4.10 Apple standalone meta + safe-area insets — `patch`, **S–M** — ✅ Done
+
+**Why.** Once installable (4.8), the iOS standalone launch is unstyled: no
+`apple-mobile-web-app-*` meta, and the sticky topbar/sidebar don't inset for the
+notch / Dynamic Island / home indicator.
+**What.** `mobile-web-app-capable` + `apple-mobile-web-app-capable`,
+`apple-mobile-web-app-status-bar-style` (`black-translucent`),
+`apple-mobile-web-app-title` (`code`); add `viewport-fit=cover` to the viewport
+meta and `env(safe-area-inset-*)` padding to the topbar/sidebar/content in
+`shell.css` so nothing hides under the notch in standalone or landscape. Also
+clear the iOS tap-highlight flash and verify ≥44px tap targets on nav rows.
+**Done.** `apple-mobile-web-app-*` + `application-name` meta; `viewport-fit=cover`;
+`env(safe-area-inset-*)` insets on topbar/sidebar/footer via `max(token, env)` (so
+0 on non-notch devices → no desktop regression); tap-highlight cleared; 44px min
+nav-row height on touch.
+
+---
+
+## P2 — Generated assets, guards & polish — 4.12/4.13 ✅ · 4.11 ⏳
+
+### 4.11 Auto-generated OG share image — `minor`, **L**
+
+**Why.** A link card without an image is far weaker; hand-making one per
+course/page doesn't scale and breaks the data-driven rule.
+**What.** A build-time, per-page branded OG PNG (1200×630) — accent ground/rule,
+the `>_` mark, course `code`, and the page title — via `satori` +
+`@resvg/resvg-js` (the rasterizer from 4.9), emitted as static files by an
+injected endpoint or build hook and wired to `og:image`/`twitter:image` +
+`og:image:alt` (4.2). Static, no runtime or third-party calls. Big dep + effort,
+so it sits behind the lighter metadata wins (4.1–4.7); could ship opt-in
+(`course.yaml` `seo.ogImage: true`) at first.
+
+### 4.12 Branded 404 page — `minor`, **S–M** — ✅ Done
+
+**Why.** The integration injects only `/` and `/[slug]`
+(`src/index.ts:77-86`), so a bad URL falls through to Astro's unstyled default
+404 — off-brand, a dead end, and a soft-404 SEO smell.
+**What.** Inject a `/404` route rendering the `CourseLayout` shell with a
+course-styled "not found" message and links back to the overview + search.
+Data-driven from `course`; no per-course code.
+**Done.** Injected `/404` renders the full `CourseLayout` shell (topbar search +
+sidebar) with a branded "Siden finnes ikke" panel + "Til oversikt" link; `noindex`.
+Emits `404.html`.
+
+### 4.13 Lighthouse CI budget (SEO/PWA/perf guard) — infra, **M** — ✅ Done
+
+**Why.** DESIGN targets Lighthouse ≥95 but nothing enforces it; the SEO/PWA tags
+above can silently regress. Visual-regression (2.6) guards pixels, not metadata
+or Core Web Vitals.
+**What.** An `@lhci/cli` GitHub workflow that builds + previews the demo and
+asserts category thresholds (Performance, SEO, Best-Practices, PWA) and CWV
+budgets (LCP/CLS/TBT), alongside the existing `visual.yml`. Catches a dropped
+canonical, a CLS regression, a missing `theme-color`. CI-only, like 2.6.
+**Done.** `lighthouserc.json` + `.github/workflows/lighthouse.yml` (run via
+`pnpm dlx` — no project dep). A11y + CLS are hard gates (`error`);
+SEO/Best-Practices/Performance + LCP/TBT are `warn` (a localhost runner + the
+demo's cross-origin canonical make them noisy — tune up once real baselines exist,
+like the 2.6 pixel baselines). PWA is no longer a Lighthouse category.
+
+---
+
+## P3 — Offline & long-tail — 4.15 ✅ (partial) · 4.14 ⏳
+
+### 4.14 Offline reading via service worker (PWA) — `minor`, **L**
+
+**Why.** A revision guide is exactly what a student wants offline — on transit,
+in a basement exam hall, on flaky campus wifi. Static output makes this safe and
+cheap; with the manifest (4.8) it becomes a genuine installable offline study
+app.
+**What.** An **opt-in** precache service worker (`course.yaml`
+`features.offline`) caching the static shell + visited pages (Cache-First for
+fonts/CSS/KaTeX, Stale-While-Revalidate for pages); registered only in
+production, with no network beacons (keeps the no-tracking stance). Hand-rolled
+(small) rather than Workbox to keep deps lean; an update toast on new content.
+Larger surface → demand-driven.
+
+### 4.15 Long-tail Apple/social polish — `patch`, **S** each — ✅ Partial
+
+**Why.** Remaining niceties below the headline wins.
+**What.** Safari pinned-tab `mask-icon` (monochrome `>_` + accent `color`);
+`apple-touch-startup-image` splash screens (generated, several device sizes —
+only if standalone use grows); `@media (display-mode: standalone)` chrome tweaks;
+`<meta name="author">` + a study-companion `<meta name="generator">`;
+`og:image:alt`; an optional `course.seo.twitter` handle for
+`twitter:site`/`creator`. Pull individually as demand appears.
+**Done (the cheap head wins).** Shipped now: Safari pinned-tab `mask-icon`
+(monochrome `>_`, tinted via the link `color`), `<meta name=generator>`,
+`og:image:alt`, and the optional `twitter:site`/`creator` handle
+(`course.seo.twitter`). **Still demand-driven:** generated
+`apple-touch-startup-image` splash screens, `@media (display-mode: standalone)`
+tweaks, `<meta name=author>`.
+
+---
+
 ## P4 — Speculative (demand-driven)
 
 - **`<Tabs>`** — alternative explanations / approaches / languages. *(minor, M)*
@@ -674,19 +950,35 @@ covered):** Python via Shiki, code-line stepping (3.8), `<Quiz>`,
    `courseUrl` (3.5), the exam-page header (3.6), the official formula-sheet link
    (3.7), and the `<CodeBlock active-line>` sim-driven code-stepping upgrade (3.8,
    built in prep for the algorithm course). → `minor`/`patch`.
-7. **Ongoing:** visual-regression CI (2.6) and design-system unification
-   (2.7–2.8) as capacity allows.
+7. **Release N+6 (discoverability & install) — ✅ shipped:** the §4
+   SEO/social/Apple/PWA tranche — `site` + canonical (4.1), Open Graph + Twitter
+   (4.2), per-page descriptions (4.3), `theme-color`/`color-scheme`/
+   `format-detection` (4.7), sitemap/`robots.txt` (4.5), JSON-LD (4.4); the
+   installable-PWA set (manifest 4.8, raster icons 4.9, standalone + safe-area
+   4.10); plus the branded 404 (4.12), Lighthouse CI (4.13) and the cheap long-tail
+   head polish (4.15). All additive → `minor`/`patch`; verified against the demo
+   build. **Deferred (both `L`, demand-driven):** the generated 1200×630 OG image
+   (4.11) and the offline service worker (4.14).
+8. **Ongoing:** visual-regression CI (2.6) and design-system unification
+   (2.7–2.8) as capacity allows; the OG share image (4.11), offline SW (4.14) and
+   the remaining long-tail polish (4.15) demand-driven.
 
-**Status:** **All of P0–P3 is complete** (plus 2.9). Releases N through N+3 shipped
+**Status:** **All of P0–P3 is complete** (plus 2.9), **and the §4 SEO / social /
+Apple-mobile / PWA tranche has now shipped** (N+6). Releases N through N+3 shipped
 the foundations, the P1 widget set, the UX pass, and the scale + perf +
 design-system work. Releases **N+4** (authoring kit — `course-template/` 3.1,
-`AUTHORING.md` 3.2–3.3, section DoD + brief 3.4, build-time xref validation 2.9) and
+`AUTHORING.md` 3.2–3.3, section DoD + brief 3.4, build-time xref validation 2.9),
 **N+5** (exam & reference surfacing 3.5–3.7 + sim-driven `<CodeBlock>` stepping 3.8)
-are now shipped and verified against the demo build. The framework is feature- *and*
-onboarding-complete: a new course can go empty → shippable from the template against
-`AUTHORING.md`, and `pnpm build` enforces cross-reference integrity. What remains:
-generating the **2.6** visual baselines on Linux, and the **P4 speculative** items
-(`<Tabs>`, `<Embed>`, Preact/Keystatic escalation) — demand-driven only.
+and **N+6** (discoverability & install — 4.1–4.10, 4.12, 4.13, 4.15) are now shipped
+and verified against the demo build. The framework is feature- *and*
+onboarding-complete: a new course goes empty → shippable from the template against
+`AUTHORING.md`, `pnpm build` enforces cross-reference integrity, and the head now
+carries canonical/OG/Twitter, JSON-LD, a sitemap/`robots.txt`, an installable
+manifest + per-course raster icons, and `theme-color`/safe-area mobile polish. **The
+remaining framework work is small and demand-driven:** the generated 1200×630 OG
+image (4.11, `L`), the offline service worker (4.14, `L`), generating the **2.6**
+visual baselines on Linux, and the **P4 speculative** items (`<Tabs>`, `<Embed>`,
+Preact/Keystatic escalation).
 
 - **N (P0 foundations):** dev fixture, tests, heading fix, print, docs — all
   shipped and verified against the demo.
@@ -706,21 +998,34 @@ generating the **2.6** visual baselines on Linux, and the **P4 speculative** ite
 - **N+5 (exam & reference + stepping):** `courseUrl` (3.5), exam-page header (3.6),
   official formula-sheet link (3.7), sim-driven `<CodeBlock>` stepping (3.8) — all
   verified in the demo build.
+- **N+6 (discoverability & install):** the §4 tranche — `site`/canonical (4.1),
+  OG + Twitter (4.2), per-page descriptions (4.3), JSON-LD (4.4), sitemap +
+  `robots.txt` (4.5), `draft`/`noindex` (4.6), `theme-color`/`color-scheme`/
+  `format-detection` (4.7), manifest (4.8), per-course raster icons (4.9),
+  Apple standalone + safe-area (4.10), branded 404 (4.12), Lighthouse CI (4.13),
+  long-tail head polish (4.15) — all `minor`/`patch`, verified in the demo build
+  (new pure helpers `lib/seo.ts` + `lib/jsonLd.ts` are unit-tested).
 
-**Do next:** the framework is feature- and onboarding-complete, so the next real work
-is **content, not framework**: migrate the first real course (optics) onto the pinned
-framework using `course-template/` + `AUTHORING.md`, and let `pnpm build`'s xref
-validation (2.9) catch dead links during the port. Then exercise the **3.8** code
-stepping for real when the algorithm-visualizer course starts. The only open
-*framework* chores are infra: generate the **2.6** visual baselines on Linux
-(`pnpm test:visual:update`, then commit) so the CI has something to diff against.
-**P4 — Speculative** (`<Tabs>`, `<Embed>`, Preact/Keystatic) stays demand-driven —
-pull an item only when a course needs it. These shipped items are all additive →
-a **`minor`** release (suggest `v1.1.0`); `SCHEMA_VERSION` stays `1`.
+**Do next:** with the §4 tranche shipped, the remaining work is mostly **content,
+not framework**. **(a) Content:** migrate the first real course (optics) onto the
+pinned framework using `course-template/` + `AUTHORING.md` (now including the
+required `site` line), letting `pnpm build`'s xref validation (2.9) catch dead
+links during the port; set `institution`/`seo.twitter` where they apply; exercise
+**3.8** code stepping for real when the algorithm-visualizer course starts.
+**(b) Remaining framework items, all demand-driven:** the generated 1200×630 OG
+share image (4.11, `L` — would upgrade the interim square-icon card to
+`summary_large_image`), the offline service worker (4.14, `L`), the remaining
+long-tail Apple polish (4.15 — splash screens, `display-mode` tweaks), and
+generating the **2.6** visual baselines on Linux (`pnpm test:visual:update`, then
+commit) so CI has something to diff against — the §4 head changes are non-visual
+(meta/JSON-LD), so they shouldn't move existing baselines. **P4 — Speculative**
+(`<Tabs>`, `<Embed>`, Preact/Keystatic) stays demand-driven. Everything shipped is
+additive, so `SCHEMA_VERSION` stays `1`; the §4 tranche is a `minor` release
+(`package.json` bumped to `1.4.0`, the next minor after the existing `v1.3.0` tag).
 
 ## SemVer ledger (at a glance)
 
-✅ = shipped.
+✅ = shipped · ⏳ = open (P-level in the body).
 
 | Item | SemVer | Effort |
 |---|---|---|
@@ -761,7 +1066,22 @@ a **`minor`** release (suggest `v1.1.0`); `SCHEMA_VERSION` stays `1`.
 | ✅ 5.1 `<Simulation host="dom">` | minor | M |
 | ✅ 5.2 `<Stepper>` trace player | minor | L |
 | ✅ 5.4 `<Table>` | minor | S–M |
+| ✅ 4.1 `site` origin + canonical | patch | S |
+| ✅ 4.2 Open Graph + Twitter | minor | M |
+| ✅ 4.3 Per-page description | patch | S |
+| ✅ 4.4 Structured data (JSON-LD) | minor | M |
+| ✅ 4.5 Sitemap + `robots.txt` | minor | S–M |
+| ✅ 4.6 Section `draft`/`noindex` | minor | S |
+| ✅ 4.7 `theme-color`/`color-scheme`/`format-detection` | patch | S |
+| ✅ 4.8 Web app manifest | minor | M |
+| ✅ 4.9 Apple touch + raster icons | minor | M |
+| ✅ 4.10 Apple standalone + safe-area | patch | S–M |
+| ⏳ 4.11 Auto OG share image | minor | L |
+| ✅ 4.12 Branded 404 page | minor | S–M |
+| ✅ 4.13 Lighthouse CI budget | infra | M |
+| ⏳ 4.14 Offline service worker | minor | L |
+| ✅ 4.15 Long-tail Apple/social polish (partial) | patch | S |
 
-> No item here requires a **major** bump. The first change that forces existing
+> ⏳ = open. No item here requires a **major** bump. The first change that forces existing
 > courses to edit content (e.g. making `part` required, or restructuring
 > `formulas`) is the trigger for v2 + `SCHEMA_VERSION` 2 + a `MIGRATIONS.md` entry.

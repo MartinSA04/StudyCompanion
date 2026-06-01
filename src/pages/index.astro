@@ -5,6 +5,8 @@ import Icon from "../components/Icon.astro";
 import ImportanceTag from "../components/ImportanceTag.astro";
 import { loadCourse } from "../lib/loadCourse.ts";
 import { validateXrefs } from "../lib/xref.ts";
+import { absoluteUrl, truncateDescription } from "../lib/seo.ts";
+import { courseLd } from "../lib/jsonLd.ts";
 import { readFileSync } from "node:fs";
 import {
   sectionNav,
@@ -91,9 +93,38 @@ const daysToExam = course.exam?.date
   : null;
 const hasExamCard =
   examDate || course.exam?.format || course.exam?.aids || daysToExam != null;
+
+// ---- SEO + structured data (4.2–4.4) ----
+const overviewUrl = absoluteUrl("/", Astro.site);
+const seo = {
+  description: truncateDescription(
+    course.subtitle ? `${course.title} — ${course.subtitle}` : course.title,
+  ),
+  ogType: "website" as const,
+};
+const jsonLd = [
+  courseLd({
+    code: course.code,
+    title: course.title,
+    description: seo.description,
+    url: overviewUrl,
+    inLanguage: course.language,
+    // Explicit provider only — never guessed from a URL host (see schema).
+    provider: course.institution
+      ? { name: course.institution, url: course.courseUrl }
+      : undefined,
+  }),
+];
 ---
 
-<CourseLayout course={course} nav={nav} tools={tools} active="top">
+<CourseLayout
+  course={course}
+  nav={nav}
+  tools={tools}
+  active="top"
+  seo={seo}
+  jsonLd={jsonLd}
+>
   <section class="hero">
     <div class="hero-tag">{course.code} · {course.term}</div>
     <h1>{course.title}</h1>

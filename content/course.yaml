@@ -22,6 +22,12 @@ exam:
 # footer), distinct from the free-form `links` list below.
 courseUrl: "https://example.com/emne/DEMO101"
 
+# Provider for the Course JSON-LD (explicit, never derived from a URL host) +
+# a social handle for the Twitter card. Both optional/additive.
+institution: "Example University"
+seo:
+  twitter: "@studycompanion"
+
 features: { progress: true, search: true, flashcards: true, theme: true }
 
 # This demo course lives inside the framework repo, so repoUrl points there and
