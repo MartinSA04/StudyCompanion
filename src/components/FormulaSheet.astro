@@ -323,12 +323,6 @@ const hasMemorize = examFormulaSheet && formulas.some((f) => f.memorize);
   .fs-row[hidden] {
     display: none;
   }
-  /* Must-pugges formulas get the original's orange "off the sheet" stripe. */
-  .fs-row[data-memorize="true"] {
-    border-left: 3px solid var(--warning);
-    padding-left: var(--space-3);
-    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
-  }
   .fs-render {
     flex: none;
     min-width: 150px;
