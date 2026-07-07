@@ -157,28 +157,57 @@ pre {
   line-height: var(--leading-snug);
 }
 
-/* Copy button injected by the layout's enhancement script onto every <pre>. */
+/* Copy button injected by the layout's enhancement script onto every <pre>.
+   An icon button matching the formula sheet's copy control (.fs-copy): a copy
+   glyph that swaps to a check once copied. */
 .code-copy {
   position: absolute;
   top: var(--space-2);
   right: var(--space-2);
-  padding: 0.25em 0.6em;
-  font-size: var(--text-xs);
-  font-family: var(--font-mono);
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
   color: var(--muted);
   background: var(--bg-elevated);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   opacity: 0;
-  transition: opacity var(--dur-fast) var(--ease);
+  transition:
+    opacity var(--dur-fast) var(--ease),
+    color var(--dur-fast) var(--ease),
+    border-color var(--dur-fast) var(--ease);
+}
+.code-copy svg {
+  display: block;
 }
 pre:hover .code-copy,
 .code-copy:focus-visible {
   opacity: 1;
 }
+/* Touch devices have no hover, so keep the control reachable there. */
+@media (hover: none) {
+  .code-copy {
+    opacity: 1;
+  }
+}
+.code-copy:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+/* Icon swap: copy by default, check once copied (mirrors .fs-copy). */
+.code-copy .i-check {
+  display: none;
+}
 .code-copy[data-copied="true"] {
   color: var(--tip);
   border-color: var(--tip);
+}
+.code-copy[data-copied="true"] .i-copy {
+  display: none;
+}
+.code-copy[data-copied="true"] .i-check {
+  display: block;
 }
 pre code {
   background: none;

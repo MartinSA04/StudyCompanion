@@ -351,6 +351,24 @@ const hasTools = toolNav.some((t) => t.show);
     </div>
 
     <div class="scrim" data-scrim></div>
+
+    {
+      /* Cloned by setupPage() onto each code block. Keeping the copy button in a
+         template sources its icons from <Icon> instead of hardcoding SVG in the
+         script, and matches the formula sheet's copy control (.fs-copy). */
+    }
+    <template id="code-copy-tpl">
+      <button
+        type="button"
+        class="code-copy"
+        aria-label="Kopier kode"
+        title="Kopier kode"
+      >
+        <Icon name="copy" class="i-copy" />
+        <Icon name="check" class="i-check" />
+      </button>
+    </template>
+
     <div class="layout">
       <aside class="sidebar" id="sidebar" aria-label="Moduler">
         <div class="nav-section">Kom i gang</div>
@@ -571,29 +589,30 @@ const hasTools = toolNav.some((t) => t.show);
           scrim.addEventListener("click", () => toggleMenu(false));
         }
 
-        // ---- Copy buttons on code blocks ----
-        document.querySelectorAll(".content pre").forEach((pre) => {
-          if (pre.querySelector(".code-copy")) return;
-          const btn = document.createElement("button");
-          btn.type = "button";
-          btn.className = "code-copy";
-          btn.textContent = "Kopier";
-          btn.addEventListener("click", async () => {
-            const code = pre.querySelector("code");
-            try {
-              await navigator.clipboard.writeText(
-                code ? code.innerText : pre.innerText,
-              );
-              btn.textContent = "Kopiert";
-              btn.dataset.copied = "true";
-              setTimeout(() => {
-                btn.textContent = "Kopier";
-                btn.dataset.copied = "false";
-              }, 1500);
-            } catch {}
+        // ---- Copy buttons on code blocks (icon button cloned from template) ----
+        const copyTpl = document.getElementById("code-copy-tpl");
+        if (copyTpl) {
+          document.querySelectorAll(".content pre").forEach((pre) => {
+            if (pre.querySelector(".code-copy")) return;
+            const btn = copyTpl.content.firstElementChild.cloneNode(true);
+            let copyTimer;
+            btn.addEventListener("click", async () => {
+              const code = pre.querySelector("code");
+              try {
+                await navigator.clipboard.writeText(
+                  code ? code.innerText : pre.innerText,
+                );
+                // The copy→check icon swap is pure CSS on [data-copied].
+                btn.dataset.copied = "true";
+                clearTimeout(copyTimer);
+                copyTimer = setTimeout(() => {
+                  btn.dataset.copied = "false";
+                }, 1500);
+              } catch {}
+            });
+            pre.appendChild(btn);
           });
-          pre.appendChild(btn);
-        });
+        }
       }
 
       // ---- Global listeners: bound once, persist across view-transition swaps.
