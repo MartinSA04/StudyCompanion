@@ -71,21 +71,6 @@ const FRAMEWORK_REPO = "https://github.com/MartinSA04/StudyCompanion";
 // Module nav grouped into parts (single null-part group when no section sets one).
 const moduleGroups = partGroups(nav);
 
-// Importance marker: flag the *exceptions*, not the rule. The most common tier
-// is the implicit baseline and stays unmarked; only modules whose tier differs
-// from it get a left rule (in that tier's own hue). This keeps the cue useful
-// whether a course is all-core, mostly-core-with-a-few-scattered, or balanced —
-// it never paints a marker on (almost) every item.
-const tierCounts: Record<string, number> = {};
-for (const n of nav) if (n.importance) tierCounts[n.importance] = (tierCounts[n.importance] ?? 0) + 1;
-const presentTiers = Object.entries(tierCounts);
-const dominantTier =
-  presentTiers.length > 1
-    ? presentTiers.reduce((a, b) => (b[1] > a[1] ? b : a))[0]
-    : null;
-const markedImportance = (imp?: string) =>
-  dominantTier && imp && imp !== dominantTier ? imp : undefined;
-
 const updatedStr = updated
   ? new Intl.DateTimeFormat(course.language, { dateStyle: "long" }).format(
       updated,
@@ -396,7 +381,6 @@ const hasTools = toolNav.some((t) => t.show);
                   class={`nav-link${active === item.slug ? " active" : ""}`}
                   href={`/${item.slug}`}
                   data-nav-order={item.order}
-                  data-importance={markedImportance(item.importance)}
                   aria-current={active === item.slug ? "page" : undefined}>
                   <span class="nav-num">{item.num}</span>
                   <span class="nav-title">{item.shortTitle}</span>
