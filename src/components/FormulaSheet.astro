@@ -311,12 +311,16 @@ const hasMemorize = examFormulaSheet && formulas.some((f) => f.memorize);
   .fs-row:last-child {
     border-bottom: 0;
   }
-  /* Flash the row a `<FormulaRef>` deep-link just jumped to. */
+  /* Flash the row a `<FormulaRef>` deep-link just jumped to (keyframe in base.css). */
   .fs-row:target {
     background: var(--accent-soft);
     border-radius: var(--radius-sm);
-    box-shadow: inset 3px 0 0 var(--accent);
-    padding-inline: var(--space-3);
+    animation: sc-target-flash 1.8s var(--ease);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .fs-row:target {
+      animation: none;
+    }
   }
   /* The author content toggles these via the script below; the UA `[hidden]`
      rule loses to `.fs-row { display:flex }`, so restate it. */

@@ -165,12 +165,16 @@ const haystack = (e: GlossaryEntry) =>
   .gloss-row[hidden] {
     display: none;
   }
-  /* Flash the row an inline `<Term>` link just jumped to. */
+  /* Flash the row an inline `<Term>` link just jumped to (keyframe in base.css). */
   .gloss-row:target {
     background: var(--accent-soft);
     border-radius: var(--radius-sm);
-    box-shadow: inset 3px 0 0 var(--accent);
-    padding-left: var(--space-3);
+    animation: sc-target-flash 1.8s var(--ease);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .gloss-row:target {
+      animation: none;
+    }
   }
   .gloss-term {
     position: relative;

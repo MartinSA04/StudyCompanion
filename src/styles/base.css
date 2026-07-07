@@ -30,6 +30,15 @@ html {
   }
 }
 
+/* Deep-link arrival: a targeted row flashes brighter for a moment, then settles
+   to its resting highlight (the row's own :target background) so the eye lands on
+   whatever a cross-reference link jumped to. Used by <FormulaRef>/<Term> targets. */
+@keyframes sc-target-flash {
+  from {
+    background-color: color-mix(in srgb, var(--accent) 28%, transparent);
+  }
+}
+
 body {
   margin: 0;
   background: var(--bg);
