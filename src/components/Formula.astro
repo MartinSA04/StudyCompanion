@@ -1,7 +1,7 @@
 ---
 import katex from "katex";
 import { renderMathString, ignoreInSearch } from "../lib/katex.ts";
-import Icon from "./Icon.astro";
+import MemorizeBadge from "./MemorizeBadge.astro";
 
 /**
  * A labelled, server-rendered KaTeX formula. Zero client JS — the TeX is
@@ -47,15 +47,7 @@ const html = ignoreInSearch(
       <div class="formula-row">
         <span class="fx" set:html={html} />
         {caption && <span class="desc" set:html={renderMathString(caption)} />}
-        {memorize && (
-          <span
-            class="formula-badge"
-            title="Står ikke på formelarket – må pugges"
-          >
-            <Icon name="star" size={12} />
-            må pugges
-          </span>
-        )}
+        {memorize && <MemorizeBadge />}
       </div>
     </figure>
   ) : (
@@ -104,6 +96,7 @@ const html = ignoreInSearch(
     font-size: 1.15em;
   }
   .desc {
+    flex: 1;
     font-size: var(--text-sm);
     color: var(--muted);
     line-height: var(--leading-snug);
@@ -113,24 +106,6 @@ const html = ignoreInSearch(
     color: var(--accent);
     font-weight: var(--weight-semibold);
   }
-  /* "Must memorise" badge — matches the FormulaSheet memorize badge. */
-  .formula-badge {
-    flex: none;
-    margin-left: auto;
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    font-family: var(--font-mono);
-    font-size: var(--text-xs);
-    font-weight: var(--weight-semibold);
-    letter-spacing: var(--tracking);
-    color: var(--warning);
-    border: 1px solid var(--warning);
-    border-radius: var(--radius-sm);
-    padding: 0.15em 0.55em;
-    white-space: nowrap;
-  }
-
   .formula-inline {
     white-space: nowrap;
   }

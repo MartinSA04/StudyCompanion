@@ -3,6 +3,7 @@ import katex from "katex";
 import type { FormulaEntry } from "../schema.ts";
 import { renderMathString, ignoreInSearch } from "../lib/katex.ts";
 import Icon from "./Icon.astro";
+import MemorizeBadge from "./MemorizeBadge.astro";
 
 /**
  * A scannable reference sheet of the course's formulas, grouped by their
@@ -115,7 +116,6 @@ const hasMemorize = examFormulaSheet && formulas.some((f) => f.memorize);
           data-filter="memorize"
           aria-pressed="false"
         >
-          <Icon name="star" size={13} />
           Må pugges
         </button>
       </div>
@@ -146,15 +146,7 @@ const hasMemorize = examFormulaSheet && formulas.some((f) => f.memorize);
               {f.label && (
                 <span class="fs-label" set:html={renderMathString(f.label)} />
               )}
-              {examFormulaSheet && f.memorize && (
-                <span
-                  class="fs-badge"
-                  title="Står ikke på formelarket – må pugges"
-                >
-                  <Icon name="star" size={12} />
-                  må pugges
-                </span>
-              )}
+              {examFormulaSheet && f.memorize && <MemorizeBadge />}
               <button
                 type="button"
                 class="fs-copy"
@@ -351,21 +343,6 @@ const hasMemorize = examFormulaSheet && formulas.some((f) => f.memorize);
   .fs-label :global(strong) {
     color: var(--accent);
     font-weight: var(--weight-semibold);
-  }
-  .fs-badge {
-    flex: none;
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    font-family: var(--font-mono);
-    font-size: var(--text-xs);
-    font-weight: var(--weight-semibold);
-    letter-spacing: var(--tracking);
-    color: var(--warning);
-    border: 1px solid var(--warning);
-    border-radius: var(--radius-sm);
-    padding: 0.15em 0.55em;
-    white-space: nowrap;
   }
   .fs-copy {
     flex: none;

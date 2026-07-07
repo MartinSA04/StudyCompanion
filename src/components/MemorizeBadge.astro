@@ -1,0 +1,32 @@
+---
+/**
+ * The "må pugges" flag: a formula that isn't on the exam sheet and so must be
+ * memorised. Shared by <Formula> (inline panels) and <FormulaSheet> (rows) so the
+ * treatment lives in ONE place. A soft amber tint + hairline in the house
+ * tinted-surface recipe. Positioning is the parent's job — a `flex: 1` sibling
+ * (the label/description) pushes this to the row's trailing edge.
+ */
+---
+
+<span class="memorize-badge" title="Står ikke på formelarket – må pugges">
+  må pugges
+</span>
+
+<style>
+  .memorize-badge {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-semibold);
+    text-transform: uppercase;
+    letter-spacing: var(--tracking);
+    color: var(--warning);
+    background: var(--warning-bg);
+    border: 1px solid color-mix(in srgb, var(--warning) 30%, var(--border));
+    border-radius: var(--radius-sm);
+    padding: 0.2em 0.6em;
+    white-space: nowrap;
+  }
+</style>
