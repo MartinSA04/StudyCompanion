@@ -244,24 +244,35 @@ const hasTools = toolNav.some((t) => t.show);
     {
       features.theme && (
         <script is:inline define:vars={{ themeKey }}>
-          // No-flash: set the theme before first paint. Re-apply after each
-          // view-transition swap too — the incoming static document has no
-          // data-theme (it's client-set), so the swap would otherwise drop it and
-          // flash to light. Runs once; the after-swap listener persists.
+          // No-flash: set the theme before first paint, and — crucially — set it
+          // on the INCOMING document during a view-transition swap. The fetched
+          // static document has no data-theme (it's client-set), so swapping it in
+          // paints one light frame before the theme is re-applied. Doing it in
+          // `astro:before-swap` (on e.newDocument) means the swap never sees light;
+          // `astro:after-swap` alone is a frame too late and flashes bright.
           (function () {
-            function applyTheme() {
+            function isDark() {
               try {
                 const saved = localStorage.getItem(themeKey);
-                const dark = saved
+                return saved
                   ? saved === "dark"
                   : matchMedia("(prefers-color-scheme: dark)").matches;
-                if (dark)
-                  document.documentElement.setAttribute("data-theme", "dark");
-                else document.documentElement.removeAttribute("data-theme");
-              } catch (e) {}
+              } catch (e) {
+                return false;
+              }
+            }
+            function applyTheme(root) {
+              root = root || document.documentElement;
+              if (isDark()) root.setAttribute("data-theme", "dark");
+              else root.removeAttribute("data-theme");
             }
             applyTheme();
-            document.addEventListener("astro:after-swap", applyTheme);
+            document.addEventListener("astro:before-swap", function (e) {
+              applyTheme(e.newDocument.documentElement);
+            });
+            document.addEventListener("astro:after-swap", function () {
+              applyTheme();
+            });
           })();
         </script>
       )
