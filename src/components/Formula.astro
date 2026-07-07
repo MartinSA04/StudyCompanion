@@ -20,7 +20,7 @@ interface Props {
   tex: string;
   caption?: string;
   block?: boolean;
-  /** Not on the exam sheet → show a star "må pugges" badge. */
+  /** Not on the exam sheet — show a "må pugges" badge. */
   memorize?: boolean;
 }
 const { tex, caption, block = true, memorize = false } = Astro.props;

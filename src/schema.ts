@@ -27,7 +27,7 @@ const formulaEntrySchema = z.object({
   section: z.string().optional(),
   /** Is this on the provided exam formula sheet? */
   onSheet: z.boolean().default(true),
-  /** Must be memorized (not on the sheet) — gets a ★ badge. */
+  /** Must be memorized (not on the sheet) — gets a "må pugges" badge. */
   memorize: z.boolean().default(false),
   /**
    * Stable anchor id for deep-linking from prose via `<FormulaRef id>`. When set,
