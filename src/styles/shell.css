@@ -797,6 +797,12 @@
     display: grid;
     place-items: center;
   }
+  /* Topbar space is at a premium once the nav collapses to a drawer — keep only
+     the essentials (menu, brand, search, theme). Progress still reads from the
+     sidebar checkmarks and the overview's "X av N" line. */
+  .progresswrap {
+    display: none;
+  }
   .nav-link {
     padding: var(--gap-3);
   }
@@ -862,10 +868,6 @@ summary,
   }
   .topbar-inner {
     gap: var(--gap-2);
-  }
-  .progresswrap .lbl-txt,
-  .progressbar {
-    display: none;
   }
   .btn-reset {
     display: none;
