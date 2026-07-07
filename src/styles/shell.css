@@ -147,8 +147,12 @@
 }
 .sidebar {
   position: sticky;
-  top: calc(var(--topbar-h) + var(--gap-4));
-  height: calc(100dvh - var(--topbar-h) - var(--gap-8));
+  /* Dock at the sidebar's own resting position — topbar height + the layout's
+     top padding (--gap-7). Matching it means the sidebar is stuck from the first
+     pixel instead of drifting up ~30px before it catches (that initial slide
+     read as unpolished). */
+  top: calc(var(--topbar-h) + var(--gap-7));
+  height: calc(100dvh - var(--topbar-h) - var(--gap-7) - var(--gap-6));
   overflow-y: auto;
   padding-right: var(--gap-2);
   scrollbar-width: thin;

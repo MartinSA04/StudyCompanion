@@ -150,7 +150,7 @@
   --gap-12: 96px;
 
   --gutter: var(--gap-6); /* page horizontal padding */
-  --topbar-h: 60px; /* derives the sticky sidebar offset */
+  --topbar-h: 74px; /* actual sticky topbar height; derives the sidebar offset + heading scroll-margin, so it must match what .topbar renders */
   --control-h: 38px; /* header buttons / page-link min height */
 
   /* --- Motion --- */
