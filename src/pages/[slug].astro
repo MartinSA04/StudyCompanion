@@ -100,6 +100,7 @@ const nums = sectionNumbers(sections);
 let pageTitle = course.title;
 let Content: Awaited<ReturnType<typeof render>>["Content"] | null = null;
 let headings: { depth: number; slug: string; text: string }[] = [];
+let showToc = false;
 // Footer "edit this page" + freshness — section pages only, when repoUrl is set.
 let editUrl: string | undefined;
 let updated: Date | undefined;
@@ -115,6 +116,7 @@ let head: {
 if (props.kind === "section") {
   const d = props.entry.data;
   ({ Content, headings } = await render(props.entry));
+  showToc = headings.filter((h) => h.depth === 2 || h.depth === 3).length >= 3;
   pageTitle = d.title;
   updated = d.updated;
   const repoUrl = course.repoUrl?.replace(/\/+$/, "");
@@ -213,7 +215,18 @@ const seo = {
   updated={updated}
   seo={seo}
   jsonLd={jsonLd}
+  hasToc={showToc}
 >
+  {
+    showToc && (
+      <PageToc
+        slot="toc"
+        variant="rail"
+        headings={headings}
+        label={course.ui.tocLabel}
+      />
+    )
+  }
   {
     props.kind === "section" && head && Content && (
       <>
@@ -237,7 +250,13 @@ const seo = {
           )}
         </header>
 
-        <PageToc headings={headings} label={course.ui.tocLabel} />
+        {showToc && (
+          <PageToc
+            variant="inline"
+            headings={headings}
+            label={course.ui.tocLabel}
+          />
+        )}
 
         <article class="prose" data-pagefind-body data-section={head.order}>
           <Content components={mdxComponents} />

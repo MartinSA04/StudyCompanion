@@ -244,6 +244,28 @@
   min-width: 0;
 }
 
+/* ====== right "on this page" rail ======
+   The third grid column on module pages, wide screens only. Sticky like the
+   sidebar so the scroll-spy "you are here" marker stays in view; below 1280px it
+   collapses and PageToc's inline copy takes over at the top of the content. */
+.toc-rail {
+  display: none;
+  position: sticky;
+  top: calc(var(--topbar-h) + var(--gap-7));
+  align-self: start;
+  max-height: calc(100dvh - var(--topbar-h) - var(--gap-7) - var(--gap-6));
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+@media (min-width: 1280px) {
+  .layout--toc {
+    grid-template-columns: var(--sidebar-w) minmax(0, 1fr) var(--toc-w);
+  }
+  .layout--toc .toc-rail {
+    display: block;
+  }
+}
+
 /* ====== hero / overview ====== */
 .hero {
   border: 1px solid var(--border);

@@ -1,12 +1,15 @@
 ---
 /**
- * In-page "På denne siden" mini-TOC for long modules. Shown only when the
- * section has at least `threshold` h2/h3 headings; otherwise renders nothing.
- * Also injects a "hover #" deep-link anchor into every h2/h3 in .prose.
+ * In-page "on this page" TOC, shown when the section has at least `threshold`
+ * h2/h3 headings. Two placements chosen by `variant`:
+ *  - "rail": the primary — a STICKY right-hand rail (docs-style), so the
+ *    scroll-spy "you are here" marker stays visible while you read.
+ *  - "inline": a jump list at the top of the content, the narrow-screen fallback
+ *    (the rail needs horizontal room it doesn't have below ~1280px).
+ * [slug].astro renders both; CSS shows exactly one per breakpoint. The active
+ * heading (scroll-spy) lights an accent segment on the rail line.
  *
- * Editorial treatment (no boxed panel): a mono kicker, then a clean column of
- * links. The active heading (scroll-spy) is accent-coloured with a leading
- * marker. Matches the paper aesthetic of `.lede` / `.nav-section`.
+ * Also injects a hover "#" deep-link anchor into every h2/h3 in .prose.
  */
 interface Heading {
   depth: number;
@@ -17,15 +20,21 @@ interface Props {
   headings: Heading[];
   label?: string;
   threshold?: number;
+  variant?: "rail" | "inline";
 }
-const { headings, label = "Innhold", threshold = 3 } = Astro.props;
+const {
+  headings,
+  label = "Innhold",
+  threshold = 3,
+  variant = "inline",
+} = Astro.props;
 const visible = headings.filter((h) => h.depth === 2 || h.depth === 3);
 const show = visible.length >= threshold;
 ---
 
 {
   show && (
-    <nav class="page-toc" aria-label={label}>
+    <nav class={`page-toc is-${variant}`} aria-label={label}>
       <p class="toc-label">{label}</p>
       <ol class="toc-list">
         {visible.map((h) => (
@@ -41,13 +50,19 @@ const show = visible.length >= threshold;
 }
 
 <style>
-  .page-toc {
+  /* Inline (narrow-screen) placement sits at the top of the content; it yields to
+     the sticky rail once there's room for it. */
+  .is-inline {
     margin: 0 0 var(--space-6);
   }
-  /* Mono kicker only. The module header's rule above already separates this
-     block, so a fill-hairline here would read as a second divider under it. */
+  @media (min-width: 1280px) {
+    .is-inline {
+      display: none;
+    }
+  }
+
   .toc-label {
-    margin: 0 0 var(--space-2);
+    margin: 0 0 var(--space-3);
     font-family: var(--font-mono);
     font-size: var(--text-xs);
     text-transform: uppercase;
@@ -58,57 +73,49 @@ const show = visible.length >= threshold;
     list-style: none;
     margin: 0;
     padding: 0;
+    /* A quiet rail line down the left; the active item lights its own segment. */
+    border-left: 1px solid var(--border);
   }
   .toc-item {
     margin: 0;
   }
-  .toc-h3 {
-    margin-left: var(--space-4);
-  }
   .toc-link {
-    position: relative;
     display: block;
-    padding: 2px 0 2px var(--space-4);
+    border-left: 2px solid transparent;
+    margin-left: -1px; /* sit the accent segment over the rail line */
+    padding: var(--space-1) 0 var(--space-1) var(--space-3);
     font-size: var(--text-sm);
     line-height: var(--leading-snug);
     color: var(--muted);
     text-decoration: none;
-    transition: color var(--dur-fast) var(--ease);
+    transition:
+      color var(--dur-fast) var(--ease),
+      border-color var(--dur-fast) var(--ease);
   }
   .toc-h3 .toc-link {
+    padding-left: calc(var(--space-3) + var(--space-4));
     color: var(--faint);
-  }
-  /* Leading marker sits in the reserved gutter; fades in for the active link. */
-  .toc-link::before {
-    content: "›";
-    position: absolute;
-    left: 0;
-    color: var(--accent);
-    opacity: 0;
-    transition: opacity var(--dur-fast) var(--ease);
   }
   .toc-link:hover {
     color: var(--fg);
   }
   .toc-link.active {
+    border-left-color: var(--accent);
     color: var(--accent);
     font-weight: var(--weight-medium);
-  }
-  .toc-link.active::before {
-    opacity: 1;
   }
 </style>
 
 <script>
   import { onPage } from "../lib/pageLifecycle.ts";
   onPage((signal) => {
-    // Scroll-spy: highlight the last heading that has scrolled past the viewport
-    // top plus a small clearance for the sticky topbar. The scroll listener is
-    // bound with the page signal so it is removed on the next swap (no stacking).
-    const toc = document.querySelector<HTMLElement>(".page-toc");
-    if (toc) {
-      const links = [...toc.querySelectorAll<HTMLAnchorElement>(".toc-link")];
-      const ids = links.map((l) => l.getAttribute("href")!.slice(1));
+    // Scroll-spy: highlight the last heading scrolled past the topbar. Both the
+    // rail and the inline copy carry the same links, so drive them together.
+    const tocs = [...document.querySelectorAll<HTMLElement>(".page-toc")];
+    if (tocs.length) {
+      const ids = [
+        ...tocs[0].querySelectorAll<HTMLAnchorElement>(".toc-link"),
+      ].map((l) => l.getAttribute("href")!.slice(1));
       const targets = ids.map((id) => document.getElementById(id));
 
       const update = () => {
@@ -116,7 +123,12 @@ const show = visible.length >= threshold;
         targets.forEach((el, i) => {
           if (el && el.getBoundingClientRect().top <= 90) active = i;
         });
-        links.forEach((l, i) => l.classList.toggle("active", i === active));
+        tocs.forEach((toc) => {
+          const links = [
+            ...toc.querySelectorAll<HTMLAnchorElement>(".toc-link"),
+          ];
+          links.forEach((l, i) => l.classList.toggle("active", i === active));
+        });
       };
 
       window.addEventListener("scroll", update, { passive: true, signal });

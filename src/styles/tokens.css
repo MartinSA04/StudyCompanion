@@ -133,7 +133,8 @@
 
   --maxw: 820px; /* readable content measure */
   --sidebar-w: 264px;
-  --layout-max: 1280px; /* topbar + layout outer width */
+  --toc-w: 200px; /* right "on this page" rail (module pages, wide screens) */
+  --layout-max: 1440px; /* topbar + layout outer width (fits nav + prose + toc) */
 
   /* --- Layout spacing (fixed px, 4/8 grid) ---
      Governs chrome density: topbar, sidebar, hero, cards, page gutters. Kept

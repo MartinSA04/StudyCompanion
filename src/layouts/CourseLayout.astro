@@ -51,6 +51,8 @@ interface Props {
   };
   /** schema.org objects → one `<script type="application/ld+json">` each (4.4). */
   jsonLd?: Record<string, unknown>[];
+  /** Render the right "on this page" rail column (module pages with a TOC). */
+  hasToc?: boolean;
 }
 const {
   course,
@@ -62,6 +64,7 @@ const {
   updated,
   seo,
   jsonLd,
+  hasToc = false,
 } = Astro.props;
 const { ui, features } = course;
 
@@ -369,7 +372,7 @@ const hasTools = toolNav.some((t) => t.show);
       </button>
     </template>
 
-    <div class="layout">
+    <div class:list={["layout", { "layout--toc": hasToc }]}>
       <aside class="sidebar" id="sidebar" aria-label="Moduler">
         <div class="nav-section">Kom i gang</div>
         <a
@@ -486,6 +489,13 @@ const hasTools = toolNav.some((t) => t.show);
           </p>
         </footer>
       </main>
+      {
+        hasToc && (
+          <aside class="toc-rail" aria-label={ui.tocLabel}>
+            <slot name="toc" />
+          </aside>
+        )
+      }
     </div>
 
     <script is:inline define:vars={{ progressKey, total: nav.length }}>
