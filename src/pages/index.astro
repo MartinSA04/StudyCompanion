@@ -70,10 +70,7 @@ const tiles = sections.map((s) => ({
   title: s.data.title,
   part: s.data.part,
   importance: s.data.importance,
-  week:
-    s.data.estMinutes != null
-      ? `~${s.data.estMinutes} min`
-      : (s.data.tags[0] ?? ""),
+  week: s.data.tags[0] ?? "",
 }));
 
 // Group tiles into parts (single null-part group when no section sets one).

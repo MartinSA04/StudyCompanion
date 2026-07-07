@@ -121,10 +121,7 @@ if (props.kind === "section") {
   if (repoUrl && props.entry.filePath) {
     editUrl = `${repoUrl}/edit/${course.repoBranch}/${props.entry.filePath}`;
   }
-  const weekParts = [
-    d.estMinutes != null ? `~${d.estMinutes} min lesing` : null,
-    ...d.tags.slice(1),
-  ].filter(Boolean);
+  const weekParts = d.tags.slice(1).filter(Boolean);
   head = {
     kicker: d.tags[0] ?? IMPORTANCE_LABELS[d.importance],
     index: nums.get(props.entry.id) ?? String(d.order).padStart(2, "0"),

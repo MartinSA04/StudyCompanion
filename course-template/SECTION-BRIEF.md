@@ -11,7 +11,6 @@ this block once per module. Keep it next to the syllabus, not in the course repo
 - **Archetype:** Concept · Method/problem · Reference *(pick one — see AUTHORING.md)*
 - **order / part:** `NN` · "Del X: …" *(or none)*
 - **importance:** core · useful · extra
-- **estMinutes:** ~NN
 
 ### Learning goals (`LearningGoals`)
 

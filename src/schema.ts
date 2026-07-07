@@ -8,7 +8,7 @@ import { z } from "zod";
  *
  * SemVer mapping (see CLAUDE.md): breaking schema change => MAJOR release.
  */
-export const SCHEMA_VERSION = 1;
+export const SCHEMA_VERSION = 2;
 
 /** A single exam paper / past-exam reference (rendered by <ExamList>). */
 const examPaperSchema = z.object({
@@ -230,7 +230,6 @@ export const sectionSchema = z.object({
   title: z.string(),
   summary: z.string().optional(),
   importance: z.enum(["core", "useful", "extra"]).default("useful"),
-  estMinutes: z.number().optional(),
   tags: z.array(z.string()).default([]),
   /**
    * Optional chapter grouping, e.g. "Del 1: Geometrisk optikk". When any section

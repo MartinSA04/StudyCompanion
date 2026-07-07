@@ -32,5 +32,23 @@ Additive since the first tag (no migration, available when present):
 - `<Simulation>` / `<Stepper>` MDX widgets + the course `public/sims/` &
   `public/steppers/` scaffold contracts.
 
-_No migrations have been required yet; this section will grow when a future major
-release changes the schema._
+---
+
+## SCHEMA_VERSION 2 — drop `estMinutes`
+
+The per-section `estMinutes` reading-time estimate was removed. Reading time is a
+poor fit for study material — it measures passive reading, not the time to work
+through the math, worked examples and self-tests — so the number was misleading,
+and the importance tag (`Kjernepensum` / `Pensum` / `Tilleggsstoff`) already
+carries the useful "what should I prioritise?" signal.
+
+Migrate:
+
+1. Set `schemaVersion: 2` in `content/course.yaml`. **The build fails until you
+   do** (older content vs. newer framework is a hard error).
+2. Remove any `estMinutes:` line from section frontmatter (`content/sections/*.mdx`).
+   This is cleanup, not strictly required — the key is now ignored rather than
+   rejected — but it no longer renders anything, so leave nothing dangling.
+
+The module header and overview tiles now show only the importance tag (plus any
+extra `tags[]`); nothing else changes.
