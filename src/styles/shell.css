@@ -759,6 +759,8 @@
     left: 0;
     width: 280px;
     height: 100dvh;
+    /* Drop the desktop sticky cap so the drawer fills the viewport height. */
+    max-height: none;
     background: var(--bg-elevated);
     border-right: 1px solid var(--border);
     z-index: 60;
