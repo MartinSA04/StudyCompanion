@@ -165,10 +165,13 @@ const haystack = (e: GlossaryEntry) =>
   .gloss-row[hidden] {
     display: none;
   }
-  /* Flash the row an inline `<Term>` link just jumped to (keyframe in base.css). */
+  /* Flash the row an inline `<Term>` link just jumped to (keyframe in base.css).
+     Bleed out through the list's inline padding so the highlight spans the full
+     row width instead of floating inset. */
   .gloss-row:target {
+    margin-inline: calc(-1 * var(--space-5));
+    padding-inline: var(--space-5);
     background: var(--accent-soft);
-    border-radius: var(--radius-sm);
     animation: sc-target-flash 1.8s var(--ease);
   }
   @media (prefers-reduced-motion: reduce) {
