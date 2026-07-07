@@ -4,8 +4,13 @@ import { renderMathString } from "../lib/katex.ts";
 /**
  * The framework's image primitive: a captioned, optionally numbered figure.
  * Reserves space from `width`/`height` (set `aspect-ratio`) to avoid layout
- * shift, lazy-loads off-screen, and frames the image on the paper ground so it
- * reads in both themes.
+ * shift, lazy-loads off-screen, and frames the image on `--canvas-bg`.
+ *
+ * DARK MODE: the frame ground flips with the theme, but the `src` asset can't
+ * (an <img>-loaded SVG can't read the site's manual theme). So a figure with an
+ * opaque light background glares on the dark page. Ship figures with a
+ * TRANSPARENT background and mid-tone colours that hold contrast on both grounds
+ * (see `public/figures/refraction.svg`).
  *
  * Numbering is EXPLICIT (`number` prop) rather than auto-derived — same stance
  * as section/formula numbering, so reordering content never silently renumbers

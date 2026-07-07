@@ -182,7 +182,10 @@ const hasSections = sections.length > 0;
     font-size: var(--text-xs);
     font-family: var(--font-mono);
     color: var(--muted);
-    transition: var(--dur-fast) var(--ease);
+    transition:
+      background-color var(--dur-fast) var(--ease),
+      color var(--dur-fast) var(--ease),
+      border-color var(--dur-fast) var(--ease);
     cursor: pointer;
   }
   .fc-chip:hover {
@@ -259,7 +262,7 @@ const hasSections = sections.length > 0;
   .fc-section {
     font-size: var(--text-xs);
     text-transform: uppercase;
-    letter-spacing: 0.06em;
+    letter-spacing: var(--tracking-wide);
     color: var(--accent);
     font-weight: var(--weight-semibold);
   }

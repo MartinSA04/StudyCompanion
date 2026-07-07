@@ -31,6 +31,7 @@ const { label = "Vis løsning", open = false } = Astro.props;
     border: 1px solid var(--border);
     border-radius: var(--radius-sm);
     background: var(--card);
+    overflow: hidden;
   }
   .solution > summary {
     display: flex;
@@ -43,6 +44,10 @@ const { label = "Vis løsning", open = false } = Astro.props;
     cursor: pointer;
     list-style: none;
     user-select: none;
+    transition: background-color var(--dur-fast) var(--ease);
+  }
+  .solution > summary:hover {
+    background: var(--card-hover);
   }
   .solution > summary::-webkit-details-marker {
     display: none;

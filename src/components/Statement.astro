@@ -57,6 +57,16 @@ const anchor = id ?? slugify(name);
     border-radius: var(--radius);
     scroll-margin-top: calc(var(--topbar-h) + var(--space-3));
   }
+  /* Flash on deep-link arrival, same as <FormulaRef>/<Term> row targets. It
+     settles back to the statement's own accent-soft ground. */
+  .statement:target {
+    animation: sc-target-flash 1.8s var(--ease);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .statement:target {
+      animation: none;
+    }
+  }
   .statement-head {
     display: flex;
     align-items: baseline;
@@ -73,7 +83,7 @@ const anchor = id ?? slugify(name);
     font-family: var(--font-mono);
     font-size: var(--text-sm);
     text-transform: uppercase;
-    letter-spacing: 0.03em;
+    letter-spacing: var(--tracking);
     font-weight: var(--weight-semibold);
     color: var(--accent);
   }

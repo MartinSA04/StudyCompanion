@@ -4,7 +4,9 @@
       <path d="M0 0 L10 5 L0 10 z" fill="context-stroke"/>
     </marker>
   </defs>
-  <rect x="0" y="0" width="480" height="300" fill="#ffffff"/>
+  <!-- Transparent background: the Figure frame supplies the ground (canvas-bg
+       token), so this diagram reads on both the light and dark theme. Colours are
+       mid-tones chosen to hold contrast on either ground. -->
   <!-- media tint: denser medium below -->
   <rect x="40" y="150" width="400" height="110" fill="#1f5f8b" opacity="0.06"/>
   <!-- interface -->
@@ -21,6 +23,6 @@
   <!-- labels -->
   <text x="206" y="108" font-size="18" fill="#1f5f8b" font-style="italic">θ₁</text>
   <text x="255" y="205" font-size="18" fill="#b45f06" font-style="italic">θ₂</text>
-  <text x="58" y="100" font-size="17" fill="#526171" font-style="italic">n₁</text>
-  <text x="58" y="200" font-size="17" fill="#526171" font-style="italic">n₂</text>
+  <text x="58" y="100" font-size="17" fill="#7c8795" font-style="italic">n₁</text>
+  <text x="58" y="200" font-size="17" fill="#7c8795" font-style="italic">n₂</text>
 </svg>

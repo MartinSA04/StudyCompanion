@@ -98,6 +98,11 @@
   --weight-semibold: 600;
   --weight-bold: 700;
 
+  /* Letter-spacing for mono uppercase kickers/badges; --tracking-wide for the
+     more spaced section dividers (part headers, page TOC). */
+  --tracking: 0.02em;
+  --tracking-wide: 0.08em;
+
   /* --- Spacing scale (8px base, a few half-steps) --- */
   --space-1: 0.25rem;
   --space-2: 0.5rem;
