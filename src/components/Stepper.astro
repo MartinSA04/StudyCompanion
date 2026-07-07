@@ -221,6 +221,11 @@ const { src, codeId, title, caption, height = 300 } = Astro.props;
   .ic-pause {
     display: inline-flex;
   }
+  /* Optically centre the play triangle: its mass sits left of the glyph box, so
+     a geometric centre reads left-heavy in the round-ish button. */
+  .ic-play {
+    transform: translateX(1px);
+  }
   .stepper-play .ic-pause {
     display: none;
   }
