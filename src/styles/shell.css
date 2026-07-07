@@ -863,7 +863,9 @@ summary,
 }
 
 @media (max-width: 560px) {
-  .brand-sub {
+  /* Phone: the full course name doesn't fit — show just the code. */
+  .brand-sub,
+  .brand-name {
     display: none;
   }
   .topbar-inner {

@@ -318,7 +318,11 @@ const hasTools = toolNav.some((t) => t.show);
             <rect x="34" y="41" width="17" height="6" rx="2" fill="currentColor"></rect>
           </svg>
           <span class="brand-text">
-            <span class="brand-title">{course.code} {course.title}</span>
+            <span class="brand-title"
+              ><span class="brand-code">{course.code}</span>{" "}<span
+                class="brand-name">{course.title}</span
+              ></span
+            >
             <span class="brand-sub">
               {course.subtitle ? `${course.subtitle} · ` : ""}{course.term}
             </span>
