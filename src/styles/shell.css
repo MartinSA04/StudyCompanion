@@ -143,7 +143,7 @@
   display: grid;
   grid-template-columns: var(--sidebar-w) minmax(0, 1fr);
   gap: var(--gap-8);
-  padding: var(--gap-7) var(--gutter) var(--gap-12);
+  padding: var(--gap-7) var(--gutter) var(--gap-10);
 }
 .sidebar {
   position: sticky;
@@ -152,7 +152,11 @@
      pixel instead of drifting up ~30px before it catches (that initial slide
      read as unpolished). */
   top: calc(var(--topbar-h) + var(--gap-7));
-  height: calc(100dvh - var(--topbar-h) - var(--gap-7) - var(--gap-6));
+  /* max-height, not height: a fixed height makes the sidebar a full-viewport-tall
+     grid item that stretches the whole layout (and forces a scroll) even on short
+     pages. As a cap it shrinks to its own content, and only a long nav (many
+     modules) fills it and scrolls internally. */
+  max-height: calc(100dvh - var(--topbar-h) - var(--gap-7) - var(--gap-6));
   overflow-y: auto;
   padding-right: var(--gap-2);
   scrollbar-width: thin;
