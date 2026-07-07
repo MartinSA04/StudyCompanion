@@ -80,28 +80,46 @@ export function importCourseModule<T = Record<string, unknown>>(
   return nativeImport(src) as Promise<T>;
 }
 
-/** Mount each matching element once it nears the viewport (then stop observing). */
+/**
+ * Mount each matching element once it nears the viewport (then stop observing).
+ * Already-mounted elements are skipped (idempotent). Pass a `signal` to
+ * disconnect the observer on the next view-transition swap so it doesn't hold
+ * detached nodes.
+ */
 export function lazyMountAll(
   els: ArrayLike<HTMLElement>,
   mount: (el: HTMLElement) => void,
+  signal?: AbortSignal,
 ): void {
-  const list = Array.from(els);
+  const list = Array.from(els).filter((el) => !el.dataset.scMounted);
   if (!list.length) return;
   const io = new IntersectionObserver(
     (entries, obs) => {
       for (const e of entries) {
         if (e.isIntersecting) {
           obs.unobserve(e.target);
-          mount(e.target as HTMLElement);
+          const el = e.target as HTMLElement;
+          if (el.dataset.scMounted) continue;
+          el.dataset.scMounted = "1";
+          mount(el);
         }
       }
     },
     { rootMargin: "200px" },
   );
   list.forEach((el) => io.observe(el));
+  signal?.addEventListener("abort", () => io.disconnect());
 }
 
-/** Run `cb` whenever the light/dark theme is toggled (so a sim can repaint). */
-export function onThemeChange(cb: () => void): void {
-  document.addEventListener("sc:themechange", cb);
+/**
+ * Run `cb` whenever the light/dark theme is toggled (so a sim can repaint). Pass
+ * a `signal` to remove the listener on the next swap (otherwise a mounted widget
+ * keeps repainting its detached canvas on every later theme toggle).
+ */
+export function onThemeChange(cb: () => void, signal?: AbortSignal): void {
+  document.addEventListener(
+    "sc:themechange",
+    cb,
+    signal ? { signal } : undefined,
+  );
 }

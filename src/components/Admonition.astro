@@ -46,7 +46,9 @@ const t = TONES[tone];
   style={`--c:${t.c};--c-bg:${t.bg}`}
 >
   <p class="adm-kicker">
-    <span class="adm-icon" aria-hidden="true"><Icon name={icon} size={15} /></span>
+    <span class="adm-icon" aria-hidden="true"
+      ><Icon name={icon} size={15} /></span
+    >
     {title}
   </p>
   <div class="adm-body"><slot /></div>

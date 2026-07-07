@@ -187,6 +187,7 @@ const { src, title, caption, height = 300, host = "canvas" } = Astro.props;
     onThemeChange,
     type CodeBlockController,
   } from "../lib/simRuntime";
+  import { onPage } from "../lib/pageLifecycle.ts";
 
   interface BaseApi {
     controls: HTMLElement;
@@ -207,16 +208,21 @@ const { src, title, caption, height = 300, host = "canvas" } = Astro.props;
     init?: (a: SimApi) => void;
   };
 
-  // Throttle a window-resize listener to one callback per animation frame.
-  const onWindowResize = (cb: () => void) => {
+  // Throttle a window-resize listener to one callback per animation frame. Bound
+  // with the page signal so it is removed on the next view-transition swap.
+  const onWindowResize = (cb: () => void, signal: AbortSignal) => {
     let raf = 0;
-    window.addEventListener("resize", () => {
-      if (raf) return;
-      raf = requestAnimationFrame(() => {
-        raf = 0;
-        cb();
-      });
-    });
+    window.addEventListener(
+      "resize",
+      () => {
+        if (raf) return;
+        raf = requestAnimationFrame(() => {
+          raf = 0;
+          cb();
+        });
+      },
+      { signal },
+    );
   };
 
   const load = (fig: HTMLElement, api: SimApi) => {
@@ -228,7 +234,7 @@ const { src, title, caption, height = 300, host = "canvas" } = Astro.props;
       });
   };
 
-  const mount = (fig: HTMLElement) => {
+  const mount = (fig: HTMLElement, signal: AbortSignal) => {
     const cssH = Number(fig.dataset.simHeight) || 300;
     const controls = fig.querySelector<HTMLElement>(".sim-controls");
     if (!fig.dataset.simSrc || !controls) return;
@@ -242,8 +248,8 @@ const { src, title, caption, height = 300, host = "canvas" } = Astro.props;
       const stage = fig.querySelector<HTMLElement>(".sim-host");
       if (!stage) return;
       stage.style.height = cssH + "px";
-      onWindowResize(() => resizeCb?.());
-      onThemeChange(() => resizeCb?.());
+      onWindowResize(() => resizeCb?.(), signal);
+      onThemeChange(() => resizeCb?.(), signal);
       load(fig, {
         stage,
         controls,
@@ -273,8 +279,8 @@ const { src, title, caption, height = 300, host = "canvas" } = Astro.props;
     onWindowResize(() => {
       size();
       resizeCb?.();
-    });
-    onThemeChange(() => resizeCb?.());
+    }, signal);
+    onThemeChange(() => resizeCb?.(), signal);
 
     load(fig, {
       canvas,
@@ -286,5 +292,14 @@ const { src, title, caption, height = 300, host = "canvas" } = Astro.props;
     });
   };
 
-  lazyMountAll(document.querySelectorAll<HTMLElement>("[data-sim]"), mount);
+  // Mount on each page-load; tear the observer + resize/theme listeners down on
+  // the next swap. (A course sim's own RAF/timers are its responsibility — the
+  // framework can only dispose the hooks it owns.)
+  onPage((signal) => {
+    lazyMountAll(
+      document.querySelectorAll<HTMLElement>("[data-sim]"),
+      (fig) => mount(fig, signal),
+      signal,
+    );
+  });
 </script>

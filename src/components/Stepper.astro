@@ -309,6 +309,7 @@ const { src, codeId, title, caption, height = 300 } = Astro.props;
     makeCodeBlockController,
     onThemeChange,
   } from "../lib/simRuntime";
+  import { onPage } from "../lib/pageLifecycle.ts";
   import {
     normalizeFrame,
     clampIndex,
@@ -335,7 +336,7 @@ const { src, codeId, title, caption, height = 300 } = Astro.props;
     label?: (frame: Frame) => string;
   }
 
-  const mount = (fig: HTMLElement) => {
+  const mount = (fig: HTMLElement, signal: AbortSignal) => {
     const src = fig.dataset.stepperSrc;
     if (!src) return;
     const codeId = fig.dataset.stepperCode || undefined;
@@ -382,6 +383,14 @@ const { src, codeId, title, caption, height = 300 } = Astro.props;
       let idx = 0;
       let playing = false;
       let timer: number | null = null;
+      // Stop the play loop when this page is swapped out (otherwise the interval
+      // keeps firing render() on a detached stage forever).
+      signal.addEventListener("abort", () => {
+        if (timer != null) {
+          clearInterval(timer);
+          timer = null;
+        }
+      });
 
       // Capability-gated extras.
       if (def.sizeRange && sizeEl) {
@@ -474,74 +483,108 @@ const { src, codeId, title, caption, height = 300 } = Astro.props;
         paint();
       };
 
-      // Transport + extras.
-      q('[data-act="back"]')?.addEventListener("click", () =>
-        go(stepIndex(idx, frames.length, -1)),
+      // Transport + extras. Bound with the page signal so all of a mounted
+      // stepper's listeners drop on the next view-transition swap.
+      q('[data-act="back"]')?.addEventListener(
+        "click",
+        () => go(stepIndex(idx, frames.length, -1)),
+        { signal },
       );
-      q('[data-act="forward"]')?.addEventListener("click", () =>
-        go(stepIndex(idx, frames.length, +1)),
+      q('[data-act="forward"]')?.addEventListener(
+        "click",
+        () => go(stepIndex(idx, frames.length, +1)),
+        { signal },
       );
-      playBtn?.addEventListener("click", () => setPlaying(!playing));
-      shuffleBtn?.addEventListener("click", () => regen());
-      scrub?.addEventListener("input", () =>
-        go(clampIndex(Number(scrub.value), frames.length)),
-      );
-      speedBtn?.addEventListener("click", () => {
-        speed = nextSpeed(speed);
-        speedBtn.textContent = `${speed}×`;
-        if (playing) setPlaying(true); // restart loop at the new interval
+      playBtn?.addEventListener("click", () => setPlaying(!playing), {
+        signal,
       });
-      sizeEl?.addEventListener("input", () => {
-        size = Number(sizeEl.value);
-        if (sizeN) sizeN.textContent = String(size);
-        regen();
-      });
+      shuffleBtn?.addEventListener("click", () => regen(), { signal });
+      scrub?.addEventListener(
+        "input",
+        () => go(clampIndex(Number(scrub.value), frames.length)),
+        { signal },
+      );
+      speedBtn?.addEventListener(
+        "click",
+        () => {
+          speed = nextSpeed(speed);
+          speedBtn.textContent = `${speed}×`;
+          if (playing) setPlaying(true); // restart loop at the new interval
+        },
+        { signal },
+      );
+      sizeEl?.addEventListener(
+        "input",
+        () => {
+          size = Number(sizeEl.value);
+          if (sizeN) sizeN.textContent = String(size);
+          regen();
+        },
+        { signal },
+      );
 
       // Keyboard, scoped to the widget so it can't fight the page's global
       // arrow-key module paging (stopPropagation on the arrows).
-      fig.addEventListener("keydown", (e) => {
-        if (e.metaKey || e.ctrlKey || e.altKey) return;
-        switch (e.key) {
-          case "ArrowRight":
-            e.preventDefault();
-            e.stopPropagation();
-            go(stepIndex(idx, frames.length, +1));
-            break;
-          case "ArrowLeft":
-            e.preventDefault();
-            e.stopPropagation();
-            go(stepIndex(idx, frames.length, -1));
-            break;
-          case " ":
-            e.preventDefault();
-            setPlaying(!playing);
-            break;
-          case "r":
-          case "R":
-            go(0);
-            break;
-          case "s":
-          case "S":
-            if (def.defaultData) regen();
-            break;
-        }
-      });
+      fig.addEventListener(
+        "keydown",
+        (e) => {
+          if (e.metaKey || e.ctrlKey || e.altKey) return;
+          switch (e.key) {
+            case "ArrowRight":
+              e.preventDefault();
+              e.stopPropagation();
+              go(stepIndex(idx, frames.length, +1));
+              break;
+            case "ArrowLeft":
+              e.preventDefault();
+              e.stopPropagation();
+              go(stepIndex(idx, frames.length, -1));
+              break;
+            case " ":
+              e.preventDefault();
+              setPlaying(!playing);
+              break;
+            case "r":
+            case "R":
+              go(0);
+              break;
+            case "s":
+            case "S":
+              if (def.defaultData) regen();
+              break;
+          }
+        },
+        { signal },
+      );
 
       // Repaint the current frame on resize + theme change so the course's
-      // SVG/HTML re-lays-out and picks up new theme tokens.
+      // SVG/HTML re-lays-out and picks up new theme tokens. Both are torn down
+      // on the next swap via the page signal.
       let raf = 0;
-      window.addEventListener("resize", () => {
-        if (raf) return;
-        raf = requestAnimationFrame(() => {
-          raf = 0;
-          paint();
-        });
-      });
-      onThemeChange(() => paint());
+      window.addEventListener(
+        "resize",
+        () => {
+          if (raf) return;
+          raf = requestAnimationFrame(() => {
+            raf = 0;
+            paint();
+          });
+        },
+        { signal },
+      );
+      onThemeChange(() => paint(), signal);
 
       regen();
     }
   };
 
-  lazyMountAll(document.querySelectorAll<HTMLElement>("[data-stepper]"), mount);
+  // Mount on each page-load; the page signal tears down the observer, the play
+  // interval, and every stepper's resize/theme/transport listeners on swap.
+  onPage((signal) => {
+    lazyMountAll(
+      document.querySelectorAll<HTMLElement>("[data-stepper]"),
+      (fig) => mount(fig, signal),
+      signal,
+    );
+  });
 </script>

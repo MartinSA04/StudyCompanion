@@ -217,7 +217,9 @@ const jsonLd = [
   }
 </CourseLayout>
 
-<script is:inline>
+<script is:inline data-astro-rerun>
+  // data-astro-rerun: re-paint the tile/continue state each time the overview is
+  // (re-)loaded via a view transition. Idempotent — it only reads + sets classes.
   (function () {
     var key = document.body.dataset.progressKey;
     if (!key) return;

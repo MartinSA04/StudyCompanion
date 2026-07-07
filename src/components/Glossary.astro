@@ -221,33 +221,38 @@ const haystack = (e: GlossaryEntry) =>
 </style>
 
 <script>
+  import { onPage } from "../lib/pageLifecycle.ts";
   // Free-text search over term + definition. Empty groups and the whole list
   // collapse cleanly, mirroring the FormulaSheet filter.
-  const rows = [...document.querySelectorAll<HTMLElement>(".gloss-row")];
-  const groups = [
-    ...document.querySelectorAll<HTMLElement>("[data-gloss-group]"),
-  ];
-  const searchInput = document.querySelector<HTMLInputElement>(
-    ".gloss-search-input",
-  );
-  const empty = document.querySelector<HTMLElement>(".gloss-empty");
+  onPage((signal) => {
+    const rows = [...document.querySelectorAll<HTMLElement>(".gloss-row")];
+    const groups = [
+      ...document.querySelectorAll<HTMLElement>("[data-gloss-group]"),
+    ];
+    const searchInput = document.querySelector<HTMLInputElement>(
+      ".gloss-search-input",
+    );
+    const empty = document.querySelector<HTMLElement>(".gloss-empty");
 
-  const apply = (term: string) => {
-    let anyVisible = false;
-    rows.forEach((r) => {
-      const show = !term || (r.dataset.text ?? "").includes(term);
-      r.hidden = !show;
-      if (show) anyVisible = true;
-    });
-    groups.forEach((g) => {
-      g.hidden = ![...g.querySelectorAll<HTMLElement>(".gloss-row")].some(
-        (r) => !r.hidden,
-      );
-    });
-    if (empty) empty.hidden = anyVisible;
-  };
+    const apply = (term: string) => {
+      let anyVisible = false;
+      rows.forEach((r) => {
+        const show = !term || (r.dataset.text ?? "").includes(term);
+        r.hidden = !show;
+        if (show) anyVisible = true;
+      });
+      groups.forEach((g) => {
+        g.hidden = ![...g.querySelectorAll<HTMLElement>(".gloss-row")].some(
+          (r) => !r.hidden,
+        );
+      });
+      if (empty) empty.hidden = anyVisible;
+    };
 
-  searchInput?.addEventListener("input", () => {
-    apply(searchInput.value.trim().toLowerCase());
+    searchInput?.addEventListener(
+      "input",
+      () => apply(searchInput.value.trim().toLowerCase()),
+      { signal },
+    );
   });
 </script>

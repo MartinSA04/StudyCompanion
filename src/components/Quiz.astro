@@ -150,47 +150,58 @@ import Icon from "./Icon.astro";
 </style>
 
 <script>
-  document.querySelectorAll<HTMLFormElement>(".quiz").forEach((quiz) => {
-    const answer = Number(quiz.dataset.answer);
-    const options = [
-      ...quiz.querySelectorAll<HTMLButtonElement>(".quiz-option"),
-    ];
-    const feedback = quiz.querySelector<HTMLElement>(".quiz-feedback")!;
-    const explain = quiz.querySelector<HTMLElement>(".quiz-explain");
-    let done = false;
+  import { onPage } from "../lib/pageLifecycle.ts";
+  onPage((signal) => {
+    document.querySelectorAll<HTMLFormElement>(".quiz").forEach((quiz) => {
+      const answer = Number(quiz.dataset.answer);
+      const options = [
+        ...quiz.querySelectorAll<HTMLButtonElement>(".quiz-option"),
+      ];
+      const feedback = quiz.querySelector<HTMLElement>(".quiz-feedback")!;
+      const explain = quiz.querySelector<HTMLElement>(".quiz-explain");
+      let done = false;
 
-    // ↑/↓ moves focus between options (arrow-key group navigation)
-    options.forEach((btn, i) => {
-      btn.addEventListener("keydown", (e) => {
-        if (e.key === "ArrowDown") {
-          e.preventDefault();
-          options[(i + 1) % options.length]?.focus();
-        } else if (e.key === "ArrowUp") {
-          e.preventDefault();
-          options[(i - 1 + options.length) % options.length]?.focus();
-        }
+      // ↑/↓ moves focus between options (arrow-key group navigation)
+      options.forEach((btn, i) => {
+        btn.addEventListener(
+          "keydown",
+          (e) => {
+            if (e.key === "ArrowDown") {
+              e.preventDefault();
+              options[(i + 1) % options.length]?.focus();
+            } else if (e.key === "ArrowUp") {
+              e.preventDefault();
+              options[(i - 1 + options.length) % options.length]?.focus();
+            }
+          },
+          { signal },
+        );
       });
-    });
 
-    options.forEach((btn) => {
-      btn.addEventListener("click", () => {
-        if (done) return;
-        done = true;
-        const chosen = Number(btn.dataset.index);
-        const correct = chosen === answer;
+      options.forEach((btn) => {
+        btn.addEventListener(
+          "click",
+          () => {
+            if (done) return;
+            done = true;
+            const chosen = Number(btn.dataset.index);
+            const correct = chosen === answer;
 
-        options.forEach((b, i) => {
-          b.disabled = true;
-          if (i === answer) b.dataset.state = "correct";
-          else if (i === chosen) b.dataset.state = "wrong";
-        });
+            options.forEach((b, i) => {
+              b.disabled = true;
+              if (i === answer) b.dataset.state = "correct";
+              else if (i === chosen) b.dataset.state = "wrong";
+            });
 
-        feedback.hidden = false;
-        feedback.dataset.result = correct ? "correct" : "wrong";
-        feedback.textContent = correct
-          ? "Riktig!"
-          : "Ikke helt — se riktig svar.";
-        if (explain) explain.hidden = false;
+            feedback.hidden = false;
+            feedback.dataset.result = correct ? "correct" : "wrong";
+            feedback.textContent = correct
+              ? "Riktig!"
+              : "Ikke helt — se riktig svar.";
+            if (explain) explain.hidden = false;
+          },
+          { signal },
+        );
       });
     });
   });

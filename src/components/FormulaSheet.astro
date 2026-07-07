@@ -423,65 +423,82 @@ const hasMemorize = examFormulaSheet && formulas.some((f) => f.memorize);
 </style>
 
 <script>
-  // Copy LaTeX — toggles the data-copied state; the icon swap is pure CSS.
-  document.querySelectorAll<HTMLButtonElement>(".fs-copy").forEach((btn) => {
-    let timer: ReturnType<typeof setTimeout>;
-    btn.addEventListener("click", async () => {
-      try {
-        await navigator.clipboard.writeText(btn.dataset.tex ?? "");
-        btn.dataset.copied = "true";
-        clearTimeout(timer);
-        timer = setTimeout(() => (btn.dataset.copied = "false"), 1200);
-      } catch {
-        /* clipboard unavailable */
-      }
-    });
-  });
-
-  // Combined filter: free-text search AND the active chip (all / on the exam
-  // sheet / must-memorize). Empty groups and the whole sheet collapse cleanly.
-  const rows = [...document.querySelectorAll<HTMLElement>(".fs-row")];
-  const groups = [...document.querySelectorAll<HTMLElement>("[data-fs-group]")];
-  const chips = [...document.querySelectorAll<HTMLButtonElement>(".fs-chip")];
-  const searchInput =
-    document.querySelector<HTMLInputElement>(".fs-search-input");
-  const empty = document.querySelector<HTMLElement>(".fs-empty");
-
-  let mode = "all";
-  let term = "";
-
-  const apply = () => {
-    let anyVisible = false;
-    rows.forEach((r) => {
-      const matchMode =
-        mode === "all" ||
-        (mode === "sheet" && r.dataset.onsheet === "true") ||
-        (mode === "memorize" && r.dataset.memorize === "true");
-      const matchTerm = !term || (r.dataset.text ?? "").includes(term);
-      const show = matchMode && matchTerm;
-      r.hidden = !show;
-      if (show) anyVisible = true;
-    });
-    groups.forEach((g) => {
-      g.hidden = ![...g.querySelectorAll<HTMLElement>(".fs-row")].some(
-        (r) => !r.hidden,
+  import { onPage } from "../lib/pageLifecycle.ts";
+  onPage((signal) => {
+    // Copy LaTeX — toggles the data-copied state; the icon swap is pure CSS.
+    document.querySelectorAll<HTMLButtonElement>(".fs-copy").forEach((btn) => {
+      let timer: ReturnType<typeof setTimeout>;
+      btn.addEventListener(
+        "click",
+        async () => {
+          try {
+            await navigator.clipboard.writeText(btn.dataset.tex ?? "");
+            btn.dataset.copied = "true";
+            clearTimeout(timer);
+            timer = setTimeout(() => (btn.dataset.copied = "false"), 1200);
+          } catch {
+            /* clipboard unavailable */
+          }
+        },
+        { signal },
       );
     });
-    if (empty) empty.hidden = anyVisible;
-  };
 
-  chips.forEach((chip) => {
-    chip.addEventListener("click", () => {
-      mode = chip.dataset.filter ?? "all";
-      chips.forEach((c) =>
-        c.setAttribute("aria-pressed", c === chip ? "true" : "false"),
+    // Combined filter: free-text search AND the active chip (all / on the exam
+    // sheet / must-memorize). Empty groups and the whole sheet collapse cleanly.
+    const rows = [...document.querySelectorAll<HTMLElement>(".fs-row")];
+    const groups = [
+      ...document.querySelectorAll<HTMLElement>("[data-fs-group]"),
+    ];
+    const chips = [...document.querySelectorAll<HTMLButtonElement>(".fs-chip")];
+    const searchInput =
+      document.querySelector<HTMLInputElement>(".fs-search-input");
+    const empty = document.querySelector<HTMLElement>(".fs-empty");
+
+    let mode = "all";
+    let term = "";
+
+    const apply = () => {
+      let anyVisible = false;
+      rows.forEach((r) => {
+        const matchMode =
+          mode === "all" ||
+          (mode === "sheet" && r.dataset.onsheet === "true") ||
+          (mode === "memorize" && r.dataset.memorize === "true");
+        const matchTerm = !term || (r.dataset.text ?? "").includes(term);
+        const show = matchMode && matchTerm;
+        r.hidden = !show;
+        if (show) anyVisible = true;
+      });
+      groups.forEach((g) => {
+        g.hidden = ![...g.querySelectorAll<HTMLElement>(".fs-row")].some(
+          (r) => !r.hidden,
+        );
+      });
+      if (empty) empty.hidden = anyVisible;
+    };
+
+    chips.forEach((chip) => {
+      chip.addEventListener(
+        "click",
+        () => {
+          mode = chip.dataset.filter ?? "all";
+          chips.forEach((c) =>
+            c.setAttribute("aria-pressed", c === chip ? "true" : "false"),
+          );
+          apply();
+        },
+        { signal },
       );
-      apply();
     });
-  });
 
-  searchInput?.addEventListener("input", () => {
-    term = searchInput.value.trim().toLowerCase();
-    apply();
+    searchInput?.addEventListener(
+      "input",
+      () => {
+        term = searchInput.value.trim().toLowerCase();
+        apply();
+      },
+      { signal },
+    );
   });
 </script>

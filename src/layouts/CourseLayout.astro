@@ -9,6 +9,7 @@ import { contrastText, accentOnBg } from "../lib/color.ts";
 import { faviconDataUri } from "../lib/favicon.ts";
 import { ogLocale, trimTrailingSlash, warnMissingSiteOnce } from "../lib/seo.ts";
 import { serializeLd } from "../lib/jsonLd.ts";
+import { ClientRouter } from "astro:transitions";
 import "katex/dist/katex.min.css";
 import "../styles/fonts.css";
 import "../styles/tokens.css";
@@ -258,14 +259,25 @@ const hasTools = toolNav.some((t) => t.show);
     {
       features.theme && (
         <script is:inline define:vars={{ themeKey }}>
-          // No-flash: set the theme before first paint.
-          try {
-            const saved = localStorage.getItem(themeKey);
-            const dark = saved
-              ? saved === "dark"
-              : matchMedia("(prefers-color-scheme: dark)").matches;
-            if (dark) document.documentElement.setAttribute("data-theme", "dark");
-          } catch (e) {}
+          // No-flash: set the theme before first paint. Re-apply after each
+          // view-transition swap too — the incoming static document has no
+          // data-theme (it's client-set), so the swap would otherwise drop it and
+          // flash to light. Runs once; the after-swap listener persists.
+          (function () {
+            function applyTheme() {
+              try {
+                const saved = localStorage.getItem(themeKey);
+                const dark = saved
+                  ? saved === "dark"
+                  : matchMedia("(prefers-color-scheme: dark)").matches;
+                if (dark)
+                  document.documentElement.setAttribute("data-theme", "dark");
+                else document.documentElement.removeAttribute("data-theme");
+              } catch (e) {}
+            }
+            applyTheme();
+            document.addEventListener("astro:after-swap", applyTheme);
+          })();
         </script>
       )
     }
@@ -281,6 +293,10 @@ const hasTools = toolNav.some((t) => t.show);
           src="https://gc.zgo.at/count.js"></script>
       )
     }
+
+    {/* Cross-fade page-to-page navigation, so paging through modules reads as one
+        continuous surface. Astro disables the animation under prefers-reduced-motion. */}
+    <ClientRouter />
   </head>
   <body data-progress-key={progressKey} data-section-total={nav.length}>
     <a class="skip-link" href="#content">{ui.skipToContent}</a>
@@ -476,14 +492,12 @@ const hasTools = toolNav.some((t) => t.show);
         } catch {}
       };
 
-      const fill = document.querySelector("[data-progress-fill]");
-      const text = document.querySelector("[data-progress-text]");
-      const bar = fill ? fill.closest(".progressbar") : null;
-      const navLinks = [...document.querySelectorAll("[data-nav-order]")];
-
       function paintProgress() {
-        const done = readProg();
-        const set = new Set(done);
+        const fill = document.querySelector("[data-progress-fill]");
+        const text = document.querySelector("[data-progress-text]");
+        const bar = fill ? fill.closest(".progressbar") : null;
+        const navLinks = [...document.querySelectorAll("[data-nav-order]")];
+        const set = new Set(readProg());
         navLinks.forEach((a) =>
           a.classList.toggle("done", set.has(Number(a.dataset.navOrder))),
         );
@@ -497,58 +511,112 @@ const hasTools = toolNav.some((t) => t.show);
       }
 
       // The current page may carry a "mark done" button (set in [slug].astro).
-      const doneBtn = document.querySelector("[data-done-order]");
       function paintDoneBtn() {
+        const doneBtn = document.querySelector("[data-done-order]");
         if (!doneBtn) return;
-        const order = Number(doneBtn.dataset.doneOrder);
-        const on = new Set(readProg()).has(order);
+        const on = new Set(readProg()).has(Number(doneBtn.dataset.doneOrder));
         doneBtn.classList.toggle("done", on);
         // The check (an SVG) shows via the .done class; only swap the label text.
         const label = doneBtn.querySelector("[data-done-label]");
         if (label) label.textContent = on ? "Fullført" : "Marker fullført";
       }
-      if (doneBtn) {
-        doneBtn.addEventListener("click", () => {
-          const order = Number(doneBtn.dataset.doneOrder);
-          const arr = readProg();
-          const i = arr.indexOf(order);
-          if (i >= 0) arr.splice(i, 1);
-          else arr.push(order);
-          writeProg(arr);
-          paintDoneBtn();
-          paintProgress();
+
+      // ---- Per-page setup: repaint + (re)bind page-scoped elements. Runs on the
+      // first load and after every view-transition swap; a data-flag keeps a
+      // listener from binding twice on the same element. ----
+      function setupPage() {
+        paintProgress();
+        paintDoneBtn();
+
+        const doneBtn = document.querySelector("[data-done-order]");
+        if (doneBtn && !doneBtn.dataset.scBound) {
+          doneBtn.dataset.scBound = "1";
+          doneBtn.addEventListener("click", () => {
+            const order = Number(doneBtn.dataset.doneOrder);
+            const arr = readProg();
+            const i = arr.indexOf(order);
+            if (i >= 0) arr.splice(i, 1);
+            else arr.push(order);
+            writeProg(arr);
+            paintDoneBtn();
+            paintProgress();
+          });
+        }
+
+        const resetBtn = document.querySelector("[data-progress-reset]");
+        if (resetBtn && !resetBtn.dataset.scBound) {
+          resetBtn.dataset.scBound = "1";
+          resetBtn.addEventListener("click", () => {
+            writeProg([]);
+            paintProgress();
+            paintDoneBtn();
+          });
+        }
+
+        // ---- Mobile menu ----
+        const menuBtn = document.querySelector(".menu-toggle");
+        const sidebar = document.getElementById("sidebar");
+        const scrim = document.querySelector("[data-scrim]");
+        function toggleMenu(open) {
+          if (!sidebar) return;
+          const next = open ?? !sidebar.classList.contains("open");
+          sidebar.classList.toggle("open", next);
+          if (scrim) scrim.classList.toggle("show", next);
+          if (menuBtn) menuBtn.setAttribute("aria-expanded", String(next));
+          // Move focus into the drawer on open; return it to the toggle on close.
+          if (next) sidebar.querySelector("a")?.focus();
+          else if (menuBtn) menuBtn.focus();
+        }
+        if (menuBtn && !menuBtn.dataset.scBound) {
+          menuBtn.dataset.scBound = "1";
+          menuBtn.addEventListener("click", () => toggleMenu());
+        }
+        if (scrim && !scrim.dataset.scBound) {
+          scrim.dataset.scBound = "1";
+          scrim.addEventListener("click", () => toggleMenu(false));
+        }
+
+        // ---- Copy buttons on code blocks ----
+        document.querySelectorAll(".content pre").forEach((pre) => {
+          if (pre.querySelector(".code-copy")) return;
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "code-copy";
+          btn.textContent = "Kopier";
+          btn.addEventListener("click", async () => {
+            const code = pre.querySelector("code");
+            try {
+              await navigator.clipboard.writeText(
+                code ? code.innerText : pre.innerText,
+              );
+              btn.textContent = "Kopiert";
+              btn.dataset.copied = "true";
+              setTimeout(() => {
+                btn.textContent = "Kopier";
+                btn.dataset.copied = "false";
+              }, 1500);
+            } catch {}
+          });
+          pre.appendChild(btn);
         });
       }
 
-      const resetBtn = document.querySelector("[data-progress-reset]");
-      if (resetBtn)
-        resetBtn.addEventListener("click", () => {
-          writeProg([]);
-          paintProgress();
-          paintDoneBtn();
-        });
+      // ---- Global listeners: bound once, persist across view-transition swaps.
+      // (document survives navigation; each handler queries at event time so it
+      // always acts on the current page's elements.) ----
 
-      paintProgress();
-      paintDoneBtn();
-
-      // ---- Mobile menu ----
-      const menuBtn = document.querySelector(".menu-toggle");
-      const sidebar = document.getElementById("sidebar");
-      const scrim = document.querySelector("[data-scrim]");
-      function toggleMenu(open) {
-        const next = open ?? !sidebar.classList.contains("open");
-        sidebar.classList.toggle("open", next);
-        scrim.classList.toggle("show", next);
-        if (menuBtn) menuBtn.setAttribute("aria-expanded", String(next));
-        // Move focus into the drawer on open; return it to the toggle on close.
-        if (next) sidebar.querySelector("a")?.focus();
-        else if (menuBtn) menuBtn.focus();
-      }
-      if (menuBtn) menuBtn.addEventListener("click", () => toggleMenu());
-      if (scrim) scrim.addEventListener("click", () => toggleMenu(false));
+      // Escape closes the mobile drawer.
       document.addEventListener("keydown", (e) => {
-        if (e.key === "Escape" && sidebar.classList.contains("open"))
-          toggleMenu(false);
+        const sidebar = document.getElementById("sidebar");
+        if (e.key !== "Escape" || !sidebar || !sidebar.classList.contains("open"))
+          return;
+        sidebar.classList.remove("open");
+        document.querySelector("[data-scrim]")?.classList.remove("show");
+        const menuBtn = document.querySelector(".menu-toggle");
+        if (menuBtn) {
+          menuBtn.setAttribute("aria-expanded", "false");
+          menuBtn.focus();
+        }
       });
 
       // ---- Arrow-key prev/next module ----
@@ -571,29 +639,6 @@ const hasTools = toolNav.some((t) => t.show);
         }
       });
 
-      // ---- Copy buttons on code blocks ----
-      document.querySelectorAll(".content pre").forEach((pre) => {
-        const btn = document.createElement("button");
-        btn.type = "button";
-        btn.className = "code-copy";
-        btn.textContent = "Kopier";
-        btn.addEventListener("click", async () => {
-          const code = pre.querySelector("code");
-          try {
-            await navigator.clipboard.writeText(
-              code ? code.innerText : pre.innerText,
-            );
-            btn.textContent = "Kopiert";
-            btn.dataset.copied = "true";
-            setTimeout(() => {
-              btn.textContent = "Kopier";
-              btn.dataset.copied = "false";
-            }, 1500);
-          } catch {}
-        });
-        pre.appendChild(btn);
-      });
-
       // ---- Print prep ----
       // Paper is white and has no disclosure triangles: force the light theme
       // and expand every <details> so collapsed solutions/derivations/answers
@@ -614,6 +659,10 @@ const hasTools = toolNav.some((t) => t.show);
         if (printWasDark)
           document.documentElement.setAttribute("data-theme", "dark");
       });
+
+      // Run per-page setup on first load and after every view-transition swap
+      // (astro:page-load fires on the initial load too).
+      document.addEventListener("astro:page-load", setupPage);
     </script>
   </body>
 </html>

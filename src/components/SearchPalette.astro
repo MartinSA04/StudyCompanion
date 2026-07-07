@@ -20,11 +20,13 @@ import Icon from "./Icon.astro";
   <kbd class="search-kbd" data-search-kbd>⌘K</kbd>
 </button>
 
-<script is:inline>
+<script is:inline data-astro-rerun>
   // The open shortcut is ⌘K on Apple platforms and Ctrl K elsewhere. The hint
   // can't be known at build time, so correct it at runtime. This inline script
   // runs synchronously as the parser passes it — the kbd above is already in the
   // DOM and gets fixed before first paint, so non-Mac users never see ⌘K flash.
+  // data-astro-rerun re-applies it after each view-transition swap (the topbar,
+  // and its kbd, is re-rendered from the server markup on navigation).
   (() => {
     const platform =
       navigator.userAgentData?.platform ?? navigator.platform ?? "";
@@ -181,6 +183,7 @@ import Icon from "./Icon.astro";
 </style>
 
 <script>
+  import { onPage } from "../lib/pageLifecycle.ts";
   type PagefindSubResult = { title: string; url: string; excerpt: string };
   type PagefindData = {
     url: string;
@@ -194,31 +197,36 @@ import Icon from "./Icon.astro";
     search: (q: string) => Promise<{ results: PagefindResult[] }>;
   };
 
-  const trigger = document.querySelector<HTMLButtonElement>(".search-trigger");
-  const dialog = document.querySelector<HTMLDialogElement>(".search-dialog");
-  const input = document.querySelector<HTMLInputElement>(".search-input");
-  const results = document.querySelector<HTMLDivElement>(".search-results");
+  // The pagefind bundle loads once and is cached across navigations (module
+  // scope survives view-transition swaps), so search stays instant after nav.
+  let pagefind: Pagefind | null = null;
+  let loadFailed = false;
+  const loadPagefind = async (): Promise<Pagefind | null> => {
+    if (pagefind || loadFailed) return pagefind;
+    try {
+      // Runtime import of the static bundle. The specifier is a variable so
+      // Rollup can't statically resolve it at build time (the index is only
+      // emitted later, in astro:build:done); @vite-ignore silences the dev
+      // analyzer warning.
+      const bundle = "/pagefind/pagefind.js";
+      const mod = (await import(/* @vite-ignore */ bundle)) as Pagefind;
+      await mod.options?.({ excerptLength: 24 });
+      pagefind = mod;
+    } catch {
+      loadFailed = true;
+    }
+    return pagefind;
+  };
 
-  if (trigger && dialog && input && results) {
-    let pagefind: Pagefind | null = null;
-    let loadFailed = false;
-
-    const loadPagefind = async (): Promise<Pagefind | null> => {
-      if (pagefind || loadFailed) return pagefind;
-      try {
-        // Runtime import of the static bundle. The specifier is a variable so
-        // Rollup can't statically resolve it at build time (the index is only
-        // emitted later, in astro:build:done); @vite-ignore silences the dev
-        // analyzer warning.
-        const bundle = "/pagefind/pagefind.js";
-        const mod = (await import(/* @vite-ignore */ bundle)) as Pagefind;
-        await mod.options?.({ excerptLength: 24 });
-        pagefind = mod;
-      } catch {
-        loadFailed = true;
-      }
-      return pagefind;
-    };
+  // The topbar (trigger + dialog) is re-rendered on each swap, so (re)wire the
+  // DOM per page-load; the page signal drops the ⌘K document listener on swap.
+  onPage((signal) => {
+    const trigger =
+      document.querySelector<HTMLButtonElement>(".search-trigger");
+    const dialog = document.querySelector<HTMLDialogElement>(".search-dialog");
+    const input = document.querySelector<HTMLInputElement>(".search-input");
+    const results = document.querySelector<HTMLDivElement>(".search-results");
+    if (!trigger || !dialog || !input || !results) return;
 
     const open = async () => {
       if (!dialog.open) dialog.showModal();
@@ -231,20 +239,24 @@ import Icon from "./Icon.astro";
       }
     };
 
-    trigger.addEventListener("click", open);
+    trigger.addEventListener("click", open, { signal });
 
-    document.addEventListener("keydown", (e) => {
-      const typing =
-        document.activeElement instanceof HTMLInputElement ||
-        document.activeElement instanceof HTMLTextAreaElement;
-      if (
-        (e.key === "k" && (e.metaKey || e.ctrlKey)) ||
-        (e.key === "/" && !typing)
-      ) {
-        e.preventDefault();
-        void open();
-      }
-    });
+    document.addEventListener(
+      "keydown",
+      (e) => {
+        const typing =
+          document.activeElement instanceof HTMLInputElement ||
+          document.activeElement instanceof HTMLTextAreaElement;
+        if (
+          (e.key === "k" && (e.metaKey || e.ctrlKey)) ||
+          (e.key === "/" && !typing)
+        ) {
+          e.preventDefault();
+          void open();
+        }
+      },
+      { signal },
+    );
 
     const render = (items: PagefindSubResult[]) => {
       if (!items.length) {
@@ -291,61 +303,77 @@ import Icon from "./Icon.astro";
     };
 
     let debounce: ReturnType<typeof setTimeout>;
-    input.addEventListener("input", () => {
-      clearTimeout(debounce);
-      focusIdx = -1;
-      const q = input.value.trim();
-      if (!q) {
-        results.innerHTML = "";
-        return;
-      }
-      debounce = setTimeout(() => void runSearch(q), 160);
-    });
+    input.addEventListener(
+      "input",
+      () => {
+        clearTimeout(debounce);
+        focusIdx = -1;
+        const q = input.value.trim();
+        if (!q) {
+          results.innerHTML = "";
+          return;
+        }
+        debounce = setTimeout(() => void runSearch(q), 160);
+      },
+      { signal },
+    );
 
     // ---- ↑/↓ keyboard navigation through results ----
     let focusIdx = -1;
 
-    input.addEventListener("keydown", (e) => {
-      const links = [...results.querySelectorAll<HTMLAnchorElement>("a")];
-      if (e.key === "Enter" && !e.isComposing) {
-        const target = focusIdx >= 0 ? links[focusIdx] : links[0];
-        if (target) {
-          e.preventDefault();
-          target.click();
+    input.addEventListener(
+      "keydown",
+      (e) => {
+        const links = [...results.querySelectorAll<HTMLAnchorElement>("a")];
+        if (e.key === "Enter" && !e.isComposing) {
+          const target = focusIdx >= 0 ? links[focusIdx] : links[0];
+          if (target) {
+            e.preventDefault();
+            target.click();
+          }
+        } else if (e.key === "ArrowDown") {
+          const first = links[0];
+          if (first) {
+            e.preventDefault();
+            first.focus();
+            focusIdx = 0;
+          }
         }
-      } else if (e.key === "ArrowDown") {
-        const first = links[0];
-        if (first) {
-          e.preventDefault();
-          first.focus();
-          focusIdx = 0;
-        }
-      }
-    });
+      },
+      { signal },
+    );
 
-    results.addEventListener("keydown", (e) => {
-      const links = [...results.querySelectorAll<HTMLAnchorElement>("a")];
-      if (!links.length) return;
-      if (e.key === "ArrowDown") {
-        e.preventDefault();
-        if (focusIdx < links.length - 1) {
-          focusIdx++;
-          links[focusIdx].focus();
+    results.addEventListener(
+      "keydown",
+      (e) => {
+        const links = [...results.querySelectorAll<HTMLAnchorElement>("a")];
+        if (!links.length) return;
+        if (e.key === "ArrowDown") {
+          e.preventDefault();
+          if (focusIdx < links.length - 1) {
+            focusIdx++;
+            links[focusIdx].focus();
+          }
+        } else if (e.key === "ArrowUp") {
+          e.preventDefault();
+          if (focusIdx <= 0) {
+            focusIdx = -1;
+            input.focus();
+          } else {
+            focusIdx--;
+            links[focusIdx].focus();
+          }
         }
-      } else if (e.key === "ArrowUp") {
-        e.preventDefault();
-        if (focusIdx <= 0) {
-          focusIdx = -1;
-          input.focus();
-        } else {
-          focusIdx--;
-          links[focusIdx].focus();
-        }
-      }
-    });
+      },
+      { signal },
+    );
 
-    dialog.addEventListener("close", () => {
-      focusIdx = -1;
-    });
-  }
+    dialog.addEventListener(
+      "close",
+      () => {
+        focusIdx = -1;
+      },
+      { signal },
+    );
+  });
 </script>

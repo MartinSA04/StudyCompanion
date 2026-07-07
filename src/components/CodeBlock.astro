@@ -129,20 +129,24 @@ const initial = activeLines ?? (activeLine != null ? [activeLine] : []);
 </style>
 
 <script>
+  import { onPage } from "../lib/pageLifecycle.ts";
   // Apply any author-set static active lines on load (a sim, if present, takes
   // over afterwards). Selecting on [data-active-lines] skips untagged blocks.
-  document
-    .querySelectorAll<HTMLElement>(".codeblock[data-active-lines]")
-    .forEach((fig) => {
-      const want = new Set(
-        (fig.dataset.activeLines ?? "")
-          .split(",")
-          .map(Number)
-          .filter((n) => n > 0),
-      );
-      const lines = fig.querySelectorAll<HTMLElement>(".line");
-      lines.forEach((ln, i) =>
-        ln.classList.toggle("cb-line-active", want.has(i + 1)),
-      );
-    });
+  // Re-runs after each view-transition swap; the class toggle is idempotent.
+  onPage(() => {
+    document
+      .querySelectorAll<HTMLElement>(".codeblock[data-active-lines]")
+      .forEach((fig) => {
+        const want = new Set(
+          (fig.dataset.activeLines ?? "")
+            .split(",")
+            .map(Number)
+            .filter((n) => n > 0),
+        );
+        const lines = fig.querySelectorAll<HTMLElement>(".line");
+        lines.forEach((ln, i) =>
+          ln.classList.toggle("cb-line-active", want.has(i + 1)),
+        );
+      });
+  });
 </script>

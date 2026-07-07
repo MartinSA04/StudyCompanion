@@ -108,34 +108,44 @@ const show = visible.length >= threshold;
 </style>
 
 <script>
-  // Scroll-spy: highlight the last heading that has scrolled past the viewport
-  // top plus a small clearance for the sticky topbar.
-  const toc = document.querySelector<HTMLElement>(".page-toc");
-  if (toc) {
-    const links = [...toc.querySelectorAll<HTMLAnchorElement>(".toc-link")];
-    const ids = links.map((l) => l.getAttribute("href")!.slice(1));
-    const targets = ids.map((id) => document.getElementById(id));
+  import { onPage } from "../lib/pageLifecycle.ts";
+  onPage((signal) => {
+    // Scroll-spy: highlight the last heading that has scrolled past the viewport
+    // top plus a small clearance for the sticky topbar. The scroll listener is
+    // bound with the page signal so it is removed on the next swap (no stacking).
+    const toc = document.querySelector<HTMLElement>(".page-toc");
+    if (toc) {
+      const links = [...toc.querySelectorAll<HTMLAnchorElement>(".toc-link")];
+      const ids = links.map((l) => l.getAttribute("href")!.slice(1));
+      const targets = ids.map((id) => document.getElementById(id));
 
-    const update = () => {
-      let active = -1;
-      targets.forEach((el, i) => {
-        if (el && el.getBoundingClientRect().top <= 90) active = i;
+      const update = () => {
+        let active = -1;
+        targets.forEach((el, i) => {
+          if (el && el.getBoundingClientRect().top <= 90) active = i;
+        });
+        links.forEach((l, i) => l.classList.toggle("active", i === active));
+      };
+
+      window.addEventListener("scroll", update, { passive: true, signal });
+      update();
+    }
+
+    // Inject hover "#" anchor links into every h2/h3 inside .prose. The guard
+    // keeps a re-run from appending a second anchor.
+    document
+      .querySelectorAll<HTMLElement>(".prose :is(h2, h3)")
+      .forEach((h) => {
+        if (!h.id || h.querySelector(".heading-anchor")) return;
+        const a = document.createElement("a");
+        a.href = "#" + h.id;
+        a.className = "heading-anchor";
+        a.setAttribute(
+          "aria-label",
+          "Direkte lenke til " + h.textContent?.trim(),
+        );
+        a.textContent = "#";
+        h.appendChild(a);
       });
-      links.forEach((l, i) => l.classList.toggle("active", i === active));
-    };
-
-    window.addEventListener("scroll", update, { passive: true });
-    update();
-  }
-
-  // Inject hover "#" anchor links into every h2/h3 inside .prose.
-  document.querySelectorAll<HTMLElement>(".prose :is(h2, h3)").forEach((h) => {
-    if (!h.id) return;
-    const a = document.createElement("a");
-    a.href = "#" + h.id;
-    a.className = "heading-anchor";
-    a.setAttribute("aria-label", "Direkte lenke til " + h.textContent?.trim());
-    a.textContent = "#";
-    h.appendChild(a);
   });
 </script>
