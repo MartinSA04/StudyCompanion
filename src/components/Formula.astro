@@ -1,6 +1,6 @@
 ---
 import katex from "katex";
-import { renderMathString } from "../lib/katex.ts";
+import { renderMathString, ignoreInSearch } from "../lib/katex.ts";
 import Icon from "./Icon.astro";
 
 /**
@@ -32,11 +32,13 @@ const { tex, caption, block = true, memorize = false } = Astro.props;
 // carries the base stylesheet's overflow-x rule and would add a stray
 // horizontal scrollbar. Inline prose math (block=false) stays text-style so it
 // sits on the line with the surrounding sentence.
-const html = katex.renderToString(block ? `\\displaystyle ${tex}` : tex, {
-  displayMode: false,
-  throwOnError: false, // render the offending TeX in red instead of failing build
-  output: "htmlAndMathml",
-});
+const html = ignoreInSearch(
+  katex.renderToString(block ? `\\displaystyle ${tex}` : tex, {
+    displayMode: false,
+    throwOnError: false, // render the offending TeX in red instead of failing build
+    output: "htmlAndMathml",
+  }),
+);
 ---
 
 {

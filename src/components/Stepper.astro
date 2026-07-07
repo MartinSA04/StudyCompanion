@@ -52,9 +52,12 @@ const { src, codeId, title, caption, height = 300 } = Astro.props;
     class="stepper-stage"
     role="img"
     aria-label={title ?? "Algoritmevisualisering"}
+    style={`min-height:${height}px`}
   >
   </div>
-  <p class="stepper-fallback">Interaktiv visualisering krever JavaScript.</p>
+  <noscript>
+    <p class="stepper-fallback">Interaktiv visualisering krever JavaScript.</p>
+  </noscript>
 
   <div class="stepper-body">
     <div class="stepper-controls">
@@ -150,9 +153,6 @@ const { src, codeId, title, caption, height = 300 } = Astro.props;
     font-size: var(--text-sm);
   }
   .stepper:not([data-ready]) .stepper-body {
-    display: none;
-  }
-  .stepper[data-ready] .stepper-fallback {
     display: none;
   }
 

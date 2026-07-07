@@ -228,6 +228,10 @@ import Icon from "./Icon.astro";
     const results = document.querySelector<HTMLDivElement>(".search-results");
     if (!trigger || !dialog || !input || !results) return;
 
+    // Shown in the empty panel so an opened palette isn't a blank void.
+    const HINT =
+      '<p class="search-empty">Søk i moduler, formler, begreper og eksempler.</p>';
+
     const open = async () => {
       if (!dialog.open) dialog.showModal();
       input.focus();
@@ -236,6 +240,8 @@ import Icon from "./Icon.astro";
       if (!pf && !results.childElementCount) {
         results.innerHTML =
           '<p class="search-empty">Søk er tilgjengelig i det bygde nettstedet (ikke i dev-modus).</p>';
+      } else if (pf && !input.value.trim()) {
+        results.innerHTML = HINT;
       }
     };
 
@@ -310,7 +316,7 @@ import Icon from "./Icon.astro";
         focusIdx = -1;
         const q = input.value.trim();
         if (!q) {
-          results.innerHTML = "";
+          results.innerHTML = HINT;
           return;
         }
         debounce = setTimeout(() => void runSearch(q), 160);

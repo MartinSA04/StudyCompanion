@@ -1,7 +1,7 @@
 ---
 import katex from "katex";
 import type { FormulaEntry } from "../schema.ts";
-import { renderMathString } from "../lib/katex.ts";
+import { renderMathString, ignoreInSearch } from "../lib/katex.ts";
 import Icon from "./Icon.astro";
 
 /**
@@ -45,10 +45,12 @@ for (const f of formulas) {
 // plain `.katex` span — not `.katex-display`, which carries the base
 // stylesheet's overflow-x rule and would add a stray horizontal scrollbar.
 const html = (tex: string) =>
-  katex.renderToString(`\\displaystyle ${tex}`, {
-    displayMode: false,
-    throwOnError: false,
-  });
+  ignoreInSearch(
+    katex.renderToString(`\\displaystyle ${tex}`, {
+      displayMode: false,
+      throwOnError: false,
+    }),
+  );
 
 // A lowercased haystack for client-side search: raw TeX plus the plain-text
 // description (latex commands and markup stripped).
@@ -150,7 +152,7 @@ const hasMemorize = examFormulaSheet && formulas.some((f) => f.memorize);
                   title="Står ikke på formelarket – må pugges"
                 >
                   <Icon name="star" size={12} />
-                  ikke på formelarket
+                  må pugges
                 </span>
               )}
               <button

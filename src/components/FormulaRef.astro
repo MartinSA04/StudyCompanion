@@ -1,5 +1,6 @@
 ---
 import katex from "katex";
+import { ignoreInSearch } from "../lib/katex.ts";
 import { loadCourse } from "../lib/loadCourse.ts";
 import { TOOL_SLUGS } from "../lib/nav.ts";
 
@@ -27,10 +28,12 @@ const href = `/${TOOL_SLUGS.formulas}#${id}`;
 const hasText = Astro.slots.has("default");
 const texHtml =
   formula && !hasText
-    ? katex.renderToString(formula.tex, {
-        displayMode: false,
-        throwOnError: false,
-      })
+    ? ignoreInSearch(
+        katex.renderToString(formula.tex, {
+          displayMode: false,
+          throwOnError: false,
+        }),
+      )
     : null;
 ---
 

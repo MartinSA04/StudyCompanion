@@ -90,6 +90,7 @@ const hasSections = sections.length > 0;
               <span class="fc-hint">{labels.flip}</span>
             </span>
             <span class="fc-face fc-back">
+              {card.section && <span class="fc-section">{card.section}</span>}
               <span class="fc-text" set:html={card.back} />
             </span>
           </span>

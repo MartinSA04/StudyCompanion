@@ -7,6 +7,36 @@ import { parse as parseYaml } from "yaml";
 import mdx from "@astrojs/mdx";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
+
+/**
+ * After rehype-katex, tag KaTeX's `.katex-mathml` (the visually-hidden MathML +
+ * `\tex` annotation) with `data-pagefind-ignore` so the Pagefind index drops the
+ * raw LaTeX but keeps the visible `.katex-html` glyphs. Search excerpts then show
+ * the formula as symbols instead of the raw-LaTeX-plus-doubled-glyph soup you get
+ * when both layers are indexed (e.g. "θ₂=90∘\theta_2 = 90^\circ"). Mirrors
+ * `ignoreInSearch` in lib/katex.ts, which does the same for the direct
+ * renderToString paths (renderMathString, Formula, FormulaRef, FormulaSheet).
+ */
+type HastNode = {
+  type: string;
+  properties?: Record<string, unknown>;
+  children?: HastNode[];
+};
+function rehypePagefindIgnoreKatex() {
+  const isKatex = (node: HastNode) => {
+    const c = node.properties?.className;
+    return Array.isArray(c) ? c.includes("katex-mathml") : c === "katex-mathml";
+  };
+  const walk = (node: HastNode): void => {
+    if (node.type === "element" && isKatex(node)) {
+      node.properties = node.properties ?? {};
+      node.properties["data-pagefind-ignore"] = "";
+      return; // the whole subtree is ignored; no need to descend
+    }
+    node.children?.forEach(walk);
+  };
+  return (tree: HastNode) => walk(tree);
+}
 import { faviconSvg, maskIconSvg, GROUND } from "./lib/favicon.ts";
 
 // This package's root (parent of src/ or dist/). Used to let the dev server
@@ -173,7 +203,7 @@ export default function studyCompanion(
           integrations: [mdx()],
           markdown: {
             remarkPlugins: [remarkMath],
-            rehypePlugins: [rehypeKatex],
+            rehypePlugins: [rehypeKatex, rehypePagefindIgnoreKatex],
           },
           vite: {
             server: {

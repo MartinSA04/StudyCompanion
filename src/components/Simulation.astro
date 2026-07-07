@@ -63,16 +63,20 @@ const { src, title, caption, height = 300, host = "canvas" } = Astro.props;
           class="sim-host"
           role="img"
           aria-label={title ?? "Interaktiv visning"}
+          style={`min-height:${height}px`}
         />
       ) : (
         <canvas
           class="sim-canvas"
           role="img"
           aria-label={title ?? "Interaktiv simulering"}
+          style={`min-height:${height}px`}
         />
       )
     }
-    <p class="sim-fallback">Interaktiv simulering krever JavaScript.</p>
+    <noscript>
+      <p class="sim-fallback">Interaktiv simulering krever JavaScript.</p>
+    </noscript>
   </div>
   <div class="sim-controls"></div>
   {caption && <p class="sim-caption">{caption}</p>}
@@ -102,10 +106,6 @@ const { src, title, caption, height = 300, host = "canvas" } = Astro.props;
     padding: var(--space-4);
     color: var(--muted);
     font-size: var(--text-sm);
-  }
-  .sim-canvas:not([hidden]) + .sim-fallback,
-  .sim-host:not([hidden]) + .sim-fallback {
-    display: none;
   }
   .sim-controls:empty {
     display: none;

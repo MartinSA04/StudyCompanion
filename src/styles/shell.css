@@ -305,7 +305,7 @@
 }
 .overview-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
   gap: var(--gap-3);
   margin-top: var(--gap-6);
 }
@@ -381,6 +381,12 @@
   align-items: center;
   gap: var(--gap-4);
   flex-wrap: wrap;
+}
+/* The row ships `hidden` and JS reveals it once a module is done. A class-level
+   `display` beats the UA `[hidden]{display:none}`, so restate it — otherwise the
+   deflating "0 av N moduler fullført" shows before the reader starts. */
+.hero-progress-row[hidden] {
+  display: none;
 }
 .hero-done {
   font-family: var(--font-mono);
