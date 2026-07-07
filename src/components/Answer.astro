@@ -24,8 +24,8 @@ const { label = "Svar" } = Astro.props;
     margin-top: var(--space-3);
     padding: var(--space-2) var(--space-3);
     background: var(--answer-bg);
-    border-left: 3px solid var(--tip);
-    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    border: 1px solid color-mix(in srgb, var(--tip) 30%, var(--border));
+    border-radius: var(--radius-sm);
   }
   .answer-label {
     flex: none;

@@ -1,9 +1,11 @@
 ---
 /**
- * An admonition box. `type` selects the semantic color (note/tip/warning).
- * Body is slotted MDX, so it can contain math, lists, links, etc.
+ * An admonition box. `type` selects the semantic tone (note/tip/warning).
+ * Body is slotted MDX, so it can contain math, lists, links, etc. A thin wrapper
+ * over the shared `<Admonition>` primitive — the tone reads from a mono kicker,
+ * not a coloured spine.
  */
-import Icon from "./Icon.astro";
+import Admonition from "./Admonition.astro";
 
 interface Props {
   type?: "note" | "tip" | "warning";
@@ -17,51 +19,8 @@ const defaults: Record<NonNullable<Props["type"]>, string> = {
   warning: "Advarsel",
 };
 const icons = { note: "info", tip: "star", warning: "alert-triangle" } as const;
-const heading = title ?? defaults[type];
 ---
 
-<aside class={`callout callout-${type}`} role="note">
-  <p class="callout-title">
-    <span class="callout-icon"><Icon name={icons[type]} size={17} /></span>
-    {heading}
-  </p>
-  <div class="callout-body"><slot /></div>
-</aside>
-
-<style>
-  .callout {
-    --c: var(--note);
-    --c-bg: var(--note-bg);
-    margin-block: var(--space-5);
-    padding: var(--space-4);
-    border: 1px solid color-mix(in srgb, var(--c) 35%, var(--border));
-    border-left: 3px solid var(--c);
-    border-radius: var(--radius);
-    background: var(--c-bg);
-  }
-  .callout-tip {
-    --c: var(--tip);
-    --c-bg: var(--tip-bg);
-  }
-  .callout-warning {
-    --c: var(--warning);
-    --c-bg: var(--warning-bg);
-  }
-  .callout-title {
-    display: flex;
-    align-items: center;
-    gap: var(--space-2);
-    font-weight: var(--weight-semibold);
-    color: var(--c);
-    margin-bottom: var(--space-2);
-  }
-  .callout-icon {
-    flex: none;
-    display: inline-flex;
-    align-items: center;
-  }
-  /* Let the last child sit flush against the padding. */
-  .callout-body :global(> :last-child) {
-    margin-bottom: 0;
-  }
-</style>
+<Admonition tone={type} icon={icons[type]} title={title ?? defaults[type]}>
+  <slot />
+</Admonition>

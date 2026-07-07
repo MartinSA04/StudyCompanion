@@ -1,62 +1,38 @@
 ---
-import Icon from "./Icon.astro";
-
 /**
  * End-of-module recap ("Hovedpunkter") — a checklist-styled summary block, in a
  * distinct violet tint from notes/tips/goals/exam so a module's closer reads
  * consistently. Body is slotted MDX, normally a bullet list; its items get a
  * check marker. Subject-agnostic — the heading is a prop.
  */
+import Admonition from "./Admonition.astro";
+
 interface Props {
   title?: string;
 }
 const { title = "Hovedpunkter" } = Astro.props;
 ---
 
-<aside class="takeaways" aria-label={title}>
-  <p class="takeaways-title">
-    <span class="takeaways-icon" aria-hidden="true"
-      ><Icon name="list-checks" size={17} /></span
-    >
-    {title}
-  </p>
-  <div class="takeaways-body"><slot /></div>
-</aside>
+<Admonition tone="takeaways" icon="list-checks" title={title}>
+  <div class="takeaways-list"><slot /></div>
+</Admonition>
 
 <style>
-  .takeaways {
-    /* A check glyph, alpha-masked so it tints with the block colour. */
+  /* A check glyph, alpha-masked so it tints with the block colour. */
+  .takeaways-list {
     --check: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'><path d='M20 6 9 17l-5-5'/></svg>");
-    margin-block: var(--space-5);
-    padding: var(--space-4);
-    background: color-mix(in srgb, var(--violet) 8%, var(--bg-elevated));
-    border: 1px solid color-mix(in srgb, var(--violet) 30%, var(--border));
-    border-left: 3px solid var(--violet);
-    border-radius: var(--radius);
   }
-  .takeaways-title {
-    display: flex;
-    align-items: center;
-    gap: var(--space-2);
-    margin-bottom: var(--space-2);
-    font-weight: var(--weight-semibold);
-    color: var(--violet);
-  }
-  .takeaways-icon {
-    display: inline-flex;
-    flex: none;
-  }
-  .takeaways-body :global(ul) {
+  .takeaways-list :global(ul) {
     margin-bottom: 0;
     padding-left: 0;
     list-style: none;
   }
-  .takeaways-body :global(li) {
+  .takeaways-list :global(li) {
     position: relative;
     margin-block: 0.35em;
     padding-left: 1.7em;
   }
-  .takeaways-body :global(li)::before {
+  .takeaways-list :global(li)::before {
     content: "";
     position: absolute;
     inset-inline-start: 0;
@@ -66,8 +42,5 @@ const { title = "Hovedpunkter" } = Astro.props;
     background: var(--violet);
     -webkit-mask: var(--check) center / contain no-repeat;
     mask: var(--check) center / contain no-repeat;
-  }
-  .takeaways-body :global(> :last-child) {
-    margin-bottom: 0;
   }
 </style>

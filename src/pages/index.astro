@@ -79,13 +79,6 @@ const tiles = sections.map((s) => ({
 // Group tiles into parts (single null-part group when no section sets one).
 const tileGroups = partGroups(tiles);
 
-const stats = [
-  { n: sections.length, label: "moduler" },
-  course.formulas.length > 0 && { n: course.formulas.length, label: "formler" },
-  flashcards.length > 0 && { n: flashcards.length, label: "flashcards" },
-  course.exams.length > 0 && { n: course.exams.length, label: "eksamenssett" },
-].filter(Boolean) as { n: number; label: string }[];
-
 const dateFmt = new Intl.DateTimeFormat(course.language, { dateStyle: "long" });
 const examDate = course.exam?.date ? dateFmt.format(course.exam.date) : null;
 const daysToExam = course.exam?.date
@@ -146,18 +139,6 @@ const jsonLd = [
             <Icon name="external" size={14} />
           </a>
         </p>
-      )
-    }
-    {
-      stats.length > 0 && (
-        <div class="hero-stats">
-          {stats.map((s) => (
-            <div class="stat">
-              <b>{s.n}</b>
-              <span>{s.label}</span>
-            </div>
-          ))}
-        </div>
       )
     }
     {

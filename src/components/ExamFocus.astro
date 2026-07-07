@@ -1,49 +1,17 @@
 ---
-import Icon from "./Icon.astro";
-
 /**
  * What to prioritise for the exam ("eksamensfokus"). A warm-tinted block that
  * flags exam-critical material distinctly from notes/tips. Body is slotted MDX.
  * Subject-agnostic — the heading is a prop.
  */
+import Admonition from "./Admonition.astro";
+
 interface Props {
   title?: string;
 }
 const { title = "Eksamensfokus" } = Astro.props;
 ---
 
-<aside class="examfocus" aria-label={title}>
-  <p class="examfocus-title">
-    <span class="examfocus-icon" aria-hidden="true"
-      ><Icon name="flag" size={17} /></span
-    >
-    {title}
-  </p>
-  <div class="examfocus-body"><slot /></div>
-</aside>
-
-<style>
-  .examfocus {
-    margin-block: var(--space-5);
-    padding: var(--space-4);
-    background: var(--exam-bg);
-    border: 1px solid color-mix(in srgb, var(--warning) 30%, var(--border));
-    border-left: 3px solid var(--warning);
-    border-radius: var(--radius);
-  }
-  .examfocus-title {
-    display: flex;
-    align-items: center;
-    gap: var(--space-2);
-    margin-bottom: var(--space-2);
-    font-weight: var(--weight-semibold);
-    color: var(--warning);
-  }
-  .examfocus-icon {
-    display: inline-flex;
-    flex: none;
-  }
-  .examfocus-body :global(> :last-child) {
-    margin-bottom: 0;
-  }
-</style>
+<Admonition tone="exam" icon="flag" title={title}>
+  <slot />
+</Admonition>

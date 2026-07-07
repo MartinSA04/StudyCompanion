@@ -87,17 +87,13 @@ the hero sentence ("N moduler med læringsmål …"); the progress line ("0 av N
 moduler fullført") remains. Formula/flashcard/exam counts are still reachable via
 the sidebar tools. Net: the hero loses its only KPI-card surface.
 
-## Open questions (confirm before implementing)
+## Resolved decisions (2026-07-07)
 
-1. **Formula-sheet "må pugges" row stripe** (`.fs-row[data-memorize]`, orange).
-   The code comment calls it "the original's orange 'off the sheet' stripe" — a
-   deliberate homage to the source guide, and it pairs with an existing "ikke på
-   formelarket" chip. Recommendation: **keep it** (it's from the source, it marks a
-   row not a box, and it's redundant-with-a-chip which is good). Or soften/remove
-   for full consistency. Your call.
-2. **`Admonition` primitive vs in-place edits** — recommend the primitive (kills
-   duplication, guarantees consistency). Confirm.
-3. **`.lede`** — convert to a stripe-free lede, or leave as-is?
+1. **Formula-sheet "må pugges" row stripe** (`.fs-row[data-memorize]`, orange):
+   **KEEP** — it's a homage to the source guide, marks a row (not a box), and is
+   redundant with a chip. No change.
+2. **`Admonition` primitive vs in-place edits**: **factor the primitive.**
+3. **`.lede`**: **convert** to a stripe-free editorial lede.
 
 ## Verification
 

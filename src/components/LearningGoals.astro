@@ -1,50 +1,18 @@
 ---
-import Icon from "./Icon.astro";
-
 /**
  * A module's learning objectives ("læringsmål"). A dedicated block so authors
  * write `<LearningGoals>` + a list instead of overloading a note <Callout>, and
  * so goals read distinctly (teal) from notes/tips/warnings. Body is slotted MDX,
  * usually a bullet list. Subject-agnostic — the heading is a prop.
  */
+import Admonition from "./Admonition.astro";
+
 interface Props {
   title?: string;
 }
 const { title = "Læringsmål" } = Astro.props;
 ---
 
-<aside class="goals" aria-label={title}>
-  <p class="goals-title">
-    <span class="goals-icon" aria-hidden="true"
-      ><Icon name="target" size={17} /></span
-    >
-    {title}
-  </p>
-  <div class="goals-body"><slot /></div>
-</aside>
-
-<style>
-  .goals {
-    margin-block: var(--space-5);
-    padding: var(--space-4);
-    background: var(--goals-bg);
-    border: 1px solid color-mix(in srgb, var(--cyan) 30%, var(--border));
-    border-left: 3px solid var(--cyan);
-    border-radius: var(--radius);
-  }
-  .goals-title {
-    display: flex;
-    align-items: center;
-    gap: var(--space-2);
-    margin-bottom: var(--space-2);
-    font-weight: var(--weight-semibold);
-    color: var(--cyan);
-  }
-  .goals-icon {
-    display: inline-flex;
-    flex: none;
-  }
-  .goals-body :global(> :last-child) {
-    margin-bottom: 0;
-  }
-</style>
+<Admonition tone="goals" icon="target" title={title}>
+  <slot />
+</Admonition>

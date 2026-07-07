@@ -298,29 +298,6 @@
 .hero-course-link:hover {
   text-decoration: underline;
 }
-.hero-stats {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--gap-3);
-}
-.stat {
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius);
-  padding: var(--gap-3) var(--gap-4);
-  background: var(--card);
-}
-.stat b {
-  font-family: var(--font-display);
-  font-size: var(--text-xl);
-  display: block;
-}
-.stat span {
-  font-family: var(--font-mono);
-  font-size: var(--text-xs);
-  color: var(--faint);
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
-}
 /* Chapter divider above a group of tiles (section `part`). Mono kicker + a
    hairline that fills the row — same editorial vocabulary as .nav-section. */
 .part-head {
@@ -598,11 +575,13 @@
   margin: 0 0 var(--gap-3);
   color: var(--muted);
 }
+/* A lede paragraph: a larger, quieter display-serif intro that opens a page.
+   Editorial emphasis through scale + colour, not a coloured spine. */
 .lede {
-  font-size: var(--text-md);
-  color: var(--fg);
-  border-left: 3px solid var(--accent);
-  padding-left: var(--gap-4);
+  font-size: var(--text-lg);
+  line-height: var(--leading-snug);
+  color: var(--muted);
+  max-width: 60ch;
   margin-bottom: var(--gap-5);
 }
 
@@ -914,12 +893,10 @@ summary,
   /* Don't split editorial panels or Q&A blocks across a page break. */
   .formula,
   .example,
-  .callout,
+  .admonition,
   .selfcheck,
   .quiz,
   .answer,
-  .goals,
-  .examfocus,
   .derivation,
   .codeblock,
   .fs-row,
