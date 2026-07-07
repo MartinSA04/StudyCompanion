@@ -512,6 +512,10 @@
   justify-content: space-between;
   gap: var(--gap-3);
   margin-top: var(--gap-7);
+  /* Align the pager to the reading column (.prose is capped at --maxw), so the
+     "Neste" button lines up with the article's right edge instead of floating
+     out to the full content width. */
+  max-width: var(--maxw);
 }
 .page-link {
   display: inline-flex;
