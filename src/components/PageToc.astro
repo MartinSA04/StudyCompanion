@@ -4,9 +4,9 @@
  * section has at least `threshold` h2/h3 headings; otherwise renders nothing.
  * Also injects a "hover #" deep-link anchor into every h2/h3 in .prose.
  *
- * Editorial treatment (no boxed panel): a mono kicker + hairline rule, then a
- * clean column of links. The active heading (scroll-spy) is accent-coloured with
- * a leading marker. Matches the paper aesthetic of `.lede` / `.nav-section`.
+ * Editorial treatment (no boxed panel): a mono kicker, then a clean column of
+ * links. The active heading (scroll-spy) is accent-coloured with a leading
+ * marker. Matches the paper aesthetic of `.lede` / `.nav-section`.
  */
 interface Heading {
   depth: number;
@@ -44,23 +44,15 @@ const show = visible.length >= threshold;
   .page-toc {
     margin: 0 0 var(--space-6);
   }
-  /* Mono kicker followed by a hairline that fills the row — editorial label. */
+  /* Mono kicker only. The module header's rule above already separates this
+     block, so a fill-hairline here would read as a second divider under it. */
   .toc-label {
-    display: flex;
-    align-items: center;
-    gap: var(--space-3);
     margin: 0 0 var(--space-2);
     font-family: var(--font-mono);
     font-size: var(--text-xs);
     text-transform: uppercase;
     letter-spacing: var(--tracking-wide);
     color: var(--faint);
-  }
-  .toc-label::after {
-    content: "";
-    flex: 1;
-    height: 1px;
-    background: var(--border);
   }
   .toc-list {
     list-style: none;

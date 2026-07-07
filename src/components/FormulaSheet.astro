@@ -296,17 +296,21 @@ const hasMemorize = examFormulaSheet && formulas.some((f) => f.memorize);
   .fs-list {
     list-style: none;
     margin: 0;
-    padding: 0 var(--space-5);
+    padding: 0;
     background: var(--card);
     border: 1px solid var(--border-strong);
     border-radius: var(--radius);
+    /* Clip row backgrounds/dividers to the rounded card. */
+    overflow: hidden;
   }
+  /* Padding lives on the ROW (not the list) so each row's divider spans the full
+     card width and the copy button is inset symmetrically on every side. */
   .fs-row {
     position: relative;
     display: flex;
     align-items: center;
     gap: var(--space-5);
-    padding: var(--space-3) 0;
+    padding: var(--space-4);
     border-bottom: 1px dashed var(--border);
     scroll-margin-top: calc(var(--topbar-h) + var(--space-3));
   }
@@ -314,11 +318,8 @@ const hasMemorize = examFormulaSheet && formulas.some((f) => f.memorize);
     border-bottom: 0;
   }
   /* Flash the row a `<FormulaRef>` deep-link just jumped to (keyframe in base.css).
-     Bleed out through the list's inline padding so the highlight spans the full
-     row width instead of floating inset. */
+     The row already spans the full card width, so the tint fills it edge to edge. */
   .fs-row:target {
-    margin-inline: calc(-1 * var(--space-5));
-    padding-inline: var(--space-5);
     background: var(--accent-soft);
     animation: sc-target-flash 1.8s var(--ease);
   }
