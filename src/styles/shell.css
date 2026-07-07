@@ -425,6 +425,9 @@
   margin: 0;
 }
 .hero-continue {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   font-family: var(--font-mono);
   font-size: var(--text-sm);
   color: var(--accent);
