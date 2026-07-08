@@ -120,6 +120,12 @@ import Icon from "./Icon.astro";
     font-size: var(--text-md);
     outline: none;
   }
+  /* Suppress the browser's unstyled type=search clear button — it doesn't match
+     the palette; clearing is via backspace or Esc. */
+  .search-input::-webkit-search-cancel-button {
+    -webkit-appearance: none;
+    appearance: none;
+  }
   .search-esc {
     font-size: var(--text-xs);
     color: var(--muted);
