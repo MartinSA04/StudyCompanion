@@ -96,11 +96,15 @@ const hasSections = sections.length > 0;
           </span>
           <span class="fc-level" aria-hidden="true">
             <span class="fc-level-dot" />
+            <span class="fc-level-check">
+              <Icon name="check" size={13} />
+            </span>
             <span class="fc-level-text">{labels.known}</span>
           </span>
         </button>
       ))
     }
+    <div class="fc-empty" data-fc-empty>Ingen kort matcher filteret.</div>
   </div>
 
   <div class="fc-controls">
@@ -127,7 +131,6 @@ const hasSections = sections.length > 0;
   <p class="fc-counter">
     <span data-fc-pos>1</span> / <span data-fc-total>{rendered.length}</span>
   </p>
-  <p class="fc-empty" data-fc-empty hidden>Ingen kort matcher filteret.</p>
 </div>
 
 <style>
@@ -197,12 +200,27 @@ const hasSections = sections.length > 0;
     border-color: var(--accent);
     color: var(--accent-contrast);
   }
+  /* Empty/finished state — fills the card slot (dashed placeholder), and the
+     rating controls hide, so it reads as a deliberate end-state rather than
+     orphaned buttons over a vanished card. */
   .fc-empty {
+    display: none;
+    min-height: 200px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
     text-align: center;
-    padding: var(--space-6);
     color: var(--muted);
     font-size: var(--text-sm);
-    font-style: italic;
+    border: 1px dashed var(--border-strong);
+    border-radius: var(--radius);
+  }
+  .flashcards[data-empty="true"] .fc-empty {
+    display: flex;
+  }
+  .flashcards[data-empty="true"] .fc-controls,
+  .flashcards[data-empty="true"] .fc-counter {
+    display: none;
   }
 
   .fc-stage {
@@ -282,40 +300,45 @@ const hasSections = sections.length > 0;
     z-index: 1;
     display: none;
     align-items: center;
-    gap: var(--space-1);
-    padding: 2px var(--space-2);
-    border-radius: var(--radius-pill);
-    font-family: var(--font-mono);
-    font-size: var(--text-xs);
+    gap: 5px;
     line-height: 1;
   }
   .fc-card[data-level="1"] .fc-level,
   .fc-card[data-level="2"] .fc-level {
     display: inline-flex;
   }
-  .fc-level-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    flex: none;
-    background: currentColor;
-  }
+  .fc-level-check,
   .fc-level-text {
     display: none;
   }
-  /* Level 1 — seen once: a muted amber dot, no label. */
-  .fc-card[data-level="1"] .fc-level {
-    color: var(--warning);
-    background: var(--warning-bg);
+  /* Level 1 — seen once: a bare amber dot, no capsule. */
+  .fc-level-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    flex: none;
+    background: var(--warning);
   }
-  /* Level 2 — mastered ("Kan"): a green pill with the label. */
+  /* Level 2 — mastered: a green check + "Kan" pill, the site's done/known cue. */
   .fc-card[data-level="2"] .fc-level {
+    gap: 4px;
+    padding: 3px var(--space-2) 3px 6px;
+    border-radius: var(--radius-pill);
     color: var(--tip);
     background: var(--tip-bg);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-semibold);
+  }
+  .fc-card[data-level="2"] .fc-level-dot {
+    display: none;
+  }
+  .fc-card[data-level="2"] .fc-level-check {
+    display: inline-flex;
+    align-items: center;
   }
   .fc-card[data-level="2"] .fc-level-text {
     display: inline;
-    font-weight: var(--weight-semibold);
   }
 
   .fc-controls {
@@ -381,7 +404,6 @@ const hasSections = sections.length > 0;
     const posOut = deck.querySelector<HTMLElement>("[data-fc-pos]")!;
     const totalOut = deck.querySelector<HTMLElement>("[data-fc-total]")!;
     const resetBtn = deck.querySelector<HTMLButtonElement>("[data-fc-reset]")!;
-    const emptyMsg = deck.querySelector<HTMLElement>("[data-fc-empty]");
 
     const load = (): Levels => {
       try {
@@ -399,7 +421,7 @@ const hasSections = sections.length > 0;
     let levels = load();
     let queue: number[] = [];
     let pos = 0;
-    const filter = { section: "", onlyUnknown: false, shuffled: false };
+    const filter = { section: "", onlyUnknown: false };
 
     const buildQueue = () => {
       let indices = [...Array(total).keys()];
@@ -411,14 +433,9 @@ const hasSections = sections.length > 0;
       if (filter.onlyUnknown) {
         indices = indices.filter((i) => (levels[i] ?? 0) < 2);
       }
-      if (filter.shuffled) {
-        for (let i = indices.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [indices[i], indices[j]] = [indices[j], indices[i]];
-        }
-      } else {
-        indices.sort((a, b) => (levels[a] ?? 0) - (levels[b] ?? 0) || a - b);
-      }
+      // Least-known first, then original order — a stable study order. "Bland"
+      // reshuffles the built queue in place (below), on demand.
+      indices.sort((a, b) => (levels[a] ?? 0) - (levels[b] ?? 0) || a - b);
       queue = indices;
     };
 
@@ -445,7 +462,7 @@ const hasSections = sections.length > 0;
       const refocus = cards.includes(
         document.activeElement as HTMLButtonElement,
       );
-      if (emptyMsg) emptyMsg.hidden = !isEmpty;
+      deck.dataset.empty = isEmpty ? "true" : "false";
       cards.forEach((c) => {
         c.hidden = isEmpty || Number(c.dataset.index) !== idx;
         c.dataset.flipped = "false";
@@ -534,10 +551,13 @@ const hasSections = sections.length > 0;
     const shuffleBtn =
       deck.querySelector<HTMLButtonElement>("[data-fc-shuffle]");
     if (shuffleBtn) {
+      // "Bland" is a one-shot action: each click reshuffles the current cards
+      // into a fresh random order (not a sticky sorted/shuffled toggle).
       shuffleBtn.addEventListener("click", () => {
-        filter.shuffled = !filter.shuffled;
-        shuffleBtn.classList.toggle("active", filter.shuffled);
-        buildQueue();
+        for (let i = queue.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [queue[i], queue[j]] = [queue[j], queue[i]];
+        }
         pos = 0;
         show();
       });

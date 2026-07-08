@@ -111,21 +111,6 @@
   background: var(--accent);
   transition: width var(--dur) var(--ease);
 }
-.btn-reset {
-  font-family: var(--font-mono);
-  font-size: var(--text-xs);
-  color: var(--faint);
-  background: transparent;
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius-sm);
-  padding: var(--gap-1) var(--gap-2);
-  cursor: pointer;
-  transition: background-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
-}
-.btn-reset:hover {
-  color: var(--fg);
-  border-color: var(--accent);
-}
 .menu-toggle {
   display: none;
   background: transparent;
@@ -141,7 +126,12 @@
   max-width: var(--layout-max);
   margin: 0 auto;
   display: grid;
-  grid-template-columns: var(--sidebar-w) minmax(0, 1fr);
+  /* Content is a FIXED reading measure, never 1fr — so the module header + prose
+     are the same width whether or not the TOC rail is present. The rail is an
+     ADDITIVE third column (below); the grid left-packs so any slack falls to the
+     right rather than being stolen from (or added to) the content. */
+  grid-template-columns: var(--sidebar-w) minmax(0, var(--maxw));
+  justify-content: start;
   gap: var(--gap-8);
   padding: var(--gap-7) var(--gutter) var(--gap-10);
 }
@@ -257,9 +247,11 @@
   overflow-y: auto;
   scrollbar-width: thin;
 }
-@media (min-width: 1280px) {
+/* Add the rail only when the viewport can fit nav + content + rail without
+   shrinking the content; below this it collapses to PageToc's inline copy. */
+@media (min-width: 1440px) {
   .layout--toc {
-    grid-template-columns: var(--sidebar-w) minmax(0, 1fr) var(--toc-w);
+    grid-template-columns: var(--sidebar-w) minmax(0, var(--maxw)) var(--toc-w);
   }
   .layout--toc .toc-rail {
     display: block;
@@ -873,9 +865,6 @@ summary,
   }
   .topbar-inner {
     gap: var(--gap-2);
-  }
-  .btn-reset {
-    display: none;
   }
   .mod-head {
     display: block;

@@ -14,7 +14,9 @@ import Icon from "./Icon.astro";
 
 <div class="selfcheck">
   <p class="selfcheck-q">
-    <span class="selfcheck-tag" aria-hidden="true">?</span>
+    <span class="selfcheck-tag" aria-hidden="true">
+      <Icon name="help-circle" size={20} />
+    </span>
     <span set:html={renderMathString(question)} />
   </p>
   <details class="selfcheck-a">
@@ -38,21 +40,19 @@ import Icon from "./Icon.astro";
   }
   .selfcheck-q {
     display: flex;
+    align-items: flex-start;
     gap: var(--space-3);
     font-weight: var(--weight-medium);
     margin-bottom: var(--space-3);
   }
+  /* Stroked help-circle marker, centred against the first line of the question —
+     same line-icon vocabulary as the other content blocks. */
   .selfcheck-tag {
     flex: none;
-    width: 1.5em;
-    height: 1.5em;
-    display: grid;
-    place-items: center;
-    border-radius: 50%;
-    background: var(--accent);
-    color: var(--accent-contrast);
-    font-weight: var(--weight-bold);
-    font-size: 0.85em;
+    display: inline-flex;
+    align-items: center;
+    height: 1lh;
+    color: var(--accent);
   }
   summary {
     display: inline-flex;

@@ -347,13 +347,6 @@ const hasTools = toolNav.some((t) => t.show);
         }
         {features.search && <SearchPalette label={ui.searchLabel} />}
         {features.theme && <ThemeToggle storageKey={themeKey} />}
-        {
-          features.progress && (
-            <button class="btn-reset" type="button" data-progress-reset>
-              {ui.resetLabel}
-            </button>
-          )
-        }
       </div>
     </div>
 
@@ -519,11 +512,12 @@ const hasTools = toolNav.some((t) => t.show);
         } catch {}
       };
 
-      function paintProgress() {
-        const fill = document.querySelector("[data-progress-fill]");
-        const text = document.querySelector("[data-progress-text]");
+      function paintProgress(doc) {
+        doc = doc || document;
+        const fill = doc.querySelector("[data-progress-fill]");
+        const text = doc.querySelector("[data-progress-text]");
         const bar = fill ? fill.closest(".progressbar") : null;
-        const navLinks = [...document.querySelectorAll("[data-nav-order]")];
+        const navLinks = [...doc.querySelectorAll("[data-nav-order]")];
         const set = new Set(readProg());
         navLinks.forEach((a) =>
           a.classList.toggle("done", set.has(Number(a.dataset.navOrder))),
@@ -538,8 +532,9 @@ const hasTools = toolNav.some((t) => t.show);
       }
 
       // The current page may carry a "mark done" button (set in [slug].astro).
-      function paintDoneBtn() {
-        const doneBtn = document.querySelector("[data-done-order]");
+      function paintDoneBtn(doc) {
+        doc = doc || document;
+        const doneBtn = doc.querySelector("[data-done-order]");
         if (!doneBtn) return;
         const on = new Set(readProg()).has(Number(doneBtn.dataset.doneOrder));
         doneBtn.classList.toggle("done", on);
@@ -567,16 +562,6 @@ const hasTools = toolNav.some((t) => t.show);
             writeProg(arr);
             paintDoneBtn();
             paintProgress();
-          });
-        }
-
-        const resetBtn = document.querySelector("[data-progress-reset]");
-        if (resetBtn && !resetBtn.dataset.scBound) {
-          resetBtn.dataset.scBound = "1";
-          resetBtn.addEventListener("click", () => {
-            writeProg([]);
-            paintProgress();
-            paintDoneBtn();
           });
         }
 
@@ -691,6 +676,13 @@ const hasTools = toolNav.some((t) => t.show);
       // Run per-page setup on first load and after every view-transition swap
       // (astro:page-load fires on the initial load too).
       document.addEventListener("astro:page-load", setupPage);
+      // Paint progress + the done button onto the INCOMING document before the
+      // swap, so navigating between modules never flashes the default (unmarked)
+      // state for a frame — same reasoning as the theme apply above.
+      document.addEventListener("astro:before-swap", function (e) {
+        paintProgress(e.newDocument);
+        paintDoneBtn(e.newDocument);
+      });
     </script>
   </body>
 </html>
