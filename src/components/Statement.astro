@@ -81,7 +81,10 @@ const anchor = id ?? slugify(name);
     flex: none;
     align-self: center;
     font-size: var(--text-sm);
-    color: var(--accent);
+    /* --accent-ink keeps the kicker AA on the accent-soft ground in both themes
+       (raw --accent is only 3.89:1 in dark). The bookmark icon inherits it via
+       currentColor, so the kicker stays one uniform accent unit. */
+    color: var(--accent-ink);
   }
   .statement-name {
     font-family: var(--font-display);
@@ -93,7 +96,7 @@ const anchor = id ?? slugify(name);
     margin-inline-start: auto;
     align-self: center;
     padding-inline: var(--space-1);
-    color: var(--faint);
+    color: var(--muted);
     font-family: var(--font-mono);
     text-decoration: none;
     opacity: 0.5;
@@ -104,7 +107,7 @@ const anchor = id ?? slugify(name);
   .statement:hover .statement-anchor,
   .statement-anchor:focus-visible {
     opacity: 1;
-    color: var(--accent);
+    color: var(--accent-ink);
   }
   .statement-body :global(> :last-child) {
     margin-bottom: 0;

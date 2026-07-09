@@ -128,7 +128,7 @@ const { src, title, caption, height = 300, host = "canvas" } = Astro.props;
   }
   .sim-controls :global(output) {
     font-variant-numeric: tabular-nums;
-    color: var(--accent);
+    color: var(--accent-ink);
     font-weight: var(--weight-medium);
   }
   .sim-controls :global(input[type="range"]) {
@@ -147,7 +147,7 @@ const { src, title, caption, height = 300, host = "canvas" } = Astro.props;
     border-radius: var(--radius);
   }
   .sim-controls :global(.sim-readout b) {
-    color: var(--accent);
+    color: var(--accent-ink);
     font-weight: var(--weight-semibold);
   }
   .sim-controls :global(.sim-btn) {
@@ -156,7 +156,7 @@ const { src, title, caption, height = 300, host = "canvas" } = Astro.props;
     padding: 0.3em 0.7em;
     border: 1px solid var(--border);
     border-radius: var(--radius-sm);
-    background: var(--bg);
+    background: var(--bg-elevated);
     color: var(--muted);
     transition:
       border-color var(--dur-fast) var(--ease),
@@ -164,7 +164,7 @@ const { src, title, caption, height = 300, host = "canvas" } = Astro.props;
   }
   .sim-controls :global(.sim-btn:hover:not(:disabled)) {
     border-color: var(--accent);
-    color: var(--accent);
+    color: var(--accent-ink);
   }
   /* Tactile press, kept local (not the shared .sc-press): .sim-btn is injected by
      the course module — no markup here to carry a class — and the :not(:disabled)
@@ -175,7 +175,7 @@ const { src, title, caption, height = 300, host = "canvas" } = Astro.props;
   .sim-controls :global(.sim-btn[aria-pressed="true"]) {
     background: var(--accent-weak);
     border-color: var(--accent);
-    color: var(--accent);
+    color: var(--accent-ink);
   }
   .sim-controls :global(.sim-btn:disabled) {
     opacity: 0.4;

@@ -36,7 +36,7 @@
 }
 .sc-icon-btn:hover,
 .sc-copy:hover {
-  color: var(--accent);
+  color: var(--accent-ink);
   border-color: var(--accent);
 }
 
@@ -75,7 +75,7 @@
   gap: var(--space-2);
   font-family: var(--font-mono);
   font-size: var(--text-sm);
-  color: var(--accent);
+  color: var(--accent-ink);
   cursor: pointer;
   list-style: none;
   user-select: none;
@@ -121,7 +121,7 @@ details[open] > summary .sc-chev {
     border-color var(--dur-fast) var(--ease);
 }
 .sc-chip:hover {
-  color: var(--accent);
+  color: var(--accent-ink);
   border-color: var(--accent);
 }
 .sc-chip.active,

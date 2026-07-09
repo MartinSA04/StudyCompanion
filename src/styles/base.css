@@ -89,7 +89,7 @@ table {
 }
 
 a {
-  color: var(--accent);
+  color: var(--accent-ink);
   text-decoration-color: var(--accent-ring);
   text-underline-offset: 0.15em;
 }

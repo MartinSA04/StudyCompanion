@@ -62,7 +62,7 @@
   width: 30px;
   height: 30px;
   flex: none;
-  color: var(--accent);
+  color: var(--accent-ink);
 }
 .brand-text {
   display: flex;
@@ -111,14 +111,12 @@
   background: var(--accent);
   transition: width var(--dur) var(--ease);
 }
+/* Box + accent hover come from the shared .sc-icon-btn primitive (like the theme
+   toggle); only the square topbar-control size + collapsed-by-default are local. */
 .menu-toggle {
   display: none;
-  background: transparent;
-  border: 1px solid var(--border-strong);
-  color: var(--fg);
-  border-radius: var(--radius-sm);
-  padding: var(--gap-2);
-  cursor: pointer;
+  width: var(--control-h);
+  height: var(--control-h);
 }
 
 /* ====== layout ====== */
@@ -209,7 +207,7 @@
    The fill + accent colour already read as "you are here". */
 .nav-link.active {
   background: var(--accent-soft);
-  color: var(--accent);
+  color: var(--accent-ink);
 }
 .nav-num {
   font-family: var(--font-mono);
@@ -225,7 +223,7 @@
   justify-content: center;
 }
 .nav-link.active .nav-num {
-  color: var(--accent);
+  color: var(--accent-ink);
 }
 .nav-title {
   flex: 1;
@@ -246,7 +244,7 @@
   transition: color var(--dur) var(--ease);
 }
 .nav-link.done .nav-check {
-  color: var(--accent);
+  color: var(--accent-ink);
 }
 
 .content {
@@ -289,7 +287,7 @@
   font-size: var(--text-xs);
   letter-spacing: var(--tracking);
   text-transform: uppercase;
-  color: var(--accent);
+  color: var(--accent-ink);
   margin-bottom: var(--gap-3);
 }
 .hero h1 {
@@ -298,7 +296,7 @@
   max-width: 18ch;
 }
 .hero h1 .accent-text {
-  color: var(--accent);
+  color: var(--accent-ink);
 }
 .hero p {
   font-size: var(--text-md);
@@ -318,7 +316,7 @@
   gap: 6px;
   font-family: var(--font-mono);
   font-size: var(--text-sm);
-  color: var(--accent);
+  color: var(--accent-ink);
   text-decoration: none;
 }
 .hero-course-link:hover {
@@ -366,7 +364,7 @@
 .tile-num {
   font-family: var(--font-mono);
   font-size: var(--text-xs);
-  color: var(--accent);
+  color: var(--accent-ink);
 }
 .tile-title {
   font-family: var(--font-display);
@@ -385,7 +383,7 @@
 .tile-week {
   font-family: var(--font-mono);
   font-size: var(--text-xs);
-  color: var(--faint);
+  color: var(--muted);
 }
 .tile-meta .tile-week::before {
   content: "·";
@@ -401,7 +399,7 @@
   height: 18px;
   border-radius: var(--radius-xs);
   background: var(--accent-soft);
-  color: var(--accent);
+  color: var(--accent-ink);
   display: none;
   place-items: center;
 }
@@ -435,7 +433,7 @@
   gap: 6px;
   font-family: var(--font-mono);
   font-size: var(--text-sm);
-  color: var(--accent);
+  color: var(--accent-ink);
   text-decoration: none;
   border: 1px solid var(--accent-ring);
   border-radius: var(--radius-sm);
@@ -497,7 +495,7 @@
   font-size: var(--text-sm);
   border: 1px solid var(--accent-ring);
   background: transparent;
-  color: var(--accent);
+  color: var(--accent-ink);
   border-radius: var(--radius);
   padding: var(--gap-2) var(--gap-4);
   cursor: pointer;
@@ -520,7 +518,7 @@
    page's accent system rather than a stray green. */
 .done-btn.done {
   background: var(--accent-soft);
-  color: var(--accent);
+  color: var(--accent-ink);
   border-color: transparent;
   font-weight: var(--weight-semibold);
 }
@@ -548,7 +546,7 @@
   gap: var(--gap-1);
   min-height: var(--control-h);
   text-decoration: none;
-  color: var(--accent);
+  color: var(--accent-ink);
   padding: var(--gap-2) var(--gap-3);
   font-family: var(--font-mono);
   font-size: var(--text-sm);
@@ -696,7 +694,7 @@
   font-size: var(--text-sm);
 }
 .official-sheet svg {
-  color: var(--accent);
+  color: var(--accent-ink);
   flex: none;
 }
 
@@ -721,7 +719,7 @@
   line-height: 1.8;
 }
 .site-footer .accent-text {
-  color: var(--accent);
+  color: var(--accent-ink);
   font-weight: var(--weight-semibold);
   text-decoration: none;
 }
@@ -738,7 +736,7 @@
   margin-bottom: var(--gap-2);
 }
 .footer-edit {
-  color: var(--accent);
+  color: var(--accent-ink);
   text-decoration: none;
 }
 .footer-edit:hover {
@@ -791,24 +789,15 @@
   }
   /* Sits in the drawer's top padding (80px), clear of the first nav row and any
      notch. */
+  /* Box + accent hover from .sc-icon-btn; only placement + the larger 40px touch
+     target are local. */
   .sidebar-close {
     display: grid;
-    place-items: center;
     position: absolute;
     top: max(var(--gap-4), env(safe-area-inset-top));
     right: var(--gap-4);
     width: 40px;
     height: 40px;
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    background: var(--bg);
-    color: var(--muted);
-    cursor: pointer;
-    transition: color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
-  }
-  .sidebar-close:hover {
-    color: var(--fg);
-    border-color: var(--border-strong);
   }
   /* Topbar space is at a premium once the nav collapses to a drawer — keep only
      the essentials (menu, brand, search, theme). Progress still reads from the

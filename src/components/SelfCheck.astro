@@ -20,7 +20,7 @@ import Icon from "./Icon.astro";
     <span set:html={renderMathString(question)} />
   </p>
   <details class="selfcheck-a">
-    <summary>
+    <summary class="sc-summary">
       <span class="selfcheck-chev sc-chev" aria-hidden="true">
         <Icon name="chevron-right" size={13} />
       </span>
@@ -51,25 +51,20 @@ import Icon from "./Icon.astro";
     display: inline-flex;
     align-items: center;
     height: 1lh;
-    color: var(--accent);
+    color: var(--accent-ink);
   }
-  summary {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-2);
-    cursor: pointer;
+  /* Compact inline reveal. The shared .sc-summary carries the type, the faint-ink
+     hover and the marker-hide; only the compact width + a little padding for the
+     wash are local — this reveal sits in the panel body, not as a full-width
+     header, and .selfcheck-body already draws the [open] divider. */
+  .selfcheck-a > summary {
     width: fit-content;
-    font-family: var(--font-mono);
-    font-size: var(--text-sm);
-    color: var(--accent);
-    list-style: none;
+    padding: 0.15em 0.45em;
+    margin-inline-start: -0.45em;
+    border-radius: var(--radius-xs);
   }
-  summary::-webkit-details-marker {
-    display: none;
-  }
-  summary:hover {
-    text-decoration: underline;
-    text-underline-offset: 0.2em;
+  .selfcheck-a[open] > summary {
+    border-bottom: 0;
   }
   /* The chevron's display/transition/rotate come from the shared .sc-chev
      primitive; the summary itself stays local (an inline underline reveal). */

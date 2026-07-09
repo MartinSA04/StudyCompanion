@@ -151,7 +151,7 @@ const hasSections = sections.length > 0;
     color: var(--muted);
   }
   .fc-progress strong {
-    color: var(--accent);
+    color: var(--accent-ink);
   }
   .fc-reset {
     font-family: var(--font-mono);
@@ -162,7 +162,7 @@ const hasSections = sections.length > 0;
     transition: color var(--dur-fast) var(--ease);
   }
   .fc-reset:hover {
-    color: var(--accent);
+    color: var(--accent-ink);
   }
 
   /* Filter toolbar: section chips (left) + toggles (right) — one chip language. */
@@ -271,7 +271,9 @@ const hasSections = sections.length > 0;
   .fc-section {
     font-size: var(--text-xs);
     letter-spacing: var(--tracking-wide);
-    color: var(--accent);
+    /* --accent-ink: this kicker sits on the accent-soft back AND the bg-elevated
+       front — raw --accent fails AA in dark on both (3.89 / 4.37). */
+    color: var(--accent-ink);
   }
   .fc-hint {
     position: absolute;
@@ -365,7 +367,7 @@ const hasSections = sections.length > 0;
      bordered control on the page. */
   .fc-btn:hover {
     border-color: var(--accent);
-    color: var(--accent);
+    color: var(--accent-ink);
   }
   .fc-counter {
     text-align: center;

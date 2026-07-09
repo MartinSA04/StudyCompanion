@@ -27,6 +27,13 @@
   --accent-weak: color-mix(in srgb, var(--accent) 12%, transparent);
   --accent-soft: color-mix(in srgb, var(--accent) 10%, var(--bg-elevated));
   --accent-ring: color-mix(in srgb, var(--accent) 45%, transparent);
+  /* Accent nudged toward the theme's own ink so it stays AA as TEXT on tinted or
+     elevated grounds, where raw --accent fails in dark (3.89:1 on --accent-soft,
+     4.37:1 on --bg-elevated) — the build guardrail only validates accent against
+     the page --bg, so it never catches these. Resolves per theme automatically
+     (both --accent and --fg are theme-switched). Use for accent-coloured TEXT on a
+     panel/tint; keep raw --accent for fills, borders, rings and icons. */
+  --accent-ink: color-mix(in srgb, var(--accent) 75%, var(--fg));
 
   /* --- Surfaces & text (light) — Flexoki warm-paper ramp (stephango.com/flexoki).
      The page is the bright paper; panels/cards step DOWN to base-50, exactly like
