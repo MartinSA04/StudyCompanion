@@ -71,9 +71,11 @@ import Icon from "./Icon.astro";
       color var(--dur-fast) var(--ease),
       border-color var(--dur-fast) var(--ease);
   }
+  /* Shares the .sc-icon-btn accent hover (kept local: the trigger is a labelled
+     inline-flex pill, not the square grid icon button). */
   .search-trigger:hover {
-    border-color: var(--border-strong);
-    color: var(--fg);
+    border-color: var(--accent);
+    color: var(--accent);
   }
   /* Icons render from the <Icon> child (outside this scope) — reach via :global. */
   .search-trigger :global(.search-icon),

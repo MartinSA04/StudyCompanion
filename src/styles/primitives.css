@@ -15,9 +15,11 @@
   transform: translateY(1px);
 }
 
-/* --- Square icon control (theme toggle, search trigger) ---
-   Box + neutral chrome hover. Size is the caller's (--control-h for topbar
-   chrome). The copy button is a separate, accent-hover variant below. */
+/* --- Square icon control (theme toggle, copy buttons) ---
+   Box + the shared accent hover: every bordered interactive control lights up
+   in accent on hover (the page's dominant hover cue), so the icon button and
+   the copy button share one :hover — the search trigger matches it locally.
+   Size is the caller's (--control-h topbar chrome, 32px copy). */
 .sc-icon-btn {
   display: inline-grid;
   place-items: center;
@@ -27,18 +29,17 @@
   color: var(--muted);
   transition:
     color var(--dur-fast) var(--ease),
-    background-color var(--dur-fast) var(--ease),
     border-color var(--dur-fast) var(--ease);
 }
-.sc-icon-btn:hover {
-  color: var(--fg);
-  background: var(--card-hover);
-  border-color: var(--border-strong);
+.sc-icon-btn:hover,
+.sc-copy:hover {
+  color: var(--accent);
+  border-color: var(--accent);
 }
 
 /* --- Copy control (code blocks + formula sheet) ---
-   A 32px icon control whose hover reads "actionable" (accent, not neutral) and
-   which swaps a copy glyph for a check once copied. NO transition here: the
+   A 32px icon control that shares the .sc-icon-btn accent hover (above) and
+   swaps a copy glyph for a check once copied. NO transition here: the
    <pre> copy button also animates opacity on reveal, and an equal-specificity
    transition would clobber it — so each caller keeps its own transition.
    Positioning/visibility is the caller's (absolute+opacity over a <pre>, or
@@ -56,10 +57,6 @@
 }
 .sc-copy svg {
   display: block;
-}
-.sc-copy:hover {
-  color: var(--accent);
-  border-color: var(--accent);
 }
 .sc-copy .i-check {
   display: none;
