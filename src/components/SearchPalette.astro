@@ -17,7 +17,7 @@ import Icon from "./Icon.astro";
 <button type="button" class="search-trigger sc-press" aria-label={label}>
   <Icon name="search" size={17} class="search-icon" />
   <span class="search-trigger-text">{label}</span>
-  <kbd class="search-kbd" data-search-kbd>⌘K</kbd>
+  <kbd class="search-kbd sc-kbd" data-search-kbd>⌘K</kbd>
 </button>
 
 <script is:inline data-astro-rerun>
@@ -49,7 +49,7 @@ import Icon from "./Icon.astro";
       spellcheck="false"
       aria-label={label}
     />
-    <button type="submit" value="close" class="search-esc sc-press">Esc</button>
+    <button type="submit" value="close" class="search-esc sc-press sc-kbd">Esc</button>
   </form>
   <div class="search-results" aria-live="polite"></div>
 </dialog>
@@ -82,14 +82,9 @@ import Icon from "./Icon.astro";
   .search-box :global(.search-icon) {
     flex: none;
   }
+  /* Frame comes from the shared .sc-kbd; only the tight inline padding is local. */
   .search-kbd {
-    font-family: var(--font-mono);
-    font-size: var(--text-xs);
-    color: var(--muted);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-xs);
     padding: 0 0.35em;
-    background: var(--card);
   }
 
   .search-dialog {
@@ -131,21 +126,17 @@ import Icon from "./Icon.astro";
     -webkit-appearance: none;
     appearance: none;
   }
+  /* Keycap frame from the shared .sc-kbd; the Esc button (it's clickable) keeps
+     its own padding + the shared accent hover. */
   .search-esc {
-    font-family: var(--font-mono);
-    font-size: var(--text-xs);
-    color: var(--muted);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-xs);
     padding: 0.15em 0.5em;
-    background: var(--card);
     transition:
       color var(--dur-fast) var(--ease),
       border-color var(--dur-fast) var(--ease);
   }
   .search-esc:hover {
-    color: var(--fg);
-    border-color: var(--border-strong);
+    color: var(--accent);
+    border-color: var(--accent);
   }
   .search-results {
     max-height: min(60vh, 480px);

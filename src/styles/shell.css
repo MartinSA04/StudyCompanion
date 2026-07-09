@@ -490,6 +490,9 @@
   flex-wrap: wrap;
   gap: var(--gap-2) var(--gap-3);
 }
+/* Accent-outline action, shared idiom with .hero-continue: an accent-ring
+   outline that fills with --accent-weak on hover, then the solid --accent-soft
+   "done" state below. */
 .done-btn {
   flex: none;
   display: inline-flex;
@@ -497,9 +500,9 @@
   gap: var(--gap-2);
   font-family: var(--font-mono);
   font-size: var(--text-sm);
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--accent-ring);
   background: transparent;
-  color: var(--muted);
+  color: var(--accent);
   border-radius: var(--radius);
   padding: var(--gap-2) var(--gap-4);
   cursor: pointer;
@@ -514,8 +517,8 @@
   display: inline-flex;
 }
 .done-btn:hover {
+  background: var(--accent-weak);
   border-color: var(--accent);
-  color: var(--fg);
 }
 /* Done: a quiet soft-accent pill (no border) — the same "you're here / progress"
    language as the active nav item and the progress bar, so completion sits in the

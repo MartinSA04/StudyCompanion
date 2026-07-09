@@ -236,27 +236,7 @@ const hasMemorize = examFormulaSheet && formulas.some((f) => f.memorize);
     flex-wrap: wrap;
     gap: var(--space-2);
   }
-  /* Frame (border/radius/mono/muted/transition) comes from the shared .sc-chip;
-     the sheet's filter chips keep their roomier padding, size and fill. Fill is
-     --bg-elevated (== --card; one token for float surfaces). */
-  .fs-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4em;
-    font-size: var(--text-sm);
-    padding: 0.4em 0.95em;
-    background: var(--bg-elevated);
-  }
-  .fs-chip:hover {
-    color: var(--fg);
-    border-color: var(--accent);
-  }
-  .fs-chip[aria-pressed="true"] {
-    background: var(--accent);
-    border-color: var(--accent);
-    color: var(--accent-contrast);
-    font-weight: var(--weight-medium);
-  }
+  /* Filter chips are fully the shared .sc-chip (size, hover, selected state). */
 
   /* Groups: each section is a panel with dashed-divided rows — inline formula
      left, description right — mirroring the original guide's formula sheet. */

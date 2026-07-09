@@ -15,18 +15,21 @@
   transform: translateY(1px);
 }
 
-/* --- Square icon control (theme toggle, copy buttons) ---
-   Box + the shared accent hover: every bordered interactive control lights up
-   in accent on hover (the page's dominant hover cue), so the icon button and
-   the copy button share one :hover — the search trigger matches it locally.
-   Size is the caller's (--control-h topbar chrome, 32px copy). */
-.sc-icon-btn {
+/* --- Square icon control + copy button (one shared box) ---
+   The theme toggle and the copy buttons (and, locally, the search trigger)
+   share one box and one accent hover: every bordered interactive control lights
+   up in accent (border+color) on hover — the page's dominant hover cue. Size is
+   the caller's (--control-h topbar chrome, 32px copy). */
+.sc-icon-btn,
+.sc-copy {
   display: inline-grid;
   place-items: center;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   background: var(--bg-elevated);
   color: var(--muted);
+}
+.sc-icon-btn {
   transition:
     color var(--dur-fast) var(--ease),
     border-color var(--dur-fast) var(--ease);
@@ -38,22 +41,13 @@
 }
 
 /* --- Copy control (code blocks + formula sheet) ---
-   A 32px icon control that shares the .sc-icon-btn accent hover (above) and
-   swaps a copy glyph for a check once copied. NO transition here: the
-   <pre> copy button also animates opacity on reveal, and an equal-specificity
-   transition would clobber it — so each caller keeps its own transition.
-   Positioning/visibility is the caller's (absolute+opacity over a <pre>, or
-   static in a row). Icons come from <Icon> children; this file is global, so no
-   :global() is needed to reach .i-copy / .i-check. */
+   The shared icon box (above) at 32px, plus a copy→check swap once copied. NO
+   transition here: the <pre> copy button animates opacity on reveal and keeps
+   its own transition; positioning/visibility is the caller's. Icons come from
+   <Icon> children; this file is global, so no :global() reaches .i-copy/.i-check. */
 .sc-copy {
-  display: inline-grid;
-  place-items: center;
   width: 32px;
   height: 32px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  background: var(--bg-elevated);
-  color: var(--muted);
 }
 .sc-copy svg {
   display: block;
@@ -106,17 +100,47 @@ details[open] > summary .sc-chev {
   transform: rotate(90deg);
 }
 
-/* --- Pill chip frame (filter toggles, formula tags) ---
-   Frame + type only; size / padding / fill / display / hover stay the caller's. */
+/* --- Pill chip (filter toggles, formula tags) ---
+   A COMPLETE chip: frame + compact mono type + accent hover + selected fill, so
+   every chip on the site is one size and one behaviour. Selected is either an
+   `.active` class or `aria-pressed="true"`. */
 .sc-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  padding: 0.35em 0.8em;
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-pill);
+  background: var(--bg-elevated);
   font-family: var(--font-mono);
+  font-size: var(--text-xs);
   color: var(--muted);
   transition:
     color var(--dur-fast) var(--ease),
     background-color var(--dur-fast) var(--ease),
     border-color var(--dur-fast) var(--ease);
+}
+.sc-chip:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+.sc-chip.active,
+.sc-chip[aria-pressed="true"] {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-contrast);
+}
+
+/* --- Keycap (⌘K hint, Esc button) ---
+   Frame + type only; padding stays the caller's (a tight inline hint vs a
+   clickable button), and a clickable keycap adds its own hover. */
+.sc-kbd {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  background: var(--card);
 }
 
 /* --- Mono uppercase kicker / label ---

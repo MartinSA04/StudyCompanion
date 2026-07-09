@@ -182,23 +182,7 @@ const hasSections = sections.length > 0;
     flex-wrap: wrap;
     gap: var(--space-1);
   }
-  /* Frame (border/radius/mono/muted/transition) comes from the shared .sc-chip;
-     the deck's chips keep their compact padding, size and fill. */
-  .fc-chip {
-    padding: 3px var(--space-3);
-    background: var(--bg-elevated);
-    font-size: var(--text-xs);
-    cursor: pointer;
-  }
-  .fc-chip:hover {
-    border-color: var(--accent);
-    color: var(--fg);
-  }
-  .fc-chip.active {
-    background: var(--accent);
-    border-color: var(--accent);
-    color: var(--accent-contrast);
-  }
+  /* Chips are fully the shared .sc-chip (size, hover, selected state). */
   /* Empty/finished state — fills the card slot (dashed placeholder), and the
      rating controls hide, so it reads as a deliberate end-state rather than
      orphaned buttons over a vanished card. */
@@ -370,17 +354,9 @@ const hasSections = sections.length > 0;
     place-items: center;
     color: var(--muted);
   }
+  /* All deck control buttons light up in accent on hover, matching every other
+     bordered control on the page. */
   .fc-btn:hover {
-    border-color: var(--border-strong);
-  }
-  .fc-nav:hover {
-    color: var(--fg);
-  }
-  .fc-review:hover {
-    border-color: var(--border-strong);
-    color: var(--fg);
-  }
-  .fc-known:hover {
     border-color: var(--accent);
     color: var(--accent);
   }
