@@ -14,7 +14,7 @@ const { label = "Søk" } = Astro.props;
 import Icon from "./Icon.astro";
 ---
 
-<button type="button" class="search-trigger sc-press" aria-label={label}>
+<button type="button" class="search-trigger sc-pill sc-press" aria-label={label}>
   <Icon name="search" size={17} class="search-icon" />
   <span class="search-trigger-text">{label}</span>
   <kbd class="search-kbd sc-kbd" data-search-kbd>⌘K</kbd>
@@ -55,27 +55,12 @@ import Icon from "./Icon.astro";
 </dialog>
 
 <style>
+  /* Frame + accent hover come from the shared .sc-pill primitive; only the
+     control height + inline padding are local. */
   .search-trigger {
-    display: inline-flex;
-    align-items: center;
     gap: var(--space-2);
     height: var(--control-h);
     padding-inline: var(--space-3);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    background: var(--bg-elevated);
-    color: var(--muted);
-    font-family: var(--font-mono);
-    font-size: var(--text-sm);
-    transition:
-      color var(--dur-fast) var(--ease),
-      border-color var(--dur-fast) var(--ease);
-  }
-  /* Shares the .sc-icon-btn accent hover (kept local: the trigger is a labelled
-     inline-flex pill, not the square grid icon button). */
-  .search-trigger:hover {
-    border-color: var(--accent);
-    color: var(--accent-ink);
   }
   /* Icons render from the <Icon> child (outside this scope) — reach via :global. */
   .search-trigger :global(.search-icon),

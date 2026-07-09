@@ -66,6 +66,29 @@
   display: block;
 }
 
+/* --- Labelled outline pill (search trigger, done button, hero "continue") ---
+   The bordered-control recipe in a LABELLED inline-flex form (vs the square
+   .sc-icon-btn): --bg-elevated fill, neutral border, mono muted text; hover
+   lights the border + text to accent, no fill change. Callers add their own
+   size/padding (and any "done"/selected state on top). */
+.sc-pill {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-elevated);
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  transition:
+    color var(--dur-fast) var(--ease),
+    border-color var(--dur-fast) var(--ease);
+}
+.sc-pill:hover {
+  border-color: var(--accent);
+  color: var(--accent-ink);
+}
+
 /* --- Disclosure summary idiom (Solution / Hint / Derivation) ---
    Apply .sc-summary to the <summary> and wrap the chevron glyph in .sc-chev.
    The container (radius / padding / margin) stays the component's. */

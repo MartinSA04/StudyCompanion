@@ -421,28 +421,28 @@
 .hero-progress-row[hidden] {
   display: none;
 }
-.hero-done {
+/* Scoped past `.hero p` (0-1-1), which otherwise wins over a bare `.hero-done`
+   and forces prose margin + --text-md onto this meta line — the stray bottom
+   margin is what knocked it off-centre from the continue pill in the flex row. */
+.hero-progress-row .hero-done {
   font-family: var(--font-mono);
   font-size: var(--text-sm);
   color: var(--muted);
   margin: 0;
 }
+/* Frame + accent hover from the shared .sc-pill primitive (same recipe as the
+   search trigger + theme toggle); only the gap, padding and link reset are local. */
 .hero-continue {
-  display: inline-flex;
-  align-items: center;
   gap: 6px;
-  font-family: var(--font-mono);
-  font-size: var(--text-sm);
-  color: var(--accent-ink);
-  text-decoration: none;
-  border: 1px solid var(--accent-ring);
-  border-radius: var(--radius-sm);
   padding: var(--gap-1) var(--gap-3);
-  transition: background-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
+  text-decoration: none;
 }
-.hero-continue:hover {
-  background: var(--accent-weak);
-  border-color: var(--accent);
+/* Ships `hidden`; JS reveals it once there's a module to resume. .sc-pill sets a
+   class-level `display` that beats the UA `[hidden]{display:none}` (same gotcha as
+   .hero-progress-row above), so restate it — otherwise a dead "Fortsett → #" pill
+   shows when there's nothing to resume. */
+.hero-continue[hidden] {
+  display: none;
 }
 
 /* ====== module header ====== */
@@ -483,24 +483,16 @@
   flex-wrap: wrap;
   gap: var(--gap-2) var(--gap-3);
 }
-/* Accent-outline action, shared idiom with .hero-continue: an accent-ring
-   outline that fills with --accent-weak on hover, then the solid --accent-soft
-   "done" state below. */
+/* Frame + accent hover from the shared .sc-pill primitive (same as the search
+   trigger + hero continue); local: size + the --accent-soft "done" pill below.
+   background-color stays in the transition so the done toggle fades. */
 .done-btn {
   flex: none;
-  display: inline-flex;
-  align-items: center;
   gap: var(--gap-2);
-  font-family: var(--font-mono);
-  font-size: var(--text-sm);
-  border: 1px solid var(--accent-ring);
-  background: transparent;
-  color: var(--accent-ink);
-  border-radius: var(--radius);
   padding: var(--gap-2) var(--gap-4);
   cursor: pointer;
-  transition: background-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
   white-space: nowrap;
+  transition: background-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
 }
 /* The check shows only once the module is marked done. */
 .done-check {
@@ -508,10 +500,6 @@
 }
 .done-btn.done .done-check {
   display: inline-flex;
-}
-.done-btn:hover {
-  background: var(--accent-weak);
-  border-color: var(--accent);
 }
 /* Done: a quiet soft-accent pill (no border) — the same "you're here / progress"
    language as the active nav item and the progress bar, so completion sits in the
