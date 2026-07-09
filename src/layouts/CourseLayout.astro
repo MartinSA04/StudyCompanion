@@ -380,7 +380,7 @@ const hasTools = toolNav.some((t) => t.show);
           <Icon name="x" size={18} />
         </button>
         <a
-          class={`nav-link sc-press${active === "top" ? " active" : ""}`}
+          class={`nav-link sc-press sc-lift${active === "top" ? " active" : ""}`}
           href="/"
           aria-current={active === "top" ? "page" : undefined}>
           <span class="nav-num"><Icon name="grid" /></span>
@@ -395,7 +395,7 @@ const hasTools = toolNav.some((t) => t.show);
                 .filter((t) => t.show)
                 .map((t) => (
                   <a
-                    class={`nav-link sc-press${active === t.slug ? " active" : ""}`}
+                    class={`nav-link sc-press sc-lift${active === t.slug ? " active" : ""}`}
                     href={`/${t.slug}`}
                     aria-current={active === t.slug ? "page" : undefined}>
                     <span class="nav-num">
@@ -414,7 +414,7 @@ const hasTools = toolNav.some((t) => t.show);
               <div class="nav-section">{group.part ?? "Moduler"}</div>
               {group.items.map((item) => (
                 <a
-                  class={`nav-link sc-press${active === item.slug ? " active" : ""}`}
+                  class={`nav-link sc-press sc-lift${active === item.slug ? " active" : ""}`}
                   href={`/${item.slug}`}
                   data-nav-order={item.order}
                   aria-current={active === item.slug ? "page" : undefined}>
@@ -434,7 +434,7 @@ const hasTools = toolNav.some((t) => t.show);
             <>
               <div class="nav-section">Lenker</div>
               {course.links.map((l) => (
-                <a class="nav-link sc-press" href={l.url} target="_blank" rel="noopener noreferrer">
+                <a class="nav-link sc-press sc-lift" href={l.url} target="_blank" rel="noopener noreferrer">
                   <span class="nav-num"><Icon name="external" /></span>
                   <span class="nav-title">{l.label}</span>
                 </a>

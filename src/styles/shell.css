@@ -184,17 +184,20 @@
      on wrapped rows, instead of floating to the row's vertical middle. */
   align-items: flex-start;
   gap: var(--gap-2);
+  /* A few px between rows so a hovered row's lift shadow has room to read
+     instead of bleeding into the flush neighbour above/below. */
+  margin-block: 3px;
   padding: var(--gap-2) var(--gap-3);
   border-radius: var(--radius);
   color: var(--muted);
   text-decoration: none;
   font-size: var(--text-sm);
   font-family: var(--font-body);
-  transition: background-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
   border: 1px solid transparent;
 }
-/* Hover lifts the row off the rail with the tiles' shadow. The rail's
-   padding-inline gives the blur room so the scroll container doesn't clip it. */
+/* Hover lifts the row off the rail with the tiles' shadow; the 1px rise + the
+   transition come from .sc-lift. The rail's padding-inline gives the blur room
+   so the scroll container doesn't clip it. */
 .nav-link:hover {
   background: var(--bg-elevated);
   color: var(--fg);
@@ -469,14 +472,6 @@
   flex: 1;
   min-width: 0;
 }
-.mod-kicker {
-  font-family: var(--font-mono);
-  font-size: var(--text-xs);
-  letter-spacing: var(--tracking);
-  text-transform: uppercase;
-  color: var(--accent);
-  margin-bottom: var(--gap-2);
-}
 .mod-head h1 {
   font-size: var(--text-2xl);
   margin: 0 0 var(--gap-2);
@@ -672,9 +667,6 @@
   border-bottom: 1px solid var(--border);
   padding-bottom: var(--gap-4);
 }
-.tool-head .mod-kicker {
-  margin-bottom: var(--gap-2);
-}
 .tool-head h1 {
   font-size: var(--text-2xl);
   margin: 0;
@@ -694,7 +686,6 @@
   border-radius: var(--radius);
   color: var(--fg);
   text-decoration: none;
-  transition: box-shadow var(--dur-fast) var(--ease);
 }
 .official-sheet:hover {
   box-shadow: var(--shadow);

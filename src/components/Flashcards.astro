@@ -78,7 +78,7 @@ const hasSections = sections.length > 0;
       rendered.map((card, i) => (
         <button
           type="button"
-          class="fc-card"
+          class="fc-card sc-lift"
           data-fc-card
           data-index={i}
           data-section={card.section}
@@ -246,6 +246,13 @@ const hasSections = sections.length > 0;
     gap: var(--space-3);
     text-align: center;
     padding: var(--space-6) var(--space-5);
+    transition: box-shadow var(--dur-fast) var(--ease);
+  }
+  /* Same shadow-lift as the tiles (the 1px rise + transition come from .sc-lift
+     on .fc-card): the face's resting shadow grows on hover, signalling "click to
+     flip". The shadow lives on the face, not the card, hence the child target. */
+  .fc-card:hover .fc-face {
+    box-shadow: var(--shadow);
   }
   /* Float (fill + shadow + radius) comes from the shared .sc-panel; the answer
      side overrides the fill below. */

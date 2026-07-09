@@ -164,17 +164,32 @@ details[open] > summary .sc-chev {
   border-radius: var(--radius);
 }
 
-/* --- Interactive tile-lift (overview tiles, prev/next pager) ---
-   Borderless, soft shadow at rest, lifting to the full shadow on hover. Layout
-   stays the caller's. (nav-link is deliberately NOT this — flat at rest; see
-   shell.css.) */
+/* --- Hover-lift micro-interaction ---
+   The ONE definition of the lift: a surface rises 1px on hover, and its
+   transition carries every property a lift animates (shadow, fill, colour,
+   transform) so callers declare only their own hover END states — the
+   shadow-grow on the right element (the surface itself, or a child face). The
+   1px rise is guarded with :not(:active) so the .sc-press dip still wins on
+   click. Used by the overview tiles, the pager, the sidebar rows, the
+   official-sheet link and the flashcard. */
+.sc-lift {
+  transition:
+    box-shadow var(--dur-fast) var(--ease),
+    background-color var(--dur-fast) var(--ease),
+    color var(--dur-fast) var(--ease),
+    transform var(--dur-fast) var(--ease);
+}
+.sc-lift:hover:not(:active) {
+  transform: translateY(-1px);
+}
+
+/* --- Interactive tile surface (overview tiles, prev/next pager) ---
+   The resting borderless card + its hover shadow/fill; the lift itself (rise +
+   transition) is .sc-lift — compose both. */
 .sc-tile {
   border-radius: var(--radius);
   background: var(--bg-elevated);
   box-shadow: var(--shadow-sm);
-  transition:
-    box-shadow var(--dur-fast) var(--ease),
-    background-color var(--dur-fast) var(--ease);
 }
 .sc-tile:hover {
   box-shadow: var(--shadow);
