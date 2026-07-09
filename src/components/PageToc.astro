@@ -109,8 +109,15 @@ const show = visible.length >= threshold;
 <script>
   import { onPage } from "../lib/pageLifecycle.ts";
   onPage((signal) => {
-    // Scroll-spy: highlight the last heading scrolled past the topbar. Both the
-    // rail and the inline copy carry the same links, so drive them together.
+    // Scroll-spy — highlight the section you're reading. Both the rail and the
+    // inline copy carry the same links, so drive them together.
+    //
+    // The base rule is "the last heading whose top has passed the reading line
+    // just under the topbar", with two explicit edge cases a naive version gets
+    // wrong: at the very top nothing has passed the line yet (pin the FIRST
+    // section so the rail always shows where you are), and at the page bottom a
+    // short final section can't scroll its heading above the line (pin the LAST
+    // section once scrolled to the end). rAF-throttled so scroll stays cheap.
     const tocs = [...document.querySelectorAll<HTMLElement>(".page-toc")];
     if (tocs.length) {
       const ids = [
@@ -118,20 +125,45 @@ const show = visible.length >= threshold;
       ].map((l) => l.getAttribute("href")!.slice(1));
       const targets = ids.map((id) => document.getElementById(id));
 
-      const update = () => {
-        let active = -1;
-        targets.forEach((el, i) => {
-          if (el && el.getBoundingClientRect().top <= 90) active = i;
-        });
+      const setActive = (idx: number) => {
         tocs.forEach((toc) => {
           const links = [
             ...toc.querySelectorAll<HTMLAnchorElement>(".toc-link"),
           ];
-          links.forEach((l, i) => l.classList.toggle("active", i === active));
+          links.forEach((l, i) => l.classList.toggle("active", i === idx));
         });
       };
 
-      window.addEventListener("scroll", update, { passive: true, signal });
+      let ticking = false;
+      const update = () => {
+        ticking = false;
+        const scroller = document.documentElement;
+        // At the page bottom, pin the last section (its heading may never reach
+        // the reading line if the section is short).
+        if (
+          window.innerHeight + window.scrollY >=
+          scroller.scrollHeight - 2
+        ) {
+          setActive(ids.length - 1);
+          return;
+        }
+        const navH =
+          document.querySelector(".topbar")?.getBoundingClientRect().height ?? 0;
+        const line = navH + 24;
+        let active = 0; // fall back to the first section while still above them all
+        targets.forEach((el, i) => {
+          if (el && el.getBoundingClientRect().top <= line) active = i;
+        });
+        setActive(active);
+      };
+      const onScroll = () => {
+        if (!ticking) {
+          ticking = true;
+          requestAnimationFrame(update);
+        }
+      };
+      window.addEventListener("scroll", onScroll, { passive: true, signal });
+      window.addEventListener("resize", onScroll, { passive: true, signal });
       update();
     }
 

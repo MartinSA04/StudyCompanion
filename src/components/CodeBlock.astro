@@ -1,11 +1,16 @@
 ---
 import { Code } from "astro:components";
+import { flexokiDark } from "../lib/shiki-flexoki.ts";
 
 /**
  * A titled code block highlighted with Astro's built-in Shiki. Pass `code` as a
  * string plus a `lang`. A copy button is added by the layout's global
  * enhancement (which targets every <pre> in the content), so this component
  * only owns the optional filename chrome.
+ *
+ * The theme is passed explicitly: <Code> does NOT read `markdown.shikiConfig`
+ * (that only covers fenced ``` blocks), so without this it would fall back to
+ * Astro's default github-dark and clash with the fenced blocks.
  *
  * For ordinary code, authors can also just use Markdown fenced code blocks —
  * those are highlighted by Shiki and get the same copy button automatically.
@@ -37,7 +42,7 @@ const initial = activeLines ?? (activeLine != null ? [activeLine] : []);
   data-active-lines={initial.length ? initial.join(",") : undefined}
 >
   {title && <figcaption class="codeblock-title">{title}</figcaption>}
-  <Code code={code} lang={lang as any} />
+  <Code code={code} lang={lang as any} theme={flexokiDark} />
   {
     /* Variable strip a driving <Stepper> fills with the frame's `key = value`
        state (empty → hidden). State belongs with the code it describes. */
@@ -112,12 +117,12 @@ const initial = activeLines ?? (activeLine != null ? [activeLine] : []);
   .codeblock :global(.line) {
     transition: background var(--dur-fast) var(--ease);
   }
-  /* The Shiki block is ALWAYS dark (github-dark), independent of the page
-     light/dark theme — so the active-line marker must be tuned for a dark
-     surface, NOT the theme-switched --accent-soft/--accent (which track the
-     light page ground and wash out on #24292e). Use --accent-dark (the course's
-     bright dark-mode accent, always set on <html>) + a translucent wash of it,
-     so the highlight reads in both page themes. */
+  /* The Shiki block is ALWAYS dark (flexoki-dark, bg #1c1b1a), independent of the
+     page light/dark theme — so the active-line marker must be tuned for a dark
+     surface, NOT the theme-switched --accent-soft/--accent (which track the light
+     page ground and wash out on the dark code surface). Use --accent-dark (the
+     course's bright dark-mode accent, always set on <html>) + a translucent wash
+     of it, so the highlight reads in both page themes. */
   .codeblock :global(.line.cb-line-active) {
     display: inline-block;
     width: 100%;

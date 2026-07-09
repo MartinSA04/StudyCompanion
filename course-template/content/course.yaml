@@ -17,9 +17,16 @@ term: V2026 # Semester label, e.g. "V2026" / "H2025".
 language: nb # nb (bokmål) | nn (nynorsk) | en. Drives chrome + date formats.
 
 # ── Brand accent (explicit per theme — no auto-derivation) ───────────────────
-accent: "#2f6df6" # Accent for LIGHT mode (any CSS colour).
-accentDark: "#6ea9d8" # Accent for DARK mode. Pick a lighter shade so links stay
-#                         legible on the dark ground (the build warns if not).
+# Pick ONE hue from the Flexoki palette so your course has a unique colour that
+# still sits in the warm-paper system. Each pair is light / dark, both legible on
+# their ground (the build warns if a custom colour isn't):
+#   blue  #205ea6 / #4385be     cyan   #1c6c66 / #3aa99f
+#   green #536907 / #879a39     orange #9d4310 / #da702c
+#   red   #af3029 / #e8705f     purple #5e409d / #8b7ec8
+#   magenta #a02f6f / #ce5d97
+accent: "#205ea6" # LIGHT mode.
+accentDark: "#4385be" # DARK mode — a lighter shade so links stay legible on the
+#                         dark ground (the build warns if not).
 
 # ── Official links ───────────────────────────────────────────────────────────
 # Canonical university course page — rendered in the hero + footer. Set it.

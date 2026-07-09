@@ -101,8 +101,8 @@ if (import.meta.env.DEV) {
       );
     }
   };
-  check(accentLight, "#f5f7fa", "light");
-  check(accentDark, "#11161d", "dark");
+  check(accentLight, "#f2f0e5", "light");
+  check(accentDark, "#100f0f", "dark");
 }
 
 const themeKey = `sc:theme:${course.code}`;
@@ -139,8 +139,8 @@ const twitterHandle = course.seo?.twitter
 
 // Browser-chrome / native-control colours — verbatim from tokens.css grounds
 // (explicit over derived), so the mobile toolbar matches the page per theme.
-const THEME_COLOR_LIGHT = "#f5f7fa"; // --bg (light)
-const THEME_COLOR_DARK = "#11161d"; // --bg (dark)
+const THEME_COLOR_LIGHT = "#f2f0e5"; // --bg (light, Flexoki base-50)
+const THEME_COLOR_DARK = "#100f0f"; // --bg (dark, Flexoki black)
 
 type IconName = "sigma" | "book" | "layers" | "file";
 const toolNav: { slug: string; icon: IconName; label: string; show: boolean }[] = [
@@ -371,12 +371,17 @@ const hasTools = toolNav.some((t) => t.show);
 
     <div class:list={["layout", { "layout--toc": hasToc }]}>
       <aside class="sidebar" id="sidebar" aria-label="Moduler">
-        <div class="nav-section">Kom i gang</div>
+        {/* Visible only in the mobile drawer — the desktop rail has no overlay
+            to dismiss. Fills the drawer's top padding so it never overlaps a
+            nav row. */}
+        <button class="sidebar-close" type="button" aria-label="Lukk meny">
+          <Icon name="x" size={18} />
+        </button>
         <a
           class={`nav-link${active === "top" ? " active" : ""}`}
           href="/"
           aria-current={active === "top" ? "page" : undefined}>
-          <span class="nav-num nav-ico"><Icon name="grid" /></span>
+          <span class="nav-num"><Icon name="grid" /></span>
           <span class="nav-title">Oversikt</span>
         </a>
 
@@ -391,7 +396,7 @@ const hasTools = toolNav.some((t) => t.show);
                     class={`nav-link${active === t.slug ? " active" : ""}`}
                     href={`/${t.slug}`}
                     aria-current={active === t.slug ? "page" : undefined}>
-                    <span class="nav-num nav-ico">
+                    <span class="nav-num">
                       <Icon name={t.icon} />
                     </span>
                     <span class="nav-title">{t.label}</span>
@@ -414,7 +419,7 @@ const hasTools = toolNav.some((t) => t.show);
                   <span class="nav-num">{item.num}</span>
                   <span class="nav-title">{item.shortTitle}</span>
                   <span class="nav-check" aria-hidden="true">
-                    <Icon name="check" size={12} />
+                    <Icon name="check" size={14} />
                   </span>
                 </a>
               ))}
@@ -428,7 +433,7 @@ const hasTools = toolNav.some((t) => t.show);
               <div class="nav-section">Lenker</div>
               {course.links.map((l) => (
                 <a class="nav-link" href={l.url} target="_blank" rel="noopener noreferrer">
-                  <span class="nav-num nav-ico"><Icon name="external" /></span>
+                  <span class="nav-num"><Icon name="external" /></span>
                   <span class="nav-title">{l.label}</span>
                 </a>
               ))}
@@ -586,6 +591,11 @@ const hasTools = toolNav.some((t) => t.show);
         if (scrim && !scrim.dataset.scBound) {
           scrim.dataset.scBound = "1";
           scrim.addEventListener("click", () => toggleMenu(false));
+        }
+        const closeBtn = sidebar?.querySelector(".sidebar-close");
+        if (closeBtn && !closeBtn.dataset.scBound) {
+          closeBtn.dataset.scBound = "1";
+          closeBtn.addEventListener("click", () => toggleMenu(false));
         }
 
         // ---- Copy buttons on code blocks (icon button cloned from template) ----

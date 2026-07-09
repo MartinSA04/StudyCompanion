@@ -19,7 +19,7 @@
      accents) and the matching on-accent text colours inline on <html>. --accent
      resolves to the light pair here and to the dark pair in the dark block, so
      every `var(--accent)` usage — fill, border or text — is correct per theme. */
-  --accent: var(--accent-light, #1f5f8b);
+  --accent: var(--accent-light, #205ea6);
   --accent-contrast: var(
     --accent-contrast-light,
     #ffffff
@@ -28,46 +28,51 @@
   --accent-soft: color-mix(in srgb, var(--accent) 10%, var(--bg-elevated));
   --accent-ring: color-mix(in srgb, var(--accent) 45%, transparent);
 
-  /* --- Surfaces & text (light) --- */
-  --bg: #f5f7fa; /* page ground */
-  --bg-elevated: #ffffff; /* raised panels / cards */
-  --fg: #1e2835; /* ink */
-  --muted: #526171; /* ink-dim */
-  --faint: #646f7e; /* ink-faint: nav numbers, captions (≥4.5:1 on --bg) */
-  --card: #f8fafc; /* subtle inset (code, headers, concept cards) */
-  --card-hover: #edf1f5;
-  --border: #d9e0e8; /* line */
-  --border-strong: #c4ccd7; /* line2 */
+  /* --- Surfaces & text (light) — Flexoki warm-paper ramp (stephango.com/flexoki).
+     The page is the bright paper; panels/cards step DOWN to base-50, exactly like
+     the Flexoki reference (its bg = paper, card bg = base-50). --- */
+  --bg: #fffcf0; /* page ground (Flexoki paper) */
+  --bg-elevated: #f2f0e5; /* panels / cards (Flexoki base-50) */
+  --fg: #100f0f; /* ink (Flexoki black) */
+  --muted: #575653; /* ink-dim (Flexoki base-700, 7.1:1 on --bg) */
+  --faint: #6f6e69; /* ink-faint: nav numbers, captions (Flexoki base-600, 5.0:1 on --bg) */
+  --card: #f2f0e5; /* insets/headers sit flat with the panels (Flexoki base-50); a divider or hairline gives structure, not a darker fill */
+  --card-hover: #e6e4d9; /* Flexoki base-100 (hover-darken) */
+  --border: #dad8ce; /* line (Flexoki base-150) */
+  --border-strong: #cecdc3; /* line2 (Flexoki base-200) */
   --selection: color-mix(in srgb, var(--accent) 22%, transparent);
-  --on-strong: #ffffff; /* text on a filled categorical chip */
+  --on-strong: #fffcf0; /* text on a filled categorical chip */
 
-  /* --- Categorical hues (figures + semantic block accents) --- */
-  --indigo: #1f5f8b;
-  --cyan: #087d79;
-  --green: #2f855a;
-  --yellow: #9a6a00;
-  --orange: #b45f06;
-  --red: #b42318;
-  --violet: #5f558f;
+  /* --- Categorical hues (figures + semantic block accents) — Flexoki 600s --- */
+  --indigo: #205ea6; /* Flexoki blue-600 */
+  --cyan: #24837b; /* Flexoki cyan-600 */
+  --green: #66800b; /* Flexoki green-600 */
+  --yellow: #ad8301; /* Flexoki yellow-600 */
+  --orange: #bc5215; /* Flexoki orange-600 */
+  --red: #af3029; /* Flexoki red-600 */
+  --violet: #5e409d; /* Flexoki purple-600 */
 
-  /* Semantic roles. --tip/--warning use AA-legible shades for body-size text;
-     the categorical --green/--orange stay vivid for figures. */
-  --note: var(--accent);
-  --tip: #2a7547;
-  --warning: #9c5300;
+  /* Aside/callout tones use Flexoki's OWN aside swatches: a clean, present -low
+     pastel as the fill with a darker -high shade for the kicker text (both AA on
+     the fill). A dark accent mixed onto paper reads muddy — that's why these are
+     literal swatches, not color-mix tints. note = blue (info), independent of the
+     per-course accent, so the fill can be a clean pastel. */
+  --note: #1a4f8c; /* Flexoki blue-high */
+  --tip: #536907; /* Flexoki green-high */
+  --warning: #9d4310; /* Flexoki orange-high */
+  --goals: #1c6c66; /* Flexoki cyan-high */
   --core: var(--red);
   --useful: var(--accent);
   --extra: var(--muted);
-  --note-bg: color-mix(in srgb, var(--note) 8%, var(--bg-elevated));
-  --tip-bg: color-mix(in srgb, var(--tip) 9%, var(--bg-elevated));
-  --warning-bg: color-mix(in srgb, var(--warning) 9%, var(--bg-elevated));
-
-  /* Block-tint surfaces (learning goals, exam focus, worked answers, quiz). */
-  --goals-bg: #f6fbfa;
-  --exam-bg: #fff8f1;
-  --answer-bg: #eff8f2;
-  --wrong-bg: #fff1f0;
-  --canvas-bg: #ffffff;
+  --note-bg: #e1eceb; /* Flexoki blue-low */
+  --tip-bg: #edeecf; /* Flexoki green-low */
+  --warning-bg: #ffe7ce; /* Flexoki orange-low */
+  --goals-bg: #ddf1e4; /* Flexoki cyan-low */
+  --takeaways-bg: #f0eaec; /* Flexoki purple-low */
+  --exam-bg: #ffe7ce; /* Flexoki orange-low */
+  --answer-bg: #edeecf; /* Flexoki green-low */
+  --wrong-bg: #ffe1d5; /* Flexoki red-low */
+  --canvas-bg: var(--bg-elevated);
 
   /* --- Typography --- */
   --font-display: "Fraunces", "Georgia", "Times New Roman", serif;
@@ -120,14 +125,14 @@
   --radius-lg: 12px;
   --radius-pill: 999px;
 
-  --shadow-sm: 0 1px 2px color-mix(in srgb, #0b1020 7%, transparent);
+  --shadow-sm: 0 1px 2px color-mix(in srgb, #1c1b1a 7%, transparent);
   --shadow:
-    0 4px 12px color-mix(in srgb, #0b1020 8%, transparent),
-    0 1px 3px color-mix(in srgb, #0b1020 6%, transparent);
-  --shadow-lg: 0 24px 60px color-mix(in srgb, #0b1020 22%, transparent);
+    0 4px 12px color-mix(in srgb, #1c1b1a 8%, transparent),
+    0 1px 3px color-mix(in srgb, #1c1b1a 6%, transparent);
+  --shadow-lg: 0 24px 60px color-mix(in srgb, #1c1b1a 22%, transparent);
   --scrim: color-mix(
     in srgb,
-    #0b1020 60%,
+    #1c1b1a 60%,
     transparent
   ); /* modal / drawer backdrop */
 
@@ -170,45 +175,48 @@
 
   /* Dark-mode brand accent + its on-accent text colour (course-set, see
      CourseLayout). Falls back to the light accent if the course omits accentDark. */
-  --accent: var(--accent-dark, var(--accent-light, #1f5f8b));
+  --accent: var(--accent-dark, var(--accent-light, #205ea6));
   --accent-contrast: var(
     --accent-contrast-dark,
     var(--accent-contrast-light, #ffffff)
   );
-  --on-strong: #10151c;
+  --on-strong: #100f0f;
 
-  --bg: #11161d;
-  --bg-elevated: #1d2530;
-  --fg: #f0eee8;
-  --muted: #c1c8d0;
-  --faint: #8d98a6;
-  --card: #242e3a;
-  --card-hover: #171e27;
-  --border: #364151;
-  --border-strong: #4a5667;
+  /* Flexoki dark ramp (stephango.com/flexoki). */
+  --bg: #100f0f; /* Flexoki black */
+  --bg-elevated: #1c1b1a; /* Flexoki base-950 */
+  --fg: #cecdc3; /* Flexoki base-200 (warm ink) */
+  --muted: #9f9d96; /* Flexoki base-400 (7.0:1 on --bg) */
+  --faint: #878580; /* Flexoki base-500 (5.2:1 on --bg) */
+  --card: #1c1b1a; /* insets/headers flat with the panels (Flexoki base-950) */
+  --card-hover: #282726; /* Flexoki base-900 (hover) */
+  --border: #403e3c; /* Flexoki base-800 */
+  --border-strong: #575653; /* Flexoki base-700 */
 
-  --indigo: #8bb9d8;
-  --cyan: #6bc7c3;
-  --green: #79c79b;
-  --yellow: #d7aa45;
-  --orange: #e0a15f;
-  --red: #e47770;
-  --violet: #b6a7f0;
+  --indigo: #4385be; /* Flexoki blue-400 */
+  --cyan: #3aa99f; /* Flexoki cyan-400 */
+  --green: #879a39; /* Flexoki green-400 */
+  --yellow: #d0a215; /* Flexoki yellow-400 */
+  --orange: #da702c; /* Flexoki orange-400 */
+  --red: #d14d41; /* Flexoki red-400 */
+  --violet: #8b7ec8; /* Flexoki purple-400 */
 
-  /* Dark surfaces are dark, so the vivid categorical green/amber read fine as
-     text — point the semantic roles back at them (overriding the light literals). */
-  --tip: var(--green);
-  --warning: var(--orange);
+  /* Dark aside swatches (Flexoki -low fill / -high text). note = blue (info),
+     so it overrides the light literal rather than tracking --accent. */
+  --note: #abcfe2; /* Flexoki blue-high (dark) */
+  --tip: #cdd597; /* Flexoki green-high (dark) */
+  --warning: #fcc192; /* Flexoki orange-high (dark) */
+  --goals: #3aa99f; /* Flexoki cyan-400 */
 
-  --note-bg: color-mix(in srgb, var(--note) 16%, var(--bg-elevated));
-  --tip-bg: color-mix(in srgb, var(--tip) 15%, var(--bg-elevated));
-  --warning-bg: color-mix(in srgb, var(--warning) 16%, var(--bg-elevated));
-
-  --goals-bg: #172820;
-  --exam-bg: #2b2118;
-  --answer-bg: #173023;
-  --wrong-bg: #331e1d;
-  --canvas-bg: #10151c;
+  --note-bg: #12253b; /* Flexoki blue-low (dark) */
+  --tip-bg: #252d09; /* Flexoki green-low (dark) */
+  --warning-bg: #40200d; /* Flexoki orange-low (dark) */
+  --goals-bg: #101f1d; /* Flexoki cyan-low (dark) */
+  --takeaways-bg: #261c39; /* Flexoki purple-low (dark) */
+  --exam-bg: #40200d; /* Flexoki orange-low (dark) */
+  --answer-bg: #252d09; /* Flexoki green-low (dark) */
+  --wrong-bg: #3e1715; /* Flexoki red-low (dark) */
+  --canvas-bg: var(--bg-elevated);
 
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
   --shadow: 0 4px 14px rgba(0, 0, 0, 0.5), 0 1px 3px rgba(0, 0, 0, 0.4);

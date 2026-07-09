@@ -1,11 +1,11 @@
 ---
 /**
- * Shared admonition shell: a single faint-tinted box with a mono UPPERCASE kicker
+ * Shared admonition shell: a soft full-tint box with a mono UPPERCASE kicker
  * (icon + label, coloured by tone) over slotted body copy. One editorial vocabulary
  * for every callout-like block — the same kicker treatment `PanelHeader`, `Example`
- * and `Statement` already use. Deliberately NO coloured left-stripe: a spine border
- * reads as a docs template; the tone lives in the kicker, icon, border tint and
- * background tint instead.
+ * and `Statement` already use. Deliberately NO coloured left-stripe (a spine border
+ * reads as a docs template) and NO outline: borderless, with the tone carried by the
+ * background tint plus the coloured kicker + icon (the Flexoki aside treatment).
  *
  * Internal primitive (not in mdx-components) wrapped by `<Callout>`,
  * `<LearningGoals>`, `<KeyTakeaways>` and `<ExamFocus>` (ROADMAP 2.7 style).
@@ -23,17 +23,15 @@ interface Props {
 }
 const { tone, icon, title, ariaLabel } = Astro.props;
 
-// Tone → (accent colour, background tint). Reuses existing tokens; goals/exam pair
-// a categorical hue with a purpose-built tint, so the map stays explicit.
+// Tone → (kicker colour, fill). Each pairs a Flexoki -high text shade with its
+// -low fill swatch (defined in tokens.css); takeaways reuses --violet over the
+// purple-low fill.
 const TONES: Record<Props["tone"], { c: string; bg: string }> = {
   note: { c: "var(--note)", bg: "var(--note-bg)" },
   tip: { c: "var(--tip)", bg: "var(--tip-bg)" },
   warning: { c: "var(--warning)", bg: "var(--warning-bg)" },
-  goals: { c: "var(--cyan)", bg: "var(--goals-bg)" },
-  takeaways: {
-    c: "var(--violet)",
-    bg: "color-mix(in srgb, var(--violet) 8%, var(--bg-elevated))",
-  },
+  goals: { c: "var(--goals)", bg: "var(--goals-bg)" },
+  takeaways: { c: "var(--violet)", bg: "var(--takeaways-bg)" },
   exam: { c: "var(--warning)", bg: "var(--exam-bg)" },
 };
 const t = TONES[tone];
@@ -58,7 +56,6 @@ const t = TONES[tone];
   .admonition {
     margin-block: var(--space-5);
     padding: var(--space-4);
-    border: 1px solid color-mix(in srgb, var(--c) 30%, var(--border));
     border-radius: var(--radius);
     background: var(--c-bg);
   }

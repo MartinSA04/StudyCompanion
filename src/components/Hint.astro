@@ -87,7 +87,7 @@ const auto = !solution && !label;
   }
   /* The solution rung reads like an <Answer>: green and tinted. */
   .hint-solution {
-    border-color: color-mix(in srgb, var(--tip) 40%, var(--border));
+    border-color: var(--border);
   }
   .hint-solution > summary {
     color: var(--tip);
@@ -96,6 +96,6 @@ const auto = !solution && !label;
     background: var(--answer-bg);
   }
   .hint-solution[open] > summary {
-    border-bottom-color: color-mix(in srgb, var(--tip) 30%, var(--border));
+    border-bottom-color: var(--border);
   }
 </style>

@@ -158,6 +158,11 @@
   background: var(--border-strong);
   border-radius: var(--radius-xs);
 }
+/* Close control — only the mobile drawer has an overlay to dismiss; on the
+   desktop rail it stays hidden (see the max-width: 980px block). */
+.sidebar-close {
+  display: none;
+}
 .nav-section {
   font-family: var(--font-mono);
   font-size: var(--text-xs);
@@ -172,7 +177,9 @@
 }
 .nav-link {
   display: flex;
-  align-items: center;
+  /* Hang the number/icon/check at the top so they sit on the title's FIRST line
+     on wrapped rows, instead of floating to the row's vertical middle. */
+  align-items: flex-start;
   gap: var(--gap-2);
   padding: var(--gap-2) var(--gap-3);
   border-radius: var(--radius);
@@ -180,17 +187,20 @@
   text-decoration: none;
   font-size: var(--text-sm);
   font-family: var(--font-body);
-  transition: background-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
+  transition: background-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
   border: 1px solid transparent;
 }
 .nav-link:hover {
   background: var(--bg-elevated);
   color: var(--fg);
 }
+/* Current page: a soft accent-tinted fill with accent-coloured, medium-weight
+   text — the same "you are here" language the TOC rail uses (colour + weight),
+   so the two rails read as one system. No stripe or shadow. */
 .nav-link.active {
-  background: var(--card);
-  color: var(--fg);
-  border-color: var(--border-strong);
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: var(--weight-medium);
 }
 .nav-num {
   font-family: var(--font-mono);
@@ -198,9 +208,9 @@
   color: var(--faint);
   width: 26px;
   flex: none;
-}
-/* Icon variant (overview / tools / links) — center the glyph in the column. */
-.nav-ico {
+  /* One title-line tall + centered, so the digit/icon aligns to the first line
+     of a wrapped title (see .nav-link align-items). */
+  height: calc(var(--text-sm) * var(--leading-snug));
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -212,22 +222,22 @@
   flex: 1;
   line-height: var(--leading-snug);
 }
+/* Completion shows only once a module is done — a bare green check, no empty
+   box on the pending rows (that read as a clickable form control it isn't). The
+   slot keeps its width so marking done never reflows the title. */
 .nav-check {
   margin-left: auto;
   width: 16px;
-  height: 16px;
-  border-radius: var(--radius-xs);
-  border: 1.5px solid var(--border-strong);
+  height: calc(var(--text-sm) * var(--leading-snug));
   flex: none;
-  display: grid;
-  place-items: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   color: transparent;
-  transition: background-color var(--dur) var(--ease), color var(--dur) var(--ease), border-color var(--dur) var(--ease);
+  transition: color var(--dur) var(--ease);
 }
 .nav-link.done .nav-check {
-  background: var(--green);
-  border-color: var(--green);
-  color: var(--on-strong);
+  color: var(--accent);
 }
 
 .content {
@@ -260,9 +270,9 @@
 
 /* ====== hero / overview ====== */
 .hero {
-  border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--bg-elevated);
+  box-shadow: var(--shadow-sm);
   padding: var(--gap-8);
 }
 .hero-tag {
@@ -340,14 +350,14 @@
   display: block;
   text-decoration: none;
   color: inherit;
-  border: 1px solid var(--border-strong);
   border-radius: var(--radius);
   background: var(--bg-elevated);
+  box-shadow: var(--shadow-sm);
   padding: var(--gap-4);
-  transition: background-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
+  transition: background-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
 }
 .module-tile:hover {
-  border-color: var(--accent);
+  box-shadow: var(--shadow);
   background: var(--card);
 }
 .tile-num {
@@ -387,8 +397,8 @@
   width: 18px;
   height: 18px;
   border-radius: var(--radius-xs);
-  background: var(--green);
-  color: var(--on-strong);
+  background: var(--accent-soft);
+  color: var(--accent);
   display: none;
   place-items: center;
 }
@@ -512,13 +522,16 @@
   display: inline-flex;
 }
 .done-btn:hover {
-  border-color: var(--green);
+  border-color: var(--accent);
   color: var(--fg);
 }
+/* Done: a quiet soft-accent pill (no border) — the same "you're here / progress"
+   language as the active nav item and the progress bar, so completion sits in the
+   page's accent system rather than a stray green. */
 .done-btn.done {
-  background: var(--green);
-  color: var(--on-strong);
-  border-color: var(--green);
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-color: transparent;
   font-weight: var(--weight-semibold);
 }
 
@@ -560,7 +573,7 @@
 /* ====== generic card + lede (used on overview / tool intros) ====== */
 .card {
   background: var(--bg-elevated);
-  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
   border-radius: var(--radius);
   padding: var(--gap-6);
   margin-bottom: var(--gap-5);
@@ -684,7 +697,7 @@
   margin-bottom: var(--space-5);
   padding: var(--space-3) var(--space-4);
   background: var(--accent-soft);
-  border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--border));
+  border: 1px solid var(--border);
   border-radius: var(--radius);
   color: var(--fg);
   text-decoration: none;
@@ -791,6 +804,27 @@
   .menu-toggle {
     display: grid;
     place-items: center;
+  }
+  /* Sits in the drawer's top padding (80px), clear of the first nav row and any
+     notch. */
+  .sidebar-close {
+    display: grid;
+    place-items: center;
+    position: absolute;
+    top: max(var(--gap-4), env(safe-area-inset-top));
+    right: var(--gap-4);
+    width: 40px;
+    height: 40px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--bg);
+    color: var(--muted);
+    cursor: pointer;
+    transition: color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
+  }
+  .sidebar-close:hover {
+    color: var(--fg);
+    border-color: var(--border-strong);
   }
   /* Topbar space is at a premium once the nav collapses to a drawer — keep only
      the essentials (menu, brand, search, theme). Progress still reads from the

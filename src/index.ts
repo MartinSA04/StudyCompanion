@@ -7,6 +7,7 @@ import { parse as parseYaml } from "yaml";
 import mdx from "@astrojs/mdx";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
+import { flexokiDark } from "./lib/shiki-flexoki.ts";
 
 /**
  * After rehype-katex, tag KaTeX's `.katex-mathml` (the visually-hidden MathML +
@@ -204,6 +205,9 @@ export default function studyCompanion(
           markdown: {
             remarkPlugins: [remarkMath],
             rehypePlugins: [rehypeKatex, rehypePagefindIgnoreKatex],
+            // Warm Flexoki-dark syntax theme instead of Astro's default cool
+            // github-dark, so code sits in the warm-paper palette (see lib).
+            shikiConfig: { theme: flexokiDark },
           },
           vite: {
             server: {

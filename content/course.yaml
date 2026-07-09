@@ -5,9 +5,13 @@ subtitle: Kitchen-sink for study-companion
 term: V2026
 language: nb
 
-# Two explicit per-theme accents (see the "explicit over derived" principle).
-accent: "#1f5f8b"
-accentDark: "#6ea9d8"
+# Per-theme accents, picked from the Flexoki palette so each course has its own
+# colour that still sits in the warm-paper system (light / dark pairs, all AA on
+# their ground): blue #205ea6/#4385be · cyan #1c6c66/#3aa99f · green #536907/#879a39 ·
+# orange #9d4310/#da702c · red #af3029/#e8705f · purple #5e409d/#8b7ec8 ·
+# magenta #a02f6f/#ce5d97. (This course: blue.)
+accent: "#205ea6"
+accentDark: "#4385be"
 
 exam:
   date: 2026-06-15
