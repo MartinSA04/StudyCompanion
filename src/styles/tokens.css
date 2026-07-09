@@ -137,7 +137,7 @@
   ); /* modal / drawer backdrop */
 
   --maxw: 820px; /* readable content measure */
-  --sidebar-w: 264px;
+  --sidebar-w: 288px;
   --toc-w: 200px; /* right "on this page" rail (module pages, wide screens) */
   --layout-max: 1440px; /* topbar + layout outer width (fits nav + prose + toc) */
 

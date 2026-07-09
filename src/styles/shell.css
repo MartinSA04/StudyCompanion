@@ -148,7 +148,10 @@
      modules) fills it and scrolls internally. */
   max-height: calc(100dvh - var(--topbar-h) - var(--gap-7) - var(--gap-6));
   overflow-y: auto;
-  padding-right: var(--gap-2);
+  /* Symmetric horizontal inset sized to the hover lift shadow (--shadow, ~12px
+     blur) so the scroll container's overflow doesn't clip it. The wider
+     --sidebar-w offsets this inset so the nav rows keep their width. */
+  padding-inline: var(--gap-4);
   scrollbar-width: thin;
 }
 .sidebar::-webkit-scrollbar {
@@ -187,12 +190,15 @@
   text-decoration: none;
   font-size: var(--text-sm);
   font-family: var(--font-body);
-  transition: background-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
+  transition: background-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
   border: 1px solid transparent;
 }
+/* Hover lifts the row off the rail with the tiles' shadow. The rail's
+   padding-inline gives the blur room so the scroll container doesn't clip it. */
 .nav-link:hover {
   background: var(--bg-elevated);
   color: var(--fg);
+  box-shadow: var(--shadow);
 }
 /* Current page: a soft accent-tinted fill with accent-coloured text. No weight
    change — a heavier active weight widens the label and can tip a borderline
@@ -201,6 +207,11 @@
 .nav-link.active {
   background: var(--accent-soft);
   color: var(--accent);
+}
+/* Shared tactile press — the left-bar module links dip 1px on click like the
+   tiles and buttons, so navigating feels the same as everything else. */
+.nav-link:active {
+  transform: translateY(1px);
 }
 .nav-num {
   font-family: var(--font-mono);
