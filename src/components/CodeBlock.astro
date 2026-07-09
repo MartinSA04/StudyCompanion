@@ -130,7 +130,10 @@ const initial = activeLines ?? (activeLine != null ? [activeLine] : []);
      of it, so the highlight reads in both page themes. */
   .codeblock :global(.line.cb-line-active) {
     display: inline-block;
-    width: 100%;
+    /* border-box: width:100% is only the CONTENT width, so with the negative
+       margins the band lands 2×padding short on the right. Add both paddings so
+       it reaches edge to edge. */
+    width: calc(100% + 2 * var(--space-4));
     margin-inline: calc(-1 * var(--space-4));
     padding-inline: var(--space-4);
     background: color-mix(in srgb, var(--accent-dark) 22%, transparent);
