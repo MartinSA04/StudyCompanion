@@ -2,8 +2,8 @@
 /**
  * The "må pugges" flag: a formula that isn't on the exam sheet and so must be
  * memorised. Shared by <Formula> (inline panels) and <FormulaSheet> (rows) so the
- * treatment lives in ONE place. A soft amber tint + hairline in the house
- * tinted-surface recipe. Positioning is the parent's job — a `flex: 1` sibling
+ * treatment lives in ONE place. A soft amber tint in the house borderless
+ * tinted-surface recipe (the Flexoki aside treatment). Positioning is the parent's job — a `flex: 1` sibling
  * (the label/description) pushes this to the row's trailing edge.
  */
 ---
@@ -24,7 +24,7 @@
     letter-spacing: var(--tracking);
     color: var(--warning);
     background: var(--warning-bg);
-    border-radius: var(--radius-sm);
+    border-radius: var(--radius-xs);
     padding: 0.2em 0.6em;
     white-space: nowrap;
   }

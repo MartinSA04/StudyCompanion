@@ -215,7 +215,9 @@ pre code {
   padding: 0;
 }
 
-/* --- Tables --- */
+/* --- Tables ---
+   Editorial divider style (horizontal rules only, display-serif headers) so an
+   authored Markdown table matches the data-driven <Table> component. */
 table {
   border-collapse: collapse;
   width: 100%;
@@ -223,17 +225,32 @@ table {
 }
 th,
 td {
-  border: 1px solid var(--border);
-  padding: var(--space-2) var(--space-3);
+  padding: var(--space-2) var(--space-4);
   text-align: left;
-  vertical-align: top;
+  vertical-align: baseline;
 }
-th {
+thead th {
   background: var(--card);
+  border-bottom: 1px solid var(--border-strong);
+  font-family: var(--font-display);
   font-weight: var(--weight-semibold);
+  color: var(--fg);
 }
-td {
+tbody th,
+tbody td {
+  border-bottom: 1px solid var(--border);
+}
+tbody th {
+  font-weight: var(--weight-medium);
+  color: var(--fg);
+}
+tbody td {
   color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+tbody tr:hover th,
+tbody tr:hover td {
+  background: var(--card-hover);
 }
 
 /* --- Forms / interactive --- */

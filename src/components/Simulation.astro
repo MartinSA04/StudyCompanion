@@ -85,7 +85,7 @@ const { src, title, caption, height = 300, host = "canvas" } = Astro.props;
 <style>
   .simulation {
     margin-block: var(--space-5);
-    border: 1px solid var(--border-strong);
+    border: 1px solid var(--border);
     border-radius: var(--radius);
     background: var(--bg-elevated);
     overflow: hidden;
@@ -153,12 +153,16 @@ const { src, title, caption, height = 300, host = "canvas" } = Astro.props;
     font-weight: var(--weight-semibold);
   }
   .sim-controls :global(.sim-btn) {
+    font-family: var(--font-mono);
     font-size: var(--text-sm);
     padding: 0.3em 0.7em;
     border: 1px solid var(--border);
     border-radius: var(--radius-sm);
     background: var(--bg);
     color: var(--muted);
+    transition:
+      border-color var(--dur-fast) var(--ease),
+      color var(--dur-fast) var(--ease);
   }
   .sim-controls :global(.sim-btn:hover:not(:disabled)) {
     border-color: var(--accent);

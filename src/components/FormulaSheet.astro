@@ -176,7 +176,6 @@ const hasMemorize = examFormulaSheet && formulas.some((f) => f.memorize);
     margin: 0 0 var(--space-6);
     padding: var(--space-4) var(--space-5);
     background: var(--accent-soft);
-    border: 1px solid var(--accent);
     border-radius: var(--radius);
     color: var(--fg);
     font-size: var(--text-base);
@@ -260,7 +259,7 @@ const hasMemorize = examFormulaSheet && formulas.some((f) => f.memorize);
   .fs-chip[aria-pressed="true"] {
     background: var(--accent);
     border-color: var(--accent);
-    color: var(--on-strong);
+    color: var(--accent-contrast);
     font-weight: var(--weight-medium);
   }
 
@@ -290,7 +289,7 @@ const hasMemorize = examFormulaSheet && formulas.some((f) => f.memorize);
     margin: 0;
     padding: 0;
     background: var(--card);
-    border: 1px solid var(--border-strong);
+    border: 1px solid var(--border);
     border-radius: var(--radius);
     /* Clip row backgrounds/dividers to the rounded card. */
     overflow: hidden;

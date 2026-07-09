@@ -14,7 +14,7 @@ import Icon from "./Icon.astro";
 <details class="derivation" open={open}>
   <summary>
     <span class="derivation-chevron" aria-hidden="true">
-      <Icon name="chevron-right" size={15} />
+      <Icon name="chevron-right" size={13} />
     </span>
     <span>{title}</span>
   </summary>
@@ -26,7 +26,7 @@ import Icon from "./Icon.astro";
     margin-block: var(--space-5);
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    background: var(--bg-elevated);
+    background: var(--card);
     overflow: hidden;
   }
   summary {
@@ -34,11 +34,13 @@ import Icon from "./Icon.astro";
     align-items: center;
     gap: var(--space-2);
     padding: var(--space-3) var(--space-4);
-    font-weight: var(--weight-medium);
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    color: var(--accent);
     cursor: pointer;
     list-style: none;
     user-select: none;
-    background: var(--card);
+    transition: background-color var(--dur-fast) var(--ease);
   }
   summary::-webkit-details-marker {
     display: none;
@@ -46,9 +48,11 @@ import Icon from "./Icon.astro";
   summary:hover {
     background: var(--card-hover);
   }
+  .derivation[open] > summary {
+    border-bottom: 1px solid var(--border);
+  }
   .derivation-chevron {
     display: inline-flex;
-    color: var(--muted);
     transition: transform var(--dur-fast) var(--ease);
   }
   .derivation[open] .derivation-chevron {

@@ -144,17 +144,20 @@ const hasSections = sections.length > 0;
     margin-bottom: var(--space-3);
   }
   .fc-progress {
+    font-family: var(--font-mono);
     font-size: var(--text-sm);
     color: var(--muted);
   }
   .fc-progress strong {
-    color: var(--tip);
+    color: var(--accent);
   }
   .fc-reset {
+    font-family: var(--font-mono);
     font-size: var(--text-xs);
     color: var(--muted);
     background: none;
     border: 0;
+    transition: color var(--dur-fast) var(--ease);
   }
   .fc-reset:hover {
     color: var(--accent);
@@ -263,21 +266,22 @@ const hasSections = sections.length > 0;
     gap: var(--space-3);
     text-align: center;
     padding: var(--space-6) var(--space-5);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    background: var(--card);
+    border-radius: var(--radius);
+    background: var(--bg-elevated);
     box-shadow: var(--shadow-sm);
   }
+  /* The answer side carries a faint accent wash, so a flip reads as a change of
+     state (question → answer) without a border fighting the card's shadow. */
   .fc-back {
     transform: rotateY(180deg);
-    background: var(--bg-elevated);
-    border-color: var(--accent);
+    background: var(--accent-soft);
   }
   .fc-text {
     font-size: var(--text-lg);
     line-height: var(--leading-snug);
   }
   .fc-section {
+    font-family: var(--font-mono);
     font-size: var(--text-xs);
     text-transform: uppercase;
     letter-spacing: var(--tracking-wide);
@@ -287,6 +291,7 @@ const hasSections = sections.length > 0;
   .fc-hint {
     position: absolute;
     bottom: var(--space-3);
+    font-family: var(--font-mono);
     font-size: var(--text-xs);
     color: var(--muted);
   }
@@ -311,21 +316,23 @@ const hasSections = sections.length > 0;
   .fc-level-text {
     display: none;
   }
-  /* Level 1 — seen once: a bare amber dot, no capsule. */
+  /* Level 1 — seen once: a bare neutral dot, no capsule. */
   .fc-level-dot {
     width: 9px;
     height: 9px;
     border-radius: 50%;
     flex: none;
-    background: var(--warning);
+    background: var(--faint);
   }
-  /* Level 2 — mastered: a green check + "Kan" pill, the site's done/known cue. */
+  /* Level 2 — mastered: an accent check + "Kan" pill, the same accent "done"
+     cue as the module done state, but filled (the deck's active-chip
+     treatment) so it reads on the accent-washed answer side too. */
   .fc-card[data-level="2"] .fc-level {
     gap: 4px;
     padding: 3px var(--space-2) 3px 6px;
     border-radius: var(--radius-pill);
-    color: var(--tip);
-    background: var(--tip-bg);
+    color: var(--accent-contrast);
+    background: var(--accent);
     font-family: var(--font-mono);
     font-size: var(--text-xs);
     font-weight: var(--weight-semibold);
@@ -357,7 +364,12 @@ const hasSections = sections.length > 0;
     border: 1px solid var(--border);
     border-radius: var(--radius-sm);
     background: var(--bg-elevated);
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
     font-weight: var(--weight-medium);
+    transition:
+      border-color var(--dur-fast) var(--ease),
+      color var(--dur-fast) var(--ease);
   }
   .fc-nav {
     display: inline-grid;
@@ -371,16 +383,17 @@ const hasSections = sections.length > 0;
     color: var(--fg);
   }
   .fc-review:hover {
-    border-color: var(--warning);
-    color: var(--warning);
+    border-color: var(--border-strong);
+    color: var(--fg);
   }
   .fc-known:hover {
-    border-color: var(--tip);
-    color: var(--tip);
+    border-color: var(--accent);
+    color: var(--accent);
   }
   .fc-counter {
     text-align: center;
     margin-top: var(--space-2);
+    font-family: var(--font-mono);
     font-size: var(--text-sm);
     color: var(--muted);
     font-variant-numeric: tabular-nums;
