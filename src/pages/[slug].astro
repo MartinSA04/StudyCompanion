@@ -11,7 +11,6 @@ import Icon from "../components/Icon.astro";
 import PageToc from "../components/PageToc.astro";
 import ImportanceTag from "../components/ImportanceTag.astro";
 import { loadCourse } from "../lib/loadCourse.ts";
-import { IMPORTANCE_LABELS } from "../lib/importance.ts";
 import { absoluteUrl, truncateDescription, stripInline } from "../lib/seo.ts";
 import {
   breadcrumbList,
@@ -105,10 +104,8 @@ let showToc = false;
 let editUrl: string | undefined;
 let updated: Date | undefined;
 let head: {
-  kicker: string;
   index: string;
   title: string;
-  week: string;
   order: number;
   importance: (typeof sections)[number]["data"]["importance"];
 } | null = null;
@@ -123,13 +120,14 @@ if (props.kind === "section") {
   if (repoUrl && props.entry.filePath) {
     editUrl = `${repoUrl}/edit/${course.repoBranch}/${props.entry.filePath}`;
   }
-  const weekParts = d.tags.slice(1).filter(Boolean);
   head = {
-    kicker: d.tags[0] ?? IMPORTANCE_LABELS[d.importance],
+    // Deliberately minimal: folio number + title + the one importance signal.
+    // The section's `part` and tags already orient the reader through the
+    // sidebar and overview, so they stay out of the reading header rather than
+    // repeating chrome the reader can already see.
     index: nums.get(props.entry.id) ?? String(d.order).padStart(2, "0"),
     title: d.title,
     importance: d.importance,
-    week: weekParts.join(" · "),
     order: d.order,
   };
 } else if (props.kind === "formulas") {
@@ -233,11 +231,9 @@ const seo = {
         <header class="mod-head">
           <div class="mod-index">{head.index}</div>
           <div class="meta">
-            <div class="mod-kicker">{head.kicker}</div>
             <h1>{head.title}</h1>
             <div class="mod-meta-row">
               <ImportanceTag importance={head.importance} />
-              {head.week && <span class="week">{head.week}</span>}
             </div>
           </div>
           {course.features.progress && (

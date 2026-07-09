@@ -483,23 +483,12 @@
   border: 0;
   padding: 0;
 }
-/* Importance tag + any secondary tags (tags after the first) under the title. */
+/* The module's one canonical signal — the importance tag — under the title. */
 .mod-meta-row {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: var(--gap-2) var(--gap-3);
-}
-.mod-head .week {
-  font-family: var(--font-mono);
-  font-size: var(--text-sm);
-  color: var(--faint);
-}
-/* Middot between the importance tag and the reading time, when both show. */
-.mod-meta-row .week::before {
-  content: "·";
-  margin-right: var(--gap-3);
-  color: var(--border-strong);
 }
 .done-btn {
   flex: none;
