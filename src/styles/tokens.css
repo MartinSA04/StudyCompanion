@@ -37,6 +37,7 @@
   --muted: #575653; /* ink-dim (Flexoki base-700, 7.1:1 on --bg) */
   --faint: #6f6e69; /* ink-faint: nav numbers, captions (Flexoki base-600, 5.0:1 on --bg) */
   --card: #f2f0e5; /* insets/headers sit flat with the panels (Flexoki base-50); a divider or hairline gives structure, not a darker fill */
+  --card-nested: #e6e4d9; /* base-100 — recessed fill for revealed/nested panels; steps off both --bg and --card, so it reads inset on the page OR inside a card, no border needed */
   --card-hover: #e6e4d9; /* Flexoki base-100 (hover-darken) */
   --border: #dad8ce; /* line (Flexoki base-150) */
   --border-strong: #cecdc3; /* line2 (Flexoki base-200) */
@@ -189,6 +190,7 @@
   --muted: #9f9d96; /* Flexoki base-400 (7.0:1 on --bg) */
   --faint: #878580; /* Flexoki base-500 (5.2:1 on --bg) */
   --card: #1c1b1a; /* insets/headers flat with the panels (Flexoki base-950) */
+  --card-nested: #282726; /* base-900 — recessed fill for revealed/nested panels; steps off --bg/--card (lighter here = dark-mode elevation) so it reads inset without a border */
   --card-hover: #282726; /* Flexoki base-900 (hover) */
   --border: #403e3c; /* Flexoki base-800 */
   --border-strong: #575653; /* Flexoki base-700 */

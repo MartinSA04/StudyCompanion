@@ -219,6 +219,20 @@ pre code {
   padding: 0;
 }
 
+/* --- Nested content cards ---
+   Content cards float on the page (fill + --shadow-sm). A card actually nested
+   inside another card can't lift (a shadow doesn't nest) and can't share its
+   parent's fill (they'd merge), so it recesses to --card-nested — a step that
+   reads inset on any parent. This only fires on real nesting, so a top-level
+   card stays light. !important beats each component's own scoped fill/shadow.
+   .figure is kept out of the ancestor list so a figure's own .figure-frame
+   isn't matched as "nested". */
+:is(.example, .quiz, .selfcheck, .simulation, .stepper, .compare-col, .solution, .hint, .derivation, .formula)
+  :is(.example, .quiz, .selfcheck, .simulation, .stepper, .compare-col, .solution, .hint, .derivation, .formula, .figure-frame) {
+  background: var(--card-nested) !important;
+  box-shadow: none !important;
+}
+
 /* --- Tables ---
    Editorial divider style (horizontal rules only, display-serif headers) so an
    authored Markdown table matches the data-driven <Table> component. */

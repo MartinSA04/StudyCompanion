@@ -24,9 +24,9 @@ import Icon from "./Icon.astro";
 <style>
   .derivation {
     margin-block: var(--space-5);
-    border: 1px solid var(--border);
     border-radius: var(--radius);
-    background: var(--card);
+    background: var(--bg-elevated);
+    box-shadow: var(--shadow-sm);
     overflow: hidden;
   }
   summary {
@@ -45,8 +45,9 @@ import Icon from "./Icon.astro";
   summary::-webkit-details-marker {
     display: none;
   }
+  /* Ink overlay hover — the panel sits on --card-nested (== --card-hover). */
   summary:hover {
-    background: var(--card-hover);
+    background: color-mix(in srgb, var(--fg) 6%, transparent);
   }
   .derivation[open] > summary {
     border-bottom: 1px solid var(--border);

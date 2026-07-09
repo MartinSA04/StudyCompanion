@@ -57,10 +57,12 @@ const html = ignoreInSearch(
 
 <style>
   .formula {
+    /* Flat, not floating: consecutive formulas merge into one panel (below), and
+       a per-block shadow would streak the seams. When a formula sits inside a
+       card, the nested-recess rule gives it depth via fill instead. */
     margin-block: var(--space-5);
     padding: 0 var(--space-5);
     background: var(--card);
-    border: 1px solid var(--border);
     border-radius: var(--radius);
   }
 

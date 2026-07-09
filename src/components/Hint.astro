@@ -39,9 +39,9 @@ const auto = !solution && !label;
 
 <style>
   .hint {
-    border: 1px solid var(--border);
     border-radius: var(--radius-sm);
-    background: var(--card);
+    background: var(--bg-elevated);
+    box-shadow: var(--shadow-sm);
     overflow: hidden;
   }
   .hint-num {
@@ -60,8 +60,9 @@ const auto = !solution && !label;
     user-select: none;
     transition: background-color var(--dur-fast) var(--ease);
   }
+  /* Ink overlay hover — the panel sits on --card-nested (== --card-hover). */
   .hint > summary:hover {
-    background: var(--card-hover);
+    background: color-mix(in srgb, var(--fg) 6%, transparent);
   }
   .hint > summary::-webkit-details-marker {
     display: none;

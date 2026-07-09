@@ -28,9 +28,9 @@ const { label = "Vis løsning", open = false } = Astro.props;
 <style>
   .solution {
     margin-top: var(--space-4);
-    border: 1px solid var(--border);
     border-radius: var(--radius-sm);
-    background: var(--card);
+    background: var(--bg-elevated);
+    box-shadow: var(--shadow-sm);
     overflow: hidden;
   }
   .solution > summary {
@@ -46,8 +46,10 @@ const { label = "Vis løsning", open = false } = Astro.props;
     user-select: none;
     transition: background-color var(--dur-fast) var(--ease);
   }
+  /* The panel already sits on --card-nested (== --card-hover), so a neutral fill
+     hover would be invisible; a faint ink overlay darkens it on any surface. */
   .solution > summary:hover {
-    background: var(--card-hover);
+    background: color-mix(in srgb, var(--fg) 6%, transparent);
   }
   .solution > summary::-webkit-details-marker {
     display: none;
