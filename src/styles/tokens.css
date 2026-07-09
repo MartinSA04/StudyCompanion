@@ -62,6 +62,7 @@
   --tip: #536907; /* Flexoki green-high */
   --warning: #9d4310; /* Flexoki orange-high */
   --goals: #1c6c66; /* Flexoki cyan-high */
+  --wrong: #942822; /* Flexoki red-700 — incorrect-answer text; the red -high that pairs with --wrong-bg, mirroring --tip/--tip-bg for correct */
   --core: var(--red);
   --useful: var(--accent);
   --extra: var(--muted);
@@ -209,6 +210,7 @@
   --tip: #cdd597; /* Flexoki green-high (dark) */
   --warning: #fcc192; /* Flexoki orange-high (dark) */
   --goals: #3aa99f; /* Flexoki cyan-400 */
+  --wrong: #f4a79d; /* Flexoki red-high (dark) — pairs with --wrong-bg */
 
   --note-bg: #12253b; /* Flexoki blue-low (dark) */
   --tip-bg: #252d09; /* Flexoki green-low (dark) */

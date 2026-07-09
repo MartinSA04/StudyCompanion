@@ -68,6 +68,12 @@ import Icon from "./Icon.astro";
     flex-direction: column;
     gap: var(--space-2);
   }
+  /* Borderless filled rows: each option recesses to --card-nested inside the
+     --bg-elevated panel (like every other inset), so the resting affordance is a
+     fill — the SAME modality as the graded --tip-bg / --wrong-bg tints, making
+     rest→graded one coherent fill change. The radio mark keeps the only border
+     (the sanctioned --border-strong control ring), so the rows still read as
+     selectable choices. */
   .quiz-option {
     width: 100%;
     display: flex;
@@ -75,15 +81,18 @@ import Icon from "./Icon.astro";
     gap: var(--space-3);
     text-align: left;
     padding: var(--space-3);
-    border: 1px solid var(--border);
+    border: 0;
     border-radius: var(--radius-sm);
-    background: var(--bg);
+    background: var(--card-nested);
     transition:
-      border-color var(--dur-fast) var(--ease),
-      background-color var(--dur-fast) var(--ease);
+      background-color var(--dur-fast) var(--ease),
+      color var(--dur-fast) var(--ease);
   }
+  /* Accent wash carries the interactive cue the border used to (blended into the
+     resting fill so it stays visible in both themes — --card-hover == the resting
+     --card-nested, so a plain fill hover would be invisible). */
   .quiz-option:hover:not([disabled]) {
-    border-color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 14%, var(--card-nested));
   }
   /* Tactile press, kept local (not the shared .sc-press): a graded option is
      [disabled], and the :not([disabled]) guard must suppress the press there. */
@@ -106,7 +115,6 @@ import Icon from "./Icon.astro";
     display: none;
   }
   .quiz-option[data-state="correct"] {
-    border-color: var(--tip);
     background: var(--tip-bg);
     color: var(--tip);
   }
@@ -119,16 +127,15 @@ import Icon from "./Icon.astro";
     color: var(--on-strong);
   }
   .quiz-option[data-state="wrong"] {
-    border-color: var(--core);
     background: var(--wrong-bg);
-    color: var(--core);
+    color: var(--wrong);
   }
   .quiz-option[data-state="wrong"] .quiz-mark {
-    border-color: var(--core);
+    border-color: var(--wrong);
   }
   .quiz-option[data-state="wrong"] .quiz-mark :global(.i-wrong) {
     display: block;
-    color: var(--core);
+    color: var(--wrong);
   }
   .quiz-feedback {
     margin-top: var(--space-3);
@@ -139,7 +146,7 @@ import Icon from "./Icon.astro";
     color: var(--tip);
   }
   .quiz-feedback[data-result="wrong"] {
-    color: var(--core);
+    color: var(--wrong);
   }
   .quiz-explain {
     margin-top: var(--space-3);
@@ -200,7 +207,7 @@ import Icon from "./Icon.astro";
             feedback.dataset.result = correct ? "correct" : "wrong";
             feedback.textContent = correct
               ? "Riktig!"
-              : "Ikke helt — se riktig svar.";
+              : "Ikke helt. Se riktig svar.";
             if (explain) explain.hidden = false;
           },
           { signal },
