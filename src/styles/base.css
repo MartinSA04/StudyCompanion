@@ -141,16 +141,17 @@ pre {
 }
 
 :not(pre) > code {
-  background: var(--card);
-  border: 1px solid var(--border);
+  background: var(--card-nested);
   border-radius: var(--radius-sm);
   padding: 0.12em 0.4em;
 }
 
+/* Code blocks are always dark: Shiki paints the surface inline (flexoki-dark, see
+   shiki-flexoki.ts), so we only drop the border here to make the dark panel read
+   borderless. The --card fallback shows only for a non-highlighted <pre>. */
 pre {
   position: relative;
   background: var(--card);
-  border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: var(--space-4);
   overflow-x: auto;

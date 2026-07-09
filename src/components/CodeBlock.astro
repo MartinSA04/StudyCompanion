@@ -59,8 +59,9 @@ const initial = activeLines ?? (activeLine != null ? [activeLine] : []);
     font-size: var(--text-xs);
     color: var(--muted);
     background: var(--card);
-    border: 1px solid var(--border);
-    border-bottom: 0;
+    /* Divider, not a frame: in dark mode --card equals the code surface, so the
+       header/body/footer would merge into one block without a hairline seam. */
+    border-bottom: 1px solid var(--border);
     border-radius: var(--radius) var(--radius) 0 0;
     padding: var(--space-2) var(--space-4);
   }
@@ -79,8 +80,7 @@ const initial = activeLines ?? (activeLine != null ? [activeLine] : []);
     font-size: var(--text-xs);
     color: var(--muted);
     background: var(--card);
-    border: 1px solid var(--border);
-    border-top: 0;
+    border-top: 1px solid var(--border);
     border-radius: 0 0 var(--radius) var(--radius);
   }
   .codeblock-vars:empty {
