@@ -277,6 +277,12 @@ const { src, codeId, title, caption, height = 300 } = Astro.props;
     background: var(--card-hover);
     color: var(--accent);
   }
+  /* Shared tactile press (matches the shell buttons/tiles). The play glyph's own
+     translateX centering lives on .ic-play, a child, so it's untouched. */
+  .stepper-btn:active,
+  .stepper-ghost:active {
+    transform: translateY(1px);
+  }
   .stepper-speed {
     font-variant-numeric: tabular-nums;
   }

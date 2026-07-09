@@ -86,6 +86,10 @@ import Icon from "./Icon.astro";
   .quiz-option:hover:not([disabled]) {
     border-color: var(--accent);
   }
+  /* Shared tactile press (matches the shell buttons/tiles). */
+  .quiz-option:active:not([disabled]) {
+    transform: translateY(1px);
+  }
   .quiz-mark {
     flex: none;
     display: grid;

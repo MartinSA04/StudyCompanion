@@ -149,6 +149,10 @@ import Icon from "./Icon.astro";
     color: var(--fg);
     border-color: var(--border-strong);
   }
+  /* Shared tactile press (matches the shell buttons/tiles). */
+  .search-esc:active {
+    transform: translateY(1px);
+  }
   .search-results {
     max-height: min(60vh, 480px);
     overflow-y: auto;

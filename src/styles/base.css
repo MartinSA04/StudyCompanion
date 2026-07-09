@@ -195,6 +195,10 @@ pre:hover .code-copy,
   color: var(--accent);
   border-color: var(--accent);
 }
+/* Shared tactile press (matches the shell buttons/tiles). */
+.code-copy:active {
+  transform: translateY(1px);
+}
 /* Icon swap: copy by default, check once copied (mirrors .fs-copy). */
 .code-copy .i-check {
   display: none;

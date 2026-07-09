@@ -362,6 +362,11 @@ const hasMemorize = examFormulaSheet && formulas.some((f) => f.memorize);
     color: var(--accent);
     border-color: var(--accent);
   }
+  /* Shared tactile press (matches the shell buttons/tiles). */
+  .fs-chip:active,
+  .fs-copy:active {
+    transform: translateY(1px);
+  }
   /* Icon swap: copy by default, check once copied. The icons render from the
      Icon component (a different scope), so :global() is needed to reach them. */
   .fs-copy :global(.i-check) {

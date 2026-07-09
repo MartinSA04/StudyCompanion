@@ -168,6 +168,10 @@ const { src, title, caption, height = 300, host = "canvas" } = Astro.props;
     border-color: var(--accent);
     color: var(--accent);
   }
+  /* Shared tactile press (matches the shell buttons/tiles). */
+  .sim-controls :global(.sim-btn:active:not(:disabled)) {
+    transform: translateY(1px);
+  }
   .sim-controls :global(.sim-btn[aria-pressed="true"]) {
     background: var(--accent-weak);
     border-color: var(--accent);

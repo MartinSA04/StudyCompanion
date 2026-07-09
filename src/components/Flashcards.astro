@@ -390,6 +390,13 @@ const hasSections = sections.length > 0;
     border-color: var(--accent);
     color: var(--accent);
   }
+  /* Shared tactile press (matches the shell buttons/tiles) — the deck's
+     utility buttons, not the flip card (it has its own flip animation). */
+  .fc-reset:active,
+  .fc-chip:active,
+  .fc-btn:active {
+    transform: translateY(1px);
+  }
   .fc-counter {
     text-align: center;
     margin-top: var(--space-2);
