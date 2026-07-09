@@ -111,8 +111,13 @@ const initial = activeLines ?? (activeLine != null ? [activeLine] : []);
      the active line changes layout (full-width tinted band that bleeds into the
      pre's padding); inactive lines keep Shiki's natural inline flow, so blank
      lines never collapse. */
+  /* inline-block + min-width:100% makes the code grow to the WIDEST line (never
+     narrower than the box), so the active-line band's width:100% spans the full
+     horizontal extent — the highlight reaches all the way even when the block
+     scrolls sideways, instead of stopping at the visible width. */
   .codeblock :global(pre code) {
-    display: block;
+    display: inline-block;
+    min-width: 100%;
   }
   .codeblock :global(.line) {
     transition: background var(--dur-fast) var(--ease);

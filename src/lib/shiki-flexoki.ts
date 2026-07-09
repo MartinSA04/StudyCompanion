@@ -43,7 +43,9 @@ export const flexokiDark: ShikiTheme = {
       settings: { foreground: "#ce5d97" },
     },
     {
-      scope: ["entity.name.function", "support.function", "meta.function-call", "variable.function"],
+      // `.generic` is the called NAME; the broad `meta.function-call` also wraps
+      // the arguments, which tinted plain variables (e.g. theta1) orange.
+      scope: ["entity.name.function", "support.function", "meta.function-call.generic", "variable.function"],
       settings: { foreground: "#da702c" },
     },
     {

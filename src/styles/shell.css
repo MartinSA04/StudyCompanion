@@ -194,13 +194,13 @@
   background: var(--bg-elevated);
   color: var(--fg);
 }
-/* Current page: a soft accent-tinted fill with accent-coloured, medium-weight
-   text — the same "you are here" language the TOC rail uses (colour + weight),
-   so the two rails read as one system. No stripe or shadow. */
+/* Current page: a soft accent-tinted fill with accent-coloured text. No weight
+   change — a heavier active weight widens the label and can tip a borderline
+   title into an extra wrapped line, i.e. the active state would reflow the row.
+   The fill + accent colour already read as "you are here". */
 .nav-link.active {
   background: var(--accent-soft);
   color: var(--accent);
-  font-weight: var(--weight-medium);
 }
 .nav-num {
   font-family: var(--font-mono);
