@@ -220,17 +220,25 @@ pre code {
 }
 
 /* --- Nested content cards ---
-   Content cards float on the page (fill + --shadow-sm). A card actually nested
-   inside another card can't lift (a shadow doesn't nest) and can't share its
-   parent's fill (they'd merge), so it recesses to --card-nested — a step that
-   reads inset on any parent. This only fires on real nesting, so a top-level
-   card stays light. !important beats each component's own scoped fill/shadow.
-   .figure is kept out of the ancestor list so a figure's own .figure-frame
-   isn't matched as "nested". */
+   Depth reads through ALTERNATING fill — not a stacked shadow (a shadow can't
+   nest) and not an ever-darker ramp (Flexoki has only two neutral surfaces). A
+   card nested inside another recesses to --card-nested; a card nested TWO deep
+   alternates back to --bg-elevated, so it contrasts with its already-recessed
+   parent instead of matching it. That fixes the double-nest (Example > Solution
+   > Formula), and it works for a merged formula run too — the whole run just
+   takes its level's fill. Only real nesting fires this, so a top-level card
+   stays light and floating; nested cards drop the lift. !important beats each
+   component's own scoped fill/shadow. .figure stays out of the ancestor lists
+   so a figure's own .figure-frame isn't treated as nested. */
 :is(.example, .quiz, .selfcheck, .simulation, .stepper, .compare-col, .solution, .hint, .derivation, .formula)
   :is(.example, .quiz, .selfcheck, .simulation, .stepper, .compare-col, .solution, .hint, .derivation, .formula, .figure-frame) {
   background: var(--card-nested) !important;
   box-shadow: none !important;
+}
+:is(.example, .quiz, .selfcheck, .simulation, .stepper, .compare-col, .solution, .hint, .derivation, .formula)
+  :is(.example, .quiz, .selfcheck, .simulation, .stepper, .compare-col, .solution, .hint, .derivation, .formula)
+  :is(.example, .quiz, .selfcheck, .simulation, .stepper, .compare-col, .solution, .hint, .derivation, .formula, .figure-frame) {
+  background: var(--bg-elevated) !important;
 }
 
 /* --- Tables ---
