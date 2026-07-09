@@ -75,6 +75,10 @@ import Icon from "./Icon.astro";
     border-color: var(--border-strong);
     color: var(--fg);
   }
+  /* Shared tactile press — matches the pager/tiles (see shell.css). */
+  .search-trigger:active {
+    transform: translateY(1px);
+  }
   /* Icons render from the <Icon> child (outside this scope) — reach via :global. */
   .search-trigger :global(.search-icon),
   .search-box :global(.search-icon) {

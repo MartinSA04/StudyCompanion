@@ -46,6 +46,10 @@ import Icon from "./Icon.astro";
     background: var(--card-hover);
     border-color: var(--border-strong);
   }
+  /* Shared tactile press — matches the pager/tiles (see shell.css). */
+  .theme-toggle:active {
+    transform: translateY(1px);
+  }
   /* The glyphs render from the <Icon> child, so their classes are outside this
      component's style scope — reach them with :global() under the scoped button.
      Both stack in one grid cell; show the icon for the theme you'd switch TO. */
