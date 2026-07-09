@@ -159,28 +159,18 @@ pre {
 }
 
 /* Copy button injected by the layout's enhancement script onto every <pre>.
-   An icon button matching the formula sheet's copy control (.fs-copy): a copy
-   glyph that swaps to a check once copied. */
+   Box, hover and icon-swap come from the shared .sc-copy / .sc-press primitives;
+   base.css owns only what is code-block-specific — it floats over the code and
+   fades in on hover. */
 .code-copy {
   position: absolute;
   top: var(--space-2);
   right: var(--space-2);
-  display: grid;
-  place-items: center;
-  width: 32px;
-  height: 32px;
-  color: var(--muted);
-  background: var(--bg-elevated);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
   opacity: 0;
   transition:
     opacity var(--dur-fast) var(--ease),
     color var(--dur-fast) var(--ease),
     border-color var(--dur-fast) var(--ease);
-}
-.code-copy svg {
-  display: block;
 }
 pre:hover .code-copy,
 .code-copy:focus-visible {
@@ -191,28 +181,6 @@ pre:hover .code-copy,
   .code-copy {
     opacity: 1;
   }
-}
-.code-copy:hover {
-  color: var(--accent);
-  border-color: var(--accent);
-}
-/* Shared tactile press (matches the shell buttons/tiles). */
-.code-copy:active {
-  transform: translateY(1px);
-}
-/* Icon swap: copy by default, check once copied (mirrors .fs-copy). */
-.code-copy .i-check {
-  display: none;
-}
-.code-copy[data-copied="true"] {
-  color: var(--tip);
-  border-color: var(--tip);
-}
-.code-copy[data-copied="true"] .i-copy {
-  display: none;
-}
-.code-copy[data-copied="true"] .i-check {
-  display: block;
 }
 pre code {
   background: none;

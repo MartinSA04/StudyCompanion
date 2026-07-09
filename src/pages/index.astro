@@ -144,7 +144,7 @@ const jsonLd = [
           <p class="hero-done">
             <span data-progress-done>0</span> av {tiles.length} moduler fullført
           </p>
-          <a class="hero-continue" data-hero-continue href="#" hidden>
+          <a class="hero-continue sc-press" data-hero-continue href="#" hidden>
             Fortsett der du slapp
             <Icon name="arrow-right" size={14} />
           </a>
@@ -192,7 +192,7 @@ const jsonLd = [
         <div class="overview-grid">
           {group.items.map((t) => (
             <a
-              class="module-tile"
+              class="module-tile sc-press sc-tile"
               href={`/${t.slug}`}
               data-tile-order={t.order}
             >

@@ -49,7 +49,7 @@ const { src, title, caption, height = 300, host = "canvas" } = Astro.props;
 ---
 
 <figure
-  class="simulation"
+  class="simulation sc-panel"
   data-sim
   data-sim-src={src}
   data-sim-height={height}
@@ -83,11 +83,9 @@ const { src, title, caption, height = 300, host = "canvas" } = Astro.props;
 </figure>
 
 <style>
+  /* Float (fill + shadow + radius) comes from the shared .sc-panel. */
   .simulation {
     margin-block: var(--space-5);
-    border-radius: var(--radius);
-    background: var(--bg-elevated);
-    box-shadow: var(--shadow-sm);
     overflow: hidden;
   }
   .sim-stage {
@@ -168,7 +166,9 @@ const { src, title, caption, height = 300, host = "canvas" } = Astro.props;
     border-color: var(--accent);
     color: var(--accent);
   }
-  /* Shared tactile press (matches the shell buttons/tiles). */
+  /* Tactile press, kept local (not the shared .sc-press): .sim-btn is injected by
+     the course module — no markup here to carry a class — and the :not(:disabled)
+     guard must suppress the press on a disabled control. */
   .sim-controls :global(.sim-btn:active:not(:disabled)) {
     transform: translateY(1px);
   }

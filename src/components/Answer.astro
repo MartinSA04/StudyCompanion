@@ -12,7 +12,7 @@ const { label = "Svar" } = Astro.props;
 ---
 
 <div class="answer">
-  <span class="answer-label">{label}</span>
+  <span class="answer-label sc-kicker">{label}</span>
   <div class="answer-body"><slot /></div>
 </div>
 
@@ -26,13 +26,10 @@ const { label = "Svar" } = Astro.props;
     background: var(--answer-bg);
     border-radius: var(--radius-sm);
   }
+  /* Mono uppercase kicker recipe comes from .sc-kicker; size + tone local. */
   .answer-label {
     flex: none;
-    font-family: var(--font-mono);
     font-size: var(--text-xs);
-    text-transform: uppercase;
-    letter-spacing: var(--tracking);
-    font-weight: var(--weight-semibold);
     color: var(--tip);
   }
   .answer-body {

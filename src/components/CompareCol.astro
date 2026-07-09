@@ -17,18 +17,16 @@ const plain = title
   .trim();
 ---
 
-<section class="compare-col" aria-label={plain || undefined}>
+<section class="compare-col sc-panel" aria-label={plain || undefined}>
   <p class="compare-col-title" set:html={renderMathString(title)} />
   <div class="compare-col-body"><slot /></div>
 </section>
 
 <style>
+  /* Float (fill + shadow + radius) comes from the shared .sc-panel. */
   .compare-col {
     display: flex;
     flex-direction: column;
-    border-radius: var(--radius);
-    background: var(--bg-elevated);
-    box-shadow: var(--shadow-sm);
     overflow: hidden;
   }
   .compare-col-title {

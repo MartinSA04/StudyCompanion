@@ -11,9 +11,9 @@ const { title = "Utledning", open = false } = Astro.props;
 import Icon from "./Icon.astro";
 ---
 
-<details class="derivation" open={open}>
-  <summary>
-    <span class="derivation-chevron" aria-hidden="true">
+<details class="derivation sc-panel" open={open}>
+  <summary class="sc-summary">
+    <span class="derivation-chevron sc-chev" aria-hidden="true">
       <Icon name="chevron-right" size={13} />
     </span>
     <span>{title}</span>
@@ -22,42 +22,15 @@ import Icon from "./Icon.astro";
 </details>
 
 <style>
+  /* Float (fill + shadow + radius) comes from the shared .sc-panel. */
   .derivation {
     margin-block: var(--space-5);
-    border-radius: var(--radius);
-    background: var(--bg-elevated);
-    box-shadow: var(--shadow-sm);
     overflow: hidden;
   }
-  summary {
-    display: flex;
-    align-items: center;
-    gap: var(--space-2);
+  /* Summary type, hover, marker-hide, [open] divider and chevron come from the
+     shared .sc-summary / .sc-chev primitives; only the padding is local. */
+  .derivation > summary {
     padding: var(--space-3) var(--space-4);
-    font-family: var(--font-mono);
-    font-size: var(--text-sm);
-    color: var(--accent);
-    cursor: pointer;
-    list-style: none;
-    user-select: none;
-    transition: background-color var(--dur-fast) var(--ease);
-  }
-  summary::-webkit-details-marker {
-    display: none;
-  }
-  /* Ink overlay hover — the panel sits on --card-nested (== --card-hover). */
-  summary:hover {
-    background: color-mix(in srgb, var(--fg) 6%, transparent);
-  }
-  .derivation[open] > summary {
-    border-bottom: 1px solid var(--border);
-  }
-  .derivation-chevron {
-    display: inline-flex;
-    transition: transform var(--dur-fast) var(--ease);
-  }
-  .derivation[open] .derivation-chevron {
-    transform: rotate(90deg);
   }
   .derivation-body {
     padding: var(--space-2) var(--space-4) var(--space-4);

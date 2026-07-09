@@ -15,9 +15,9 @@ interface Props {
 const { label = "Vis løsning", open = false } = Astro.props;
 ---
 
-<details class="solution" open={open}>
-  <summary>
-    <span class="solution-chev" aria-hidden="true">
+<details class="solution sc-panel" open={open}>
+  <summary class="sc-summary">
+    <span class="solution-chev sc-chev" aria-hidden="true">
       <Icon name="chevron-right" size={13} />
     </span>
     {label}
@@ -26,43 +26,17 @@ const { label = "Vis løsning", open = false } = Astro.props;
 </details>
 
 <style>
+  /* Float (fill + shadow) comes from the shared .sc-panel; this small nested
+     reveal keeps the tighter --radius-sm. base.css recesses it when nested. */
   .solution {
     margin-top: var(--space-4);
     border-radius: var(--radius-sm);
-    background: var(--bg-elevated);
-    box-shadow: var(--shadow-sm);
     overflow: hidden;
   }
+  /* Summary type, hover, marker-hide, [open] divider and chevron come from the
+     shared .sc-summary / .sc-chev primitives; only the padding is local. */
   .solution > summary {
-    display: flex;
-    align-items: center;
-    gap: var(--space-2);
     padding: var(--space-2) var(--space-3);
-    font-family: var(--font-mono);
-    font-size: var(--text-sm);
-    color: var(--accent);
-    cursor: pointer;
-    list-style: none;
-    user-select: none;
-    transition: background-color var(--dur-fast) var(--ease);
-  }
-  /* The panel already sits on --card-nested (== --card-hover), so a neutral fill
-     hover would be invisible; a faint ink overlay darkens it on any surface. */
-  .solution > summary:hover {
-    background: color-mix(in srgb, var(--fg) 6%, transparent);
-  }
-  .solution > summary::-webkit-details-marker {
-    display: none;
-  }
-  .solution[open] > summary {
-    border-bottom: 1px solid var(--border);
-  }
-  .solution-chev {
-    display: inline-flex;
-    transition: transform var(--dur-fast) var(--ease);
-  }
-  .solution[open] .solution-chev {
-    transform: rotate(90deg);
   }
   .solution-body {
     padding: var(--space-3);

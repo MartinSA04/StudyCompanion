@@ -237,7 +237,7 @@ const seo = {
             </div>
           </div>
           {course.features.progress && (
-            <button class="done-btn" type="button" data-done-order={head.order}>
+            <button class="done-btn sc-press" type="button" data-done-order={head.order}>
               <span class="done-check" aria-hidden="true">
                 <Icon name="check" size={15} />
               </span>
@@ -260,7 +260,7 @@ const seo = {
 
         <nav class="page-actions" aria-label="Moduler">
           {props.prev ? (
-            <a class="page-link" href={`/${props.prev.slug}`} data-page-prev>
+            <a class="page-link sc-press sc-tile" href={`/${props.prev.slug}`} data-page-prev>
               <Icon name="chevron-left" size={15} />
               Forrige: {props.prev.num}
             </a>
@@ -268,12 +268,12 @@ const seo = {
             <span class="page-link disabled" />
           )}
           {props.next ? (
-            <a class="page-link" href={`/${props.next.slug}`} data-page-next>
+            <a class="page-link sc-press sc-tile" href={`/${props.next.slug}`} data-page-next>
               Neste: {props.next.num}
               <Icon name="chevron-right" size={15} />
             </a>
           ) : (
-            <a class="page-link" href="/" data-page-next>
+            <a class="page-link sc-press sc-tile" href="/" data-page-next>
               Til oversikt
             </a>
           )}
@@ -291,7 +291,7 @@ const seo = {
         </header>
         {course.exam?.formulaSheetUrl && (
           <a
-            class="official-sheet"
+            class="official-sheet sc-press"
             href={course.exam.formulaSheetUrl}
             target="_blank"
             rel="noopener noreferrer"

@@ -16,7 +16,7 @@ import { renderMathString } from "../lib/katex.ts";
 import Icon from "./Icon.astro";
 ---
 
-<form class="quiz" data-answer={answer}>
+<form class="quiz sc-panel" data-answer={answer}>
   <fieldset>
     <legend class="quiz-q" set:html={renderMathString(question)} />
     <ul class="quiz-options">
@@ -44,12 +44,11 @@ import Icon from "./Icon.astro";
 </form>
 
 <style>
+  /* Float (fill + shadow + radius) comes from the shared .sc-panel; fill is now
+     --bg-elevated (was --card — identical colour, one token for float surfaces). */
   .quiz {
     margin-block: var(--space-5);
     padding: var(--space-4);
-    border-radius: var(--radius);
-    background: var(--card);
-    box-shadow: var(--shadow-sm);
   }
   .quiz fieldset {
     border: 0;
@@ -86,7 +85,8 @@ import Icon from "./Icon.astro";
   .quiz-option:hover:not([disabled]) {
     border-color: var(--accent);
   }
-  /* Shared tactile press (matches the shell buttons/tiles). */
+  /* Tactile press, kept local (not the shared .sc-press): a graded option is
+     [disabled], and the :not([disabled]) guard must suppress the press there. */
   .quiz-option:active:not([disabled]) {
     transform: translateY(1px);
   }

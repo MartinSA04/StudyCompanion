@@ -31,7 +31,7 @@ interface Props {
 const { label = "Regneeksempel", title } = Astro.props;
 ---
 
-<figure class="example">
+<figure class="example sc-panel">
   <PanelHeader kicker={label} title={title}>
     <Icon slot="kicker-icon" name="calculator" size={15} />
   </PanelHeader>
@@ -39,11 +39,10 @@ const { label = "Regneeksempel", title } = Astro.props;
 </figure>
 
 <style>
+  /* Float (fill + shadow + radius) comes from the shared .sc-panel; base.css
+     recesses it to --card-nested when actually nested. */
   .example {
     margin-block: var(--space-5);
-    border-radius: var(--radius);
-    background: var(--bg-elevated);
-    box-shadow: var(--shadow-sm);
     overflow: hidden;
   }
   .example-body {

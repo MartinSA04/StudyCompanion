@@ -96,7 +96,7 @@ const hasMemorize = examFormulaSheet && formulas.some((f) => f.memorize);
       <div class="fs-filter" role="group" aria-label="Filtrer formler">
         <button
           type="button"
-          class="fs-chip"
+          class="fs-chip sc-press sc-chip"
           data-filter="all"
           aria-pressed="true"
         >
@@ -104,7 +104,7 @@ const hasMemorize = examFormulaSheet && formulas.some((f) => f.memorize);
         </button>
         <button
           type="button"
-          class="fs-chip"
+          class="fs-chip sc-press sc-chip"
           data-filter="sheet"
           aria-pressed="false"
         >
@@ -112,7 +112,7 @@ const hasMemorize = examFormulaSheet && formulas.some((f) => f.memorize);
         </button>
         <button
           type="button"
-          class="fs-chip"
+          class="fs-chip sc-press sc-chip"
           data-filter="memorize"
           aria-pressed="false"
         >
@@ -149,7 +149,7 @@ const hasMemorize = examFormulaSheet && formulas.some((f) => f.memorize);
               {examFormulaSheet && f.memorize && <MemorizeBadge />}
               <button
                 type="button"
-                class="fs-copy"
+                class="fs-copy sc-copy sc-press"
                 data-tex={f.tex}
                 aria-label="Kopier LaTeX"
                 title="Kopier LaTeX"
@@ -236,21 +236,16 @@ const hasMemorize = examFormulaSheet && formulas.some((f) => f.memorize);
     flex-wrap: wrap;
     gap: var(--space-2);
   }
+  /* Frame (border/radius/mono/muted/transition) comes from the shared .sc-chip;
+     the sheet's filter chips keep their roomier padding, size and fill. Fill is
+     --bg-elevated (== --card; one token for float surfaces). */
   .fs-chip {
     display: inline-flex;
     align-items: center;
     gap: 0.4em;
-    font-family: var(--font-mono);
     font-size: var(--text-sm);
     padding: 0.4em 0.95em;
-    border: 1px solid var(--border-strong);
-    border-radius: var(--radius-pill);
-    background: var(--card);
-    color: var(--muted);
-    transition:
-      color var(--dur-fast) var(--ease),
-      border-color var(--dur-fast) var(--ease),
-      background var(--dur-fast) var(--ease);
+    background: var(--bg-elevated);
   }
   .fs-chip:hover {
     color: var(--fg);
@@ -345,44 +340,15 @@ const hasMemorize = examFormulaSheet && formulas.some((f) => f.memorize);
     color: var(--accent);
     font-weight: var(--weight-semibold);
   }
+  /* Box, hover and icon-swap come from the shared .sc-copy / .sc-press
+     primitives; the sheet only positions the button at the row's trailing edge.
+     The transition stays local — .sc-copy sets none, so each caller owns it. */
   .fs-copy {
     flex: none;
     margin-left: auto;
-    display: grid;
-    place-items: center;
-    width: 32px;
-    height: 32px;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    background: var(--bg-elevated);
-    color: var(--muted);
     transition:
       color var(--dur-fast) var(--ease),
       border-color var(--dur-fast) var(--ease);
-  }
-  .fs-copy:hover {
-    color: var(--accent);
-    border-color: var(--accent);
-  }
-  /* Shared tactile press (matches the shell buttons/tiles). */
-  .fs-chip:active,
-  .fs-copy:active {
-    transform: translateY(1px);
-  }
-  /* Icon swap: copy by default, check once copied. The icons render from the
-     Icon component (a different scope), so :global() is needed to reach them. */
-  .fs-copy :global(.i-check) {
-    display: none;
-  }
-  .fs-copy[data-copied="true"] {
-    color: var(--tip);
-    border-color: var(--tip);
-  }
-  .fs-copy[data-copied="true"] :global(.i-copy) {
-    display: none;
-  }
-  .fs-copy[data-copied="true"] :global(.i-check) {
-    display: block;
   }
   .fs-empty {
     color: var(--faint);

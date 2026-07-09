@@ -12,7 +12,7 @@ import { renderMathString } from "../lib/katex.ts";
 import Icon from "./Icon.astro";
 ---
 
-<div class="selfcheck">
+<div class="selfcheck sc-panel">
   <p class="selfcheck-q">
     <span class="selfcheck-tag" aria-hidden="true">
       <Icon name="help-circle" size={20} />
@@ -21,7 +21,7 @@ import Icon from "./Icon.astro";
   </p>
   <details class="selfcheck-a">
     <summary>
-      <span class="selfcheck-chev" aria-hidden="true">
+      <span class="selfcheck-chev sc-chev" aria-hidden="true">
         <Icon name="chevron-right" size={13} />
       </span>
       {revealLabel}
@@ -31,12 +31,11 @@ import Icon from "./Icon.astro";
 </div>
 
 <style>
+  /* Float (fill + shadow + radius) comes from the shared .sc-panel; fill is now
+     --bg-elevated (was --card — identical colour). */
   .selfcheck {
     margin-block: var(--space-5);
     padding: var(--space-4);
-    border-radius: var(--radius);
-    background: var(--card);
-    box-shadow: var(--shadow-sm);
   }
   .selfcheck-q {
     display: flex;
@@ -72,13 +71,8 @@ import Icon from "./Icon.astro";
     text-decoration: underline;
     text-underline-offset: 0.2em;
   }
-  .selfcheck-chev {
-    display: inline-flex;
-    transition: transform var(--dur-fast) var(--ease);
-  }
-  .selfcheck-a[open] .selfcheck-chev {
-    transform: rotate(90deg);
-  }
+  /* The chevron's display/transition/rotate come from the shared .sc-chev
+     primitive; the summary itself stays local (an inline underline reveal). */
   .selfcheck-body {
     margin-top: var(--space-3);
     padding-top: var(--space-3);

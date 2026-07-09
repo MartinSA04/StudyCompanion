@@ -1,0 +1,161 @@
+/*
+ * Shared component primitives — the visual vocabulary from the design-polish
+ * audit, extracted from per-component scoped <style> into ONE documented layer.
+ * A sibling of the tokens.css contract: a component applies a class below and
+ * keeps only its own local overrides. Astro hashes a component's scoped
+ * selectors to 0-2-0, so a scoped override always beats these 0-1-0 globals —
+ * local tweaks keep working without !important. Loaded after base.css so it can
+ * rely on the token + element base, and before shell.css.
+ */
+
+/* --- Tactile press ---
+   Every clickable dips 1px on press. Deliberately excludes the flashcard flip
+   card, disclosure <summary>s and glyph-nudge elements — they own a transform. */
+.sc-press:active {
+  transform: translateY(1px);
+}
+
+/* --- Square icon control (theme toggle, search trigger) ---
+   Box + neutral chrome hover. Size is the caller's (--control-h for topbar
+   chrome). The copy button is a separate, accent-hover variant below. */
+.sc-icon-btn {
+  display: inline-grid;
+  place-items: center;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-elevated);
+  color: var(--muted);
+  transition:
+    color var(--dur-fast) var(--ease),
+    background-color var(--dur-fast) var(--ease),
+    border-color var(--dur-fast) var(--ease);
+}
+.sc-icon-btn:hover {
+  color: var(--fg);
+  background: var(--card-hover);
+  border-color: var(--border-strong);
+}
+
+/* --- Copy control (code blocks + formula sheet) ---
+   A 32px icon control whose hover reads "actionable" (accent, not neutral) and
+   which swaps a copy glyph for a check once copied. NO transition here: the
+   <pre> copy button also animates opacity on reveal, and an equal-specificity
+   transition would clobber it — so each caller keeps its own transition.
+   Positioning/visibility is the caller's (absolute+opacity over a <pre>, or
+   static in a row). Icons come from <Icon> children; this file is global, so no
+   :global() is needed to reach .i-copy / .i-check. */
+.sc-copy {
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-elevated);
+  color: var(--muted);
+}
+.sc-copy svg {
+  display: block;
+}
+.sc-copy:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+.sc-copy .i-check {
+  display: none;
+}
+.sc-copy[data-copied="true"] {
+  color: var(--tip);
+  border-color: var(--tip);
+}
+.sc-copy[data-copied="true"] .i-copy {
+  display: none;
+}
+.sc-copy[data-copied="true"] .i-check {
+  display: block;
+}
+
+/* --- Disclosure summary idiom (Solution / Hint / Derivation) ---
+   Apply .sc-summary to the <summary> and wrap the chevron glyph in .sc-chev.
+   The container (radius / padding / margin) stays the component's. */
+.sc-summary {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: var(--accent);
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+  transition: background-color var(--dur-fast) var(--ease);
+}
+.sc-summary::-webkit-details-marker {
+  display: none;
+}
+/* The panel sits on --card-nested (== --card-hover), so a neutral fill hover is
+   invisible; a faint ink overlay darkens it on any surface. */
+.sc-summary:hover {
+  background: color-mix(in srgb, var(--fg) 6%, transparent);
+}
+details[open] > .sc-summary {
+  border-bottom: 1px solid var(--border);
+}
+.sc-chev {
+  display: inline-flex;
+  transition: transform var(--dur-fast) var(--ease);
+}
+details[open] > summary .sc-chev {
+  transform: rotate(90deg);
+}
+
+/* --- Pill chip frame (filter toggles, formula tags) ---
+   Frame + type only; size / padding / fill / display / hover stay the caller's. */
+.sc-chip {
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-pill);
+  font-family: var(--font-mono);
+  color: var(--muted);
+  transition:
+    color var(--dur-fast) var(--ease),
+    background-color var(--dur-fast) var(--ease),
+    border-color var(--dur-fast) var(--ease);
+}
+
+/* --- Mono uppercase kicker / label ---
+   The type recipe only; size + tone colour stay the caller's. */
+.sc-kicker {
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking);
+  font-weight: var(--weight-semibold);
+}
+
+/* --- Floating content card ---
+   Fill + soft shadow at rest. base.css owns the nested-alternation (a card
+   nested in another recesses to --card-nested with no shadow, via !important
+   rules that match the component container classes), so KEEP those classes and
+   only add .sc-panel alongside. Radius/padding stay the caller's where they
+   legitimately differ (e.g. Solution/Hint keep --radius-sm). */
+.sc-panel {
+  background: var(--bg-elevated);
+  box-shadow: var(--shadow-sm);
+  border-radius: var(--radius);
+}
+
+/* --- Interactive tile-lift (overview tiles, prev/next pager) ---
+   Borderless, soft shadow at rest, lifting to the full shadow on hover. Layout
+   stays the caller's. (nav-link is deliberately NOT this — flat at rest; see
+   shell.css.) */
+.sc-tile {
+  border-radius: var(--radius);
+  background: var(--bg-elevated);
+  box-shadow: var(--shadow-sm);
+  transition:
+    box-shadow var(--dur-fast) var(--ease),
+    background-color var(--dur-fast) var(--ease);
+}
+.sc-tile:hover {
+  box-shadow: var(--shadow);
+  background: var(--card);
+}

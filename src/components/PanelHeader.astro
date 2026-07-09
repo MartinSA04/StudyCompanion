@@ -38,7 +38,7 @@ const {
   {dot && <span class="panel-dot" aria-hidden="true" />}
   {
     kicker && (
-      <span class="panel-kicker">
+      <span class="panel-kicker sc-kicker">
         <slot name="kicker-icon" />
         {kicker}
       </span>
@@ -70,17 +70,15 @@ const {
   .align-center {
     align-items: center;
   }
+  /* Mono/uppercase/tracking/semibold recipe comes from the shared .sc-kicker;
+     the header only sets the badge's layout, size and tone. */
   .panel-kicker {
     display: inline-flex;
     align-items: center;
     gap: 6px;
     flex: none;
     align-self: center;
-    font-family: var(--font-mono);
     font-size: var(--text-sm);
-    text-transform: uppercase;
-    letter-spacing: var(--tracking);
-    font-weight: var(--weight-semibold);
     color: var(--accent);
   }
   .panel-dot {

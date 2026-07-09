@@ -8,20 +8,18 @@
  */
 ---
 
-<span class="memorize-badge" title="Står ikke på formelarket – må pugges">
+<span class="memorize-badge sc-kicker" title="Står ikke på formelarket – må pugges">
   må pugges
 </span>
 
 <style>
+  /* Mono uppercase kicker recipe comes from .sc-kicker; the badge adds its
+     amber tinted-surface fill, size and padding. */
   .memorize-badge {
     flex: none;
     display: inline-flex;
     align-items: center;
-    font-family: var(--font-mono);
     font-size: var(--text-xs);
-    font-weight: var(--weight-semibold);
-    text-transform: uppercase;
-    letter-spacing: var(--tracking);
     color: var(--warning);
     background: var(--warning-bg);
     border-radius: var(--radius-xs);

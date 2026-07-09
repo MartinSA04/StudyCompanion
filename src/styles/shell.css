@@ -208,11 +208,6 @@
   background: var(--accent-soft);
   color: var(--accent);
 }
-/* Shared tactile press — the left-bar module links dip 1px on click like the
-   tiles and buttons, so navigating feels the same as everything else. */
-.nav-link:active {
-  transform: translateY(1px);
-}
 .nav-num {
   font-family: var(--font-mono);
   font-size: var(--text-xs);
@@ -356,20 +351,14 @@
 .part-head + .overview-grid {
   margin-top: var(--gap-4);
 }
+/* Fill + rest/hover shadow-lift come from the shared .sc-tile primitive; the
+   overview tile only sets its block layout + padding. */
 .module-tile {
   position: relative;
   display: block;
   text-decoration: none;
   color: inherit;
-  border-radius: var(--radius);
-  background: var(--bg-elevated);
-  box-shadow: var(--shadow-sm);
   padding: var(--gap-4);
-  transition: background-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
-}
-.module-tile:hover {
-  box-shadow: var(--shadow);
-  background: var(--card);
 }
 .tile-num {
   font-family: var(--font-mono);
@@ -552,6 +541,8 @@
 /* The pager buttons are large standalone surfaces — the same affordance as the
    overview tiles, so they use the tile language: borderless, soft shadow at
    rest, lifting on hover. */
+/* Fill + rest/hover shadow-lift come from the shared .sc-tile primitive; the
+   pager button only sets its inline layout, colour and type. */
 .page-link {
   display: inline-flex;
   align-items: center;
@@ -560,32 +551,13 @@
   min-height: var(--control-h);
   text-decoration: none;
   color: var(--accent);
-  border-radius: var(--radius);
-  background: var(--bg-elevated);
-  box-shadow: var(--shadow-sm);
   padding: var(--gap-2) var(--gap-3);
   font-family: var(--font-mono);
   font-size: var(--text-sm);
   cursor: pointer;
-  transition: box-shadow var(--dur-fast) var(--ease), background-color var(--dur-fast) var(--ease);
-}
-.page-link:hover {
-  box-shadow: var(--shadow);
-  background: var(--card);
 }
 .page-link.disabled {
   visibility: hidden;
-}
-
-/* Tactile press — primary buttons and the content tiles dip 1px on click so a
-   tap is confirmed everywhere, not just on the tiles. transform is composited
-   (not a layout property), so it stays cheap and reads as instant. */
-.module-tile:active,
-.page-link:active,
-.done-btn:active,
-.hero-continue:active,
-.menu-toggle:active {
-  transform: translateY(1px);
 }
 
 /* ====== generic card + lede (used on overview / tool intros) ====== */
@@ -723,9 +695,6 @@
 }
 .official-sheet:hover {
   box-shadow: var(--shadow);
-}
-.official-sheet:active {
-  transform: translateY(1px);
 }
 .official-sheet .os-label {
   flex: 1;

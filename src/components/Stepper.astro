@@ -39,7 +39,7 @@ const { src, codeId, title, caption, height = 300 } = Astro.props;
 ---
 
 <figure
-  class="stepper"
+  class="stepper sc-panel"
   data-stepper
   data-stepper-src={src}
   data-stepper-code={codeId}
@@ -63,14 +63,14 @@ const { src, codeId, title, caption, height = 300 } = Astro.props;
     <div class="stepper-controls">
       <div class="stepper-transport">
         <button
-          class="stepper-btn"
+          class="stepper-btn sc-press"
           data-act="back"
           type="button"
           aria-label="Forrige steg"
           title="Forrige steg (←)"><Icon name="chevron-left" /></button
         >
         <button
-          class="stepper-btn stepper-play"
+          class="stepper-btn stepper-play sc-press"
           data-act="play"
           type="button"
           aria-pressed="false"
@@ -81,7 +81,7 @@ const { src, codeId, title, caption, height = 300 } = Astro.props;
           <span class="ic-pause"><Icon name="pause" size={18} /></span>
         </button>
         <button
-          class="stepper-btn"
+          class="stepper-btn sc-press"
           data-act="forward"
           type="button"
           aria-label="Neste steg"
@@ -102,14 +102,14 @@ const { src, codeId, title, caption, height = 300 } = Astro.props;
 
       <div class="stepper-extra">
         <button
-          class="stepper-ghost stepper-speed"
+          class="stepper-ghost stepper-speed sc-press"
           data-act="speed"
           type="button"
           aria-label="Avspillingsfart"
           title="Avspillingsfart">1×</button
         >
         <button
-          class="stepper-ghost"
+          class="stepper-ghost sc-press"
           data-act="shuffle"
           type="button"
           aria-label="Stokk om"
@@ -128,11 +128,9 @@ const { src, codeId, title, caption, height = 300 } = Astro.props;
 </figure>
 
 <style>
+  /* Float (fill + shadow + radius) comes from the shared .sc-panel. */
   .stepper {
     margin-block: var(--space-5);
-    border-radius: var(--radius);
-    background: var(--bg-elevated);
-    box-shadow: var(--shadow-sm);
     overflow: hidden;
   }
   .stepper:focus-visible {
@@ -276,12 +274,6 @@ const { src, codeId, title, caption, height = 300 } = Astro.props;
   .stepper-ghost:hover {
     background: var(--card-hover);
     color: var(--accent);
-  }
-  /* Shared tactile press (matches the shell buttons/tiles). The play glyph's own
-     translateX centering lives on .ic-play, a child, so it's untouched. */
-  .stepper-btn:active,
-  .stepper-ghost:active {
-    transform: translateY(1px);
   }
   .stepper-speed {
     font-variant-numeric: tabular-nums;

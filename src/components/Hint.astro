@@ -19,11 +19,11 @@ const auto = !solution && !label;
 ---
 
 <details
-  class:list={["hint", { "hint-num": auto, "hint-solution": solution }]}
+  class:list={["hint", "sc-panel", { "hint-num": auto, "hint-solution": solution }]}
   open={open}
 >
-  <summary>
-    <span class="hint-chev" aria-hidden="true"
+  <summary class="sc-summary">
+    <span class="hint-chev sc-chev" aria-hidden="true"
       ><Icon name="chevron-right" size={13} /></span
     >
     {
@@ -38,47 +38,22 @@ const auto = !solution && !label;
 </details>
 
 <style>
+  /* Float (fill + shadow) comes from the shared .sc-panel; this small reveal
+     keeps the tighter --radius-sm. */
   .hint {
     border-radius: var(--radius-sm);
-    background: var(--bg-elevated);
-    box-shadow: var(--shadow-sm);
     overflow: hidden;
   }
   .hint-num {
     counter-increment: hint;
   }
+  /* Summary type, hover, marker-hide, [open] divider and chevron come from the
+     shared .sc-summary / .sc-chev primitives; only the padding is local. */
   .hint > summary {
-    display: flex;
-    align-items: center;
-    gap: var(--space-2);
     padding: var(--space-2) var(--space-3);
-    font-family: var(--font-mono);
-    font-size: var(--text-sm);
-    color: var(--accent);
-    cursor: pointer;
-    list-style: none;
-    user-select: none;
-    transition: background-color var(--dur-fast) var(--ease);
-  }
-  /* Ink overlay hover — the panel sits on --card-nested (== --card-hover). */
-  .hint > summary:hover {
-    background: color-mix(in srgb, var(--fg) 6%, transparent);
-  }
-  .hint > summary::-webkit-details-marker {
-    display: none;
   }
   .hint-auto::before {
     content: "Hint " counter(hint);
-  }
-  .hint[open] > summary {
-    border-bottom: 1px solid var(--border);
-  }
-  .hint-chev {
-    display: inline-flex;
-    transition: transform var(--dur-fast) var(--ease);
-  }
-  .hint[open] .hint-chev {
-    transform: rotate(90deg);
   }
   .hint-body {
     padding: var(--space-3);

@@ -14,7 +14,7 @@ const { label = "Søk" } = Astro.props;
 import Icon from "./Icon.astro";
 ---
 
-<button type="button" class="search-trigger" aria-label={label}>
+<button type="button" class="search-trigger sc-press" aria-label={label}>
   <Icon name="search" size={17} class="search-icon" />
   <span class="search-trigger-text">{label}</span>
   <kbd class="search-kbd" data-search-kbd>⌘K</kbd>
@@ -49,7 +49,7 @@ import Icon from "./Icon.astro";
       spellcheck="false"
       aria-label={label}
     />
-    <button type="submit" value="close" class="search-esc">Esc</button>
+    <button type="submit" value="close" class="search-esc sc-press">Esc</button>
   </form>
   <div class="search-results" aria-live="polite"></div>
 </dialog>
@@ -74,10 +74,6 @@ import Icon from "./Icon.astro";
   .search-trigger:hover {
     border-color: var(--border-strong);
     color: var(--fg);
-  }
-  /* Shared tactile press — matches the pager/tiles (see shell.css). */
-  .search-trigger:active {
-    transform: translateY(1px);
   }
   /* Icons render from the <Icon> child (outside this scope) — reach via :global. */
   .search-trigger :global(.search-icon),
@@ -148,10 +144,6 @@ import Icon from "./Icon.astro";
   .search-esc:hover {
     color: var(--fg);
     border-color: var(--border-strong);
-  }
-  /* Shared tactile press (matches the shell buttons/tiles). */
-  .search-esc:active {
-    transform: translateY(1px);
   }
   .search-results {
     max-height: min(60vh, 480px);

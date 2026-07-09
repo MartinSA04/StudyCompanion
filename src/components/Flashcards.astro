@@ -41,7 +41,7 @@ const hasSections = sections.length > 0;
     <p class="fc-progress">
       <strong data-fc-known>0</strong> / <span>{rendered.length}</span> kan
     </p>
-    <button type="button" class="fc-reset" data-fc-reset hidden
+    <button type="button" class="fc-reset sc-press" data-fc-reset hidden
       >Nullstill</button
     >
   </div>
@@ -54,11 +54,11 @@ const hasSections = sections.length > 0;
           role="group"
           aria-label="Filtrer etter seksjon"
         >
-          <button type="button" class="fc-chip active" data-fc-section="">
+          <button type="button" class="fc-chip active sc-press sc-chip" data-fc-section="">
             Alle
           </button>
           {sections.map((s) => (
-            <button type="button" class="fc-chip" data-fc-section={s}>
+            <button type="button" class="fc-chip sc-press sc-chip" data-fc-section={s}>
               {s}
             </button>
           ))}
@@ -66,8 +66,10 @@ const hasSections = sections.length > 0;
       )
     }
     <div class="fc-toggles">
-      <button type="button" class="fc-chip" data-fc-unknown>Kun ukjente</button>
-      <button type="button" class="fc-chip" data-fc-shuffle>Bland</button>
+      <button type="button" class="fc-chip sc-press sc-chip" data-fc-unknown
+        >Kun ukjente</button
+      >
+      <button type="button" class="fc-chip sc-press sc-chip" data-fc-shuffle>Bland</button>
     </div>
   </div>
 
@@ -84,13 +86,13 @@ const hasSections = sections.length > 0;
           aria-label={labels.flip}
         >
           <span class="fc-inner">
-            <span class="fc-face fc-front">
-              {card.section && <span class="fc-section">{card.section}</span>}
+            <span class="fc-face fc-front sc-panel">
+              {card.section && <span class="fc-section sc-kicker">{card.section}</span>}
               <span class="fc-text" set:html={card.front} />
               <span class="fc-hint">{labels.flip}</span>
             </span>
-            <span class="fc-face fc-back">
-              {card.section && <span class="fc-section">{card.section}</span>}
+            <span class="fc-face fc-back sc-panel">
+              {card.section && <span class="fc-section sc-kicker">{card.section}</span>}
               <span class="fc-text" set:html={card.back} />
             </span>
           </span>
@@ -110,21 +112,21 @@ const hasSections = sections.length > 0;
   <div class="fc-controls">
     <button
       type="button"
-      class="fc-btn fc-nav"
+      class="fc-btn fc-nav sc-press"
       data-fc-prev
       aria-label="Forrige"
     >
       <Icon name="chevron-left" size={18} />
     </button>
     <div class="fc-rate">
-      <button type="button" class="fc-btn fc-review" data-fc-rate="0">
+      <button type="button" class="fc-btn fc-review sc-press" data-fc-rate="0">
         {labels.review}
       </button>
-      <button type="button" class="fc-btn fc-known" data-fc-rate="1">
+      <button type="button" class="fc-btn fc-known sc-press" data-fc-rate="1">
         {labels.known}
       </button>
     </div>
-    <button type="button" class="fc-btn fc-nav" data-fc-next aria-label="Neste">
+    <button type="button" class="fc-btn fc-nav sc-press" data-fc-next aria-label="Neste">
       <Icon name="chevron-right" size={18} />
     </button>
   </div>
@@ -180,18 +182,12 @@ const hasSections = sections.length > 0;
     flex-wrap: wrap;
     gap: var(--space-1);
   }
+  /* Frame (border/radius/mono/muted/transition) comes from the shared .sc-chip;
+     the deck's chips keep their compact padding, size and fill. */
   .fc-chip {
     padding: 3px var(--space-3);
-    border: 1px solid var(--border-strong);
-    border-radius: var(--radius-pill);
     background: var(--bg-elevated);
     font-size: var(--text-xs);
-    font-family: var(--font-mono);
-    color: var(--muted);
-    transition:
-      background-color var(--dur-fast) var(--ease),
-      color var(--dur-fast) var(--ease),
-      border-color var(--dur-fast) var(--ease);
     cursor: pointer;
   }
   .fc-chip:hover {
@@ -266,10 +262,9 @@ const hasSections = sections.length > 0;
     gap: var(--space-3);
     text-align: center;
     padding: var(--space-6) var(--space-5);
-    border-radius: var(--radius);
-    background: var(--bg-elevated);
-    box-shadow: var(--shadow-sm);
   }
+  /* Float (fill + shadow + radius) comes from the shared .sc-panel; the answer
+     side overrides the fill below. */
   /* The answer side carries a faint accent wash, so a flip reads as a change of
      state (question → answer) without a border fighting the card's shadow. */
   .fc-back {
@@ -280,13 +275,12 @@ const hasSections = sections.length > 0;
     font-size: var(--text-lg);
     line-height: var(--leading-snug);
   }
+  /* Mono uppercase kicker recipe comes from .sc-kicker; this label keeps the
+     WIDER tracking (a card section header, not a badge kicker) + its size/tone. */
   .fc-section {
-    font-family: var(--font-mono);
     font-size: var(--text-xs);
-    text-transform: uppercase;
     letter-spacing: var(--tracking-wide);
     color: var(--accent);
-    font-weight: var(--weight-semibold);
   }
   .fc-hint {
     position: absolute;
@@ -389,13 +383,6 @@ const hasSections = sections.length > 0;
   .fc-known:hover {
     border-color: var(--accent);
     color: var(--accent);
-  }
-  /* Shared tactile press (matches the shell buttons/tiles) — the deck's
-     utility buttons, not the flip card (it has its own flip animation). */
-  .fc-reset:active,
-  .fc-chip:active,
-  .fc-btn:active {
-    transform: translateY(1px);
   }
   .fc-counter {
     text-align: center;
