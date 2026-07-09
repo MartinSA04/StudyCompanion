@@ -161,7 +161,9 @@ const haystack = (e: GlossaryEntry) =>
     border-bottom: 1px dashed var(--border);
     scroll-margin-top: calc(var(--topbar-h) + var(--space-3));
   }
-  .gloss-row:last-child {
+  /* Drop the divider on the last VISIBLE row (not just the DOM last child), so a
+     filtered search never leaves a divider dangling under the final match. */
+  .gloss-row:not([hidden]):not(:has(~ .gloss-row:not([hidden]))) {
     border-bottom: 0;
   }
   /* The search script toggles [hidden]; restate it since `display:grid` wins. */

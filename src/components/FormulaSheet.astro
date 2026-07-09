@@ -305,7 +305,9 @@ const hasMemorize = examFormulaSheet && formulas.some((f) => f.memorize);
     border-bottom: 1px dashed var(--border);
     scroll-margin-top: calc(var(--topbar-h) + var(--space-3));
   }
-  .fs-row:last-child {
+  /* Drop the divider on the last VISIBLE row (not just the DOM last child), so a
+     filtered search/filter never leaves a divider dangling under the final match. */
+  .fs-row:not([hidden]):not(:has(~ .fs-row:not([hidden]))) {
     border-bottom: 0;
   }
   /* Flash the row a `<FormulaRef>` deep-link just jumped to (keyframe in base.css).
