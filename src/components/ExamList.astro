@@ -79,6 +79,9 @@ const sorted = [...exams].sort((a, b) => {
     border-radius: var(--radius);
     overflow: hidden;
   }
+  /* No row-level hover: a row isn't clickable (it holds up to two links, or
+     none), so highlighting the whole row on hover falsely implied it was. The
+     actual targets — the Oppgave/Løsning/archive links — carry their own hover. */
   .exam-row {
     display: flex;
     align-items: center;
@@ -86,13 +89,9 @@ const sorted = [...exams].sort((a, b) => {
     gap: var(--space-4);
     padding: var(--space-3) var(--space-4);
     border-bottom: 1px solid var(--border);
-    transition: background-color var(--dur-fast) var(--ease);
   }
   .exam-row:last-child {
     border-bottom: 0;
-  }
-  .exam-row:hover {
-    background: var(--card-hover);
   }
   .exam-main {
     display: flex;
@@ -120,6 +119,9 @@ const sorted = [...exams].sort((a, b) => {
     text-decoration: none;
     white-space: nowrap;
   }
+  .exam-links a:hover {
+    text-decoration: underline;
+  }
   .exam-solution {
     color: var(--muted);
     transition: color var(--dur-fast) var(--ease);
@@ -141,6 +143,9 @@ const sorted = [...exams].sort((a, b) => {
     font-size: var(--text-sm);
     font-weight: var(--weight-medium);
     color: var(--accent);
+  }
+  .exam-archive-link:hover {
+    text-decoration: underline;
   }
   .exam-archive-link :global(svg) {
     color: var(--accent);
