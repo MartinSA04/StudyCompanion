@@ -190,6 +190,12 @@ export const courseSchema = z.object({
       resetLabel: z.string().default("Nullstill"),
       skipToContent: z.string().default("Hopp til innhold"),
       flashcardsLabel: z.string().default("Flashcards"),
+      /** Rate a card known — raises its level (it surfaces later). */
+      knownLabel: z.string().default("Kan"),
+      /** Rate a card for review — resets its level (it surfaces sooner). */
+      reviewLabel: z.string().default("Øv"),
+      /** Flip the active card between front and back. */
+      flipLabel: z.string().default("Snu"),
       examsLabel: z.string().default("Eksamen"),
       formulaSheetLabel: z.string().default("Formelsamling"),
       officialFormulaSheetLabel: z
@@ -202,7 +208,7 @@ export const courseSchema = z.object({
       noFormulaSheetNote: z
         .string()
         .default(
-          "Til eksamen i dette emnet deles det ikke ut noen formelsamling. Oversikten under er en studieressurs — på eksamen må alt kunnes uten hjelpemidler.",
+          "Til eksamen i dette emnet deles det ikke ut noen formelsamling. Oversikten under er en studieressurs: på eksamen må alt kunnes uten hjelpemidler.",
         ),
       glossaryLabel: z.string().default("Begreper"),
       /** Note above <ExamList> when `examArchive` is set (curated selection). */

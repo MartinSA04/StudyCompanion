@@ -32,6 +32,12 @@ interface Props {
 const { src, alt, caption, number, width, height, full = false } = Astro.props;
 const label = number != null && number !== "" ? `Figur ${number}` : null;
 const ratio = width && height ? `${width} / ${height}` : undefined;
+
+if (import.meta.env.DEV && !ratio) {
+  console.warn(
+    `[study-companion] <Figure src="${src}"> is missing width/height — no aspect-ratio is reserved, so the image can shift the page layout (CLS) as it loads.`,
+  );
+}
 ---
 
 <figure class:list={["figure", { "figure-full": full }]}>

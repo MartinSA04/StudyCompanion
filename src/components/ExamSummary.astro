@@ -1,5 +1,6 @@
 ---
 import type { Course } from "../schema.ts";
+import { formatExamCountdown } from "../lib/countdown.ts";
 
 /**
  * A summary of the UPCOMING exam — date + build-time countdown, duration,
@@ -28,11 +29,7 @@ const countdown =
     ? null
     : daysToExam < 0
       ? "avholdt"
-      : daysToExam === 0
-        ? "i dag"
-        : daysToExam === 1
-          ? "i morgen"
-          : `om ${daysToExam} dager`;
+      : formatExamCountdown(daysToExam);
 
 const durationStr = (() => {
   const m = exam.durationMinutes;

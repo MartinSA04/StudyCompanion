@@ -78,7 +78,7 @@
   font-family: var(--font-mono);
   font-weight: 400;
   font-size: var(--text-xs);
-  color: var(--faint);
+  color: var(--muted);
   text-transform: uppercase;
   letter-spacing: var(--tracking);
   display: block;
@@ -107,9 +107,11 @@
 }
 .progressfill {
   height: 100%;
-  width: 0;
+  width: 100%;
+  transform: scaleX(0);
+  transform-origin: left;
   background: var(--accent);
-  transition: width var(--dur) var(--ease);
+  transition: transform var(--dur) var(--ease);
 }
 /* Box + accent hover come from the shared .sc-icon-btn primitive (like the theme
    toggle); only the square topbar-control size + collapsed-by-default are local. */
@@ -132,6 +134,20 @@
   justify-content: start;
   gap: var(--gap-8);
   padding: var(--gap-7) var(--gutter) var(--gap-10);
+}
+/* Recover reading width in the narrow desktop band just above the 980px
+   sidebar collapse: the resting --sidebar-w + gap otherwise pins the content
+   column to ~605px, a hard read on an external monitor at this width. Nav rows
+   already ellipsize, so a narrower rail costs nothing here; the sidebar's
+   sticky offset is topbar-height-based (below), not width-based, so it's
+   unaffected. */
+@media (min-width: 981px) and (max-width: 1199px) {
+  :root {
+    --sidebar-w: 14rem;
+  }
+  .layout {
+    gap: var(--gap-6);
+  }
 }
 .sidebar {
   position: sticky;
@@ -615,6 +631,13 @@
 .heading-anchor:focus-visible {
   opacity: 1;
 }
+/* Touch devices have no hover, so keep the deep-link reachable there (same
+   escape as .code-copy in base.css). */
+@media (hover: none) {
+  .heading-anchor {
+    opacity: 1;
+  }
+}
 .prose > h3 {
   margin-top: var(--space-7);
   margin-bottom: var(--space-3);
@@ -742,10 +765,16 @@
   inset: 0;
   background: var(--scrim);
   z-index: 55;
-  display: none;
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity var(--dur-fast) var(--ease),
+    visibility 0s linear var(--dur-fast);
 }
 .scrim.show {
-  display: block;
+  opacity: 1;
+  visibility: visible;
+  transition-delay: 0s;
 }
 
 @media (max-width: 980px) {
@@ -852,7 +881,7 @@ summary,
   -webkit-tap-highlight-color: transparent;
 }
 
-@media (max-width: 560px) {
+@media (max-width: 640px) {
   /* Phone: the full course name doesn't fit — show just the code. */
   .brand-sub,
   .brand-name {

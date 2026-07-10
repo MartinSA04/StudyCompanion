@@ -32,9 +32,12 @@ export function makeCodeBlockController(
   const lines = [...fig.querySelectorAll<HTMLElement>(".line")];
   const apply = (want: number[]) => {
     const set = new Set(want.filter((n) => n > 0));
-    lines.forEach((ln, i) =>
-      ln.classList.toggle("cb-line-active", set.has(i + 1)),
-    );
+    lines.forEach((ln, i) => {
+      const active = set.has(i + 1);
+      ln.classList.toggle("cb-line-active", active);
+      if (active) ln.setAttribute("aria-current", "step");
+      else ln.removeAttribute("aria-current");
+    });
     fig.dataset.activeLines = [...set].join(",");
   };
   const varsEl = fig.querySelector<HTMLElement>("[data-codeblock-vars]");

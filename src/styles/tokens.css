@@ -83,9 +83,15 @@
   --wrong-bg: #ffe1d5; /* Flexoki red-low */
   --canvas-bg: var(--bg-elevated);
 
-  /* --- Typography --- */
-  --font-display: "Fraunces", "Georgia", "Times New Roman", serif;
-  --font-body: "Spectral", "Georgia", "Times New Roman", serif;
+  /* --- Typography ---
+     "Fraunces Fallback" / "Spectral Fallback" are metric-override @font-face
+     names (fonts.css generates them to match each web font's box); harmless if
+     that generation is ever missing, since the browser just skips an absent
+     family and falls through to Georgia. */
+  --font-display:
+    "Fraunces", "Fraunces Fallback", "Georgia", "Times New Roman", serif;
+  --font-body:
+    "Spectral", "Spectral Fallback", "Georgia", "Times New Roman", serif;
   --font-mono:
     "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
   --font-sans:
@@ -103,7 +109,10 @@
   --text-2xl: 1.95rem;
   --text-3xl: 2.7rem;
 
-  --leading-tight: 1.12;
+  /* Fraunces' hhea box is 1.233em; the worst measured glyph pair (a descender
+     under Å) needs >=1.173 of clearance. 1.18 clears it while staying
+     editorial-tight. */
+  --leading-tight: 1.18;
   --leading-snug: 1.4;
   --leading-normal: 1.65;
 
@@ -177,6 +186,7 @@
   --ease: cubic-bezier(0.32, 0.72, 0, 1);
   --dur-fast: 120ms;
   --dur: 200ms;
+  --dur-flash: 1.8s; /* one-shot deep-link target flash (sc-target-flash) */
 }
 
 :root[data-theme="dark"] {
@@ -229,15 +239,22 @@
   --wrong-bg: #3e1715; /* Flexoki red-low (dark) */
   --canvas-bg: var(--bg-elevated);
 
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
-  --shadow: 0 4px 14px rgba(0, 0, 0, 0.5), 0 1px 3px rgba(0, 0, 0, 0.4);
-  --shadow-lg: 0 24px 60px rgba(0, 0, 0, 0.62);
-  --scrim: color-mix(in srgb, #000 72%, transparent);
+  /* Warm near-black (#100f0f, Flexoki black — the dark theme's own --bg),
+     mixed in srgb like the light theme's shadows above; a bare rgba(0,0,0,…)
+     tints toward pure black, which the palette never uses. Same alpha weights
+     as before, so perceived strength is unchanged. */
+  --shadow-sm: 0 1px 2px color-mix(in srgb, #100f0f 50%, transparent);
+  --shadow:
+    0 4px 14px color-mix(in srgb, #100f0f 50%, transparent),
+    0 1px 3px color-mix(in srgb, #100f0f 40%, transparent);
+  --shadow-lg: 0 24px 60px color-mix(in srgb, #100f0f 62%, transparent);
+  --scrim: color-mix(in srgb, #100f0f 72%, transparent);
 }
 
 @media (prefers-reduced-motion: reduce) {
   :root {
     --dur-fast: 0ms;
     --dur: 0ms;
+    --dur-flash: 0ms;
   }
 }

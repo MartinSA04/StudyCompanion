@@ -16,16 +16,33 @@ interface Props {
 const { glossary } = Astro.props;
 
 // Group by section, preserving first-seen order of both groups and entries.
-const groups: { section: string; items: GlossaryEntry[] }[] = [];
+// Entries without a `section` are collected separately: when the glossary is
+// a mix of sectioned and unsectioned terms, the unsectioned ones would
+// otherwise render as an orphan card with no heading wherever they first
+// appear. Give them the neutral "Andre begreper" heading and place them last,
+// so labelled sections never get interrupted by an unlabeled one. A glossary
+// that is ENTIRELY unsectioned keeps today's single unlabeled list rather than
+// manufacturing a heading for the whole thing.
+const sectioned: { section: string; items: GlossaryEntry[] }[] = [];
+const unsectioned: GlossaryEntry[] = [];
 for (const g of glossary) {
-  const key = g.section ?? "";
-  let grp = groups.find((x) => x.section === key);
-  if (!grp) {
-    grp = { section: key, items: [] };
-    groups.push(grp);
+  if (g.section) {
+    let grp = sectioned.find((x) => x.section === g.section);
+    if (!grp) {
+      grp = { section: g.section, items: [] };
+      sectioned.push(grp);
+    }
+    grp.items.push(g);
+  } else {
+    unsectioned.push(g);
   }
-  grp.items.push(g);
 }
+const groups: { section: string; items: GlossaryEntry[] }[] =
+  sectioned.length === 0
+    ? [{ section: "", items: unsectioned }]
+    : unsectioned.length === 0
+      ? sectioned
+      : [...sectioned, { section: "Andre begreper", items: unsectioned }];
 
 // A lowercased haystack for client-side search: term plus the plain-text
 // definition (math and inline markup stripped).
@@ -64,7 +81,12 @@ const haystack = (e: GlossaryEntry) =>
         )}
         <dl class="gloss-list">
           {g.items.map((e) => (
-            <div class="gloss-row" id={slugify(e.term)} data-text={haystack(e)}>
+            <div
+              class="gloss-row"
+              id={slugify(e.term)}
+              tabindex="-1"
+              data-text={haystack(e)}
+            >
               <dt class="gloss-term">
                 <span set:html={renderMathString(e.term)} />
                 <a
@@ -174,7 +196,7 @@ const haystack = (e: GlossaryEntry) =>
      The row already spans the full card width, so the tint fills it edge to edge. */
   .gloss-row:target {
     background: var(--accent-soft);
-    animation: sc-target-flash 1.8s var(--ease);
+    animation: sc-target-flash var(--dur-flash) var(--ease);
   }
   @media (prefers-reduced-motion: reduce) {
     .gloss-row:target {
@@ -202,6 +224,12 @@ const haystack = (e: GlossaryEntry) =>
   .gloss-anchor:focus-visible {
     opacity: 1;
     color: var(--accent-ink);
+  }
+  /* Touch devices have no hover, so keep the anchor reachable there. */
+  @media (hover: none) {
+    .gloss-anchor {
+      opacity: 1;
+    }
   }
   .gloss-def {
     margin: 0;

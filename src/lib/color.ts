@@ -43,7 +43,7 @@ export function contrastRatio(l1: number, l2: number): number {
 }
 
 const LIGHT_INK = "#ffffff";
-const DARK_INK = "#10151c"; // matches the token system's near-black
+const DARK_INK = "#100f0f"; // matches the token system's --fg near-black
 
 /**
  * The legible text color (light or dark ink) to sit ON `accent`. The accent is
@@ -54,7 +54,7 @@ export function contrastText(accent: string): string {
   const rgb = parseHex(accent);
   if (!rgb) return LIGHT_INK;
   const la = luminance(rgb);
-  const onDarkInk = contrastRatio(la, luminance([16, 21, 28]));
+  const onDarkInk = contrastRatio(la, luminance([16, 15, 15]));
   const onWhite = contrastRatio(la, 1);
   return onDarkInk >= onWhite ? DARK_INK : LIGHT_INK;
 }
@@ -65,4 +65,20 @@ export function accentOnBg(accent: string, bgHex: string): number | null {
   const b = parseHex(bgHex);
   if (!a || !b) return null;
   return contrastRatio(luminance(a), luminance(b));
+}
+
+/**
+ * The AA-safe accent-as-text color: `accent` mixed 75% toward `fg`, per
+ * channel, in sRGB — the build-time equivalent of tokens.css's
+ * `--accent-ink: color-mix(in srgb, var(--accent) 75%, var(--fg))`. Falls back
+ * to `accent` unchanged for un-parseable CSS colors (named / hsl() / etc.).
+ */
+export function accentInk(accent: string, fg: string): string {
+  const a = parseHex(accent);
+  const f = parseHex(fg);
+  if (!a || !f) return accent;
+  const mix = (i: number) => Math.round(a[i] * 0.75 + f[i] * 0.25);
+  return `#${[mix(0), mix(1), mix(2)]
+    .map((v) => v.toString(16).padStart(2, "0"))
+    .join("")}`;
 }

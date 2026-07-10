@@ -157,9 +157,12 @@ const initial = activeLines ?? (activeLine != null ? [activeLine] : []);
             .filter((n) => n > 0),
         );
         const lines = fig.querySelectorAll<HTMLElement>(".line");
-        lines.forEach((ln, i) =>
-          ln.classList.toggle("cb-line-active", want.has(i + 1)),
-        );
+        lines.forEach((ln, i) => {
+          const active = want.has(i + 1);
+          ln.classList.toggle("cb-line-active", active);
+          if (active) ln.setAttribute("aria-current", "step");
+          else ln.removeAttribute("aria-current");
+        });
       });
   });
 </script>

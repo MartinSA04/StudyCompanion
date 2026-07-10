@@ -35,7 +35,7 @@ const seo = { description: "Siden finnes ikke.", noindex: true };
       menyen, eller søk etter det du leter etter.
     </p>
     <p class="nf-actions">
-      <a class="nf-home" href="/">
+      <a class="nf-home sc-pill sc-press" href="/">
         <Icon name="grid" size={16} />
         Til oversikt
       </a>
@@ -54,7 +54,7 @@ const seo = { description: "Siden finnes ikke.", noindex: true };
     font-size: clamp(3rem, 12vw, 6rem);
     font-weight: 700;
     line-height: 1;
-    color: var(--accent);
+    color: var(--accent-ink);
     margin: 0;
   }
   .notfound h1 {
@@ -68,18 +68,11 @@ const seo = { description: "Siden finnes ikke.", noindex: true };
   .nf-actions {
     margin: 0;
   }
+  /* Frame + accent hover from the shared .sc-pill primitive (same recipe as
+     the hero "continue" pill); only the gap, padding and link reset are local. */
   .nf-home {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5em;
-    padding: 0.6em 1.1em;
-    border-radius: var(--radius, 10px);
-    background: var(--accent);
-    color: var(--accent-contrast);
-    font-weight: 600;
+    gap: var(--gap-2);
+    padding: var(--gap-3) var(--gap-5);
     text-decoration: none;
-  }
-  .nf-home:hover {
-    filter: brightness(1.05);
   }
 </style>

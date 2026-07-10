@@ -35,7 +35,14 @@ import Icon from "./Icon.astro";
       }
     </ul>
   </fieldset>
-  <p class="quiz-feedback" role="status" aria-live="polite" hidden></p>
+  <p
+    class="quiz-feedback"
+    role="status"
+    aria-live="polite"
+    tabindex="-1"
+    hidden
+  >
+  </p>
   {
     explanation && (
       <p class="quiz-explain" set:html={renderMathString(explanation)} hidden />
@@ -197,6 +204,14 @@ import Icon from "./Icon.astro";
             const chosen = Number(btn.dataset.index);
             const correct = chosen === answer;
 
+            // Disabling every option (including a focused one) would blur focus
+            // to <body>. If an option had focus, hand it to the feedback line
+            // instead so keyboard users keep a landing spot; pointer users never
+            // had widget focus, so they're untouched.
+            const hadFocus = options.includes(
+              document.activeElement as HTMLButtonElement,
+            );
+
             options.forEach((b, i) => {
               b.disabled = true;
               if (i === answer) b.dataset.state = "correct";
@@ -209,6 +224,7 @@ import Icon from "./Icon.astro";
               ? "Riktig!"
               : "Ikke helt. Se riktig svar.";
             if (explain) explain.hidden = false;
+            if (hadFocus) feedback.focus({ preventScroll: true });
           },
           { signal },
         );

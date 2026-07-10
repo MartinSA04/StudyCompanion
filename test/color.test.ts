@@ -6,6 +6,7 @@ import {
   contrastRatio,
   contrastText,
   accentOnBg,
+  accentInk,
 } from "../src/lib/color.ts";
 
 test("parseHex handles 3/4/6/8-digit hex, with or without #", () => {
@@ -39,8 +40,8 @@ test("contrastText picks legible ink for the accent", () => {
   assert.equal(contrastText("#1f5f8b"), "#ffffff");
   assert.equal(contrastText("#000080"), "#ffffff");
   // Light accent → near-black ink.
-  assert.equal(contrastText("#ffd400"), "#10151c");
-  assert.equal(contrastText("#ffffff"), "#10151c");
+  assert.equal(contrastText("#ffd400"), "#100f0f");
+  assert.equal(contrastText("#ffffff"), "#100f0f");
 });
 
 test("contrastText falls back to white for un-parseable colors", () => {
@@ -56,4 +57,12 @@ test("accentOnBg returns a WCAG ratio, or null on bad input", () => {
   assert.ok(r != null && r > 3);
   assert.equal(accentOnBg("not-a-color", "#ffffff"), null);
   assert.equal(accentOnBg("#fff", "also-bad"), null);
+});
+
+test("accentInk mixes 75% accent / 25% fg", () => {
+  assert.equal(accentInk("#000000", "#ffffff"), "#404040");
+  assert.equal(accentInk("#ffffff", "#000000"), "#bfbfbf");
+  // Falls back to the accent unchanged for un-parseable colors.
+  assert.equal(accentInk("not-a-color", "#ffffff"), "not-a-color");
+  assert.equal(accentInk("#1f5f8b", "also-bad"), "#1f5f8b");
 });

@@ -19,7 +19,11 @@ const auto = !solution && !label;
 ---
 
 <details
-  class:list={["hint", "sc-panel", { "hint-num": auto, "hint-solution": solution }]}
+  class:list={[
+    "hint",
+    "sc-panel",
+    { "hint-num": auto, "hint-solution": solution },
+  ]}
   open={open}
 >
   <summary class="sc-summary">
@@ -28,7 +32,7 @@ const auto = !solution && !label;
     >
     {
       auto ? (
-        <span class="hint-auto" />
+        <span class="hint-auto">Hint</span>
       ) : (
         <span>{solution ? "Løsning" : label}</span>
       )
@@ -52,8 +56,11 @@ const auto = !solution && !label;
   .hint > summary {
     padding: var(--space-2) var(--space-3);
   }
-  .hint-auto::before {
-    content: "Hint " counter(hint);
+  /* The word "Hint" is real DOM text (the accessible name); the number is
+     decorative and stays in a counter so re-ordering hints never needs an
+     authored index. */
+  .hint-auto::after {
+    content: " " counter(hint);
   }
   .hint-body {
     padding: var(--space-3);

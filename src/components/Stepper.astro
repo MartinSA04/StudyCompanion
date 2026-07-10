@@ -183,8 +183,8 @@ const { src, codeId, title, caption, height = 300 } = Astro.props;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 2.1rem;
-    height: 2.1rem;
+    width: var(--control-h);
+    height: var(--control-h);
     border: 0;
     border-radius: var(--radius-sm);
     background: transparent;
@@ -192,7 +192,8 @@ const { src, codeId, title, caption, height = 300 } = Astro.props;
     cursor: pointer;
     transition:
       background var(--dur-fast) var(--ease),
-      color var(--dur-fast) var(--ease);
+      color var(--dur-fast) var(--ease),
+      transform var(--dur-fast) var(--ease);
   }
   .stepper-btn:hover {
     background: var(--card-hover);
@@ -257,8 +258,8 @@ const { src, codeId, title, caption, height = 300 } = Astro.props;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-width: 1.9rem;
-    height: 1.9rem;
+    min-width: var(--control-h);
+    height: var(--control-h);
     padding: 0 var(--space-2);
     border: 0;
     border-radius: var(--radius-sm);
@@ -269,7 +270,8 @@ const { src, codeId, title, caption, height = 300 } = Astro.props;
     cursor: pointer;
     transition:
       background var(--dur-fast) var(--ease),
-      color var(--dur-fast) var(--ease);
+      color var(--dur-fast) var(--ease),
+      transform var(--dur-fast) var(--ease);
   }
   .stepper-ghost:hover {
     background: var(--card-hover);
@@ -302,6 +304,15 @@ const { src, codeId, title, caption, height = 300 } = Astro.props;
     font-size: var(--text-xs);
     color: var(--muted);
     line-height: var(--leading-snug);
+  }
+
+  /* The 38px control contract widens every button in the row; on the mobile
+     pass the four groups (transport, scrub, count, extras) need the tighter
+     gap to keep wrapping onto two clean lines instead of crowding a third. */
+  @media (max-width: 640px) {
+    .stepper-controls {
+      gap: var(--space-2);
+    }
   }
 </style>
 

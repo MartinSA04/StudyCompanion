@@ -140,15 +140,13 @@ const show = visible.length >= threshold;
         const scroller = document.documentElement;
         // At the page bottom, pin the last section (its heading may never reach
         // the reading line if the section is short).
-        if (
-          window.innerHeight + window.scrollY >=
-          scroller.scrollHeight - 2
-        ) {
+        if (window.innerHeight + window.scrollY >= scroller.scrollHeight - 2) {
           setActive(ids.length - 1);
           return;
         }
         const navH =
-          document.querySelector(".topbar")?.getBoundingClientRect().height ?? 0;
+          document.querySelector(".topbar")?.getBoundingClientRect().height ??
+          0;
         const line = navH + 24;
         let active = 0; // fall back to the first section while still above them all
         targets.forEach((el, i) => {

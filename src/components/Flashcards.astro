@@ -13,13 +13,14 @@ import Icon from "./Icon.astro";
 interface Props {
   cards: Flashcards["cards"];
   code: string;
-  ui?: { known?: string; review?: string; flip?: string };
+  ui?: { known?: string; review?: string; flip?: string; reset?: string };
 }
 const { cards, code, ui } = Astro.props;
 const labels = {
   known: ui?.known ?? "Kan",
   review: ui?.review ?? "Øv",
   flip: ui?.flip ?? "Snu",
+  reset: ui?.reset ?? "Nullstill",
 };
 const storageKey = `sc:flashcards:${code}`;
 
@@ -42,7 +43,7 @@ const hasSections = sections.length > 0;
       <strong data-fc-known>0</strong> / <span>{rendered.length}</span> kan
     </p>
     <button type="button" class="fc-reset sc-press" data-fc-reset hidden
-      >Nullstill</button
+      >{labels.reset}</button
     >
   </div>
 
@@ -54,11 +55,19 @@ const hasSections = sections.length > 0;
           role="group"
           aria-label="Filtrer etter seksjon"
         >
-          <button type="button" class="fc-chip active sc-press sc-chip" data-fc-section="">
+          <button
+            type="button"
+            class="fc-chip active sc-press sc-chip"
+            data-fc-section=""
+          >
             Alle
           </button>
           {sections.map((s) => (
-            <button type="button" class="fc-chip sc-press sc-chip" data-fc-section={s}>
+            <button
+              type="button"
+              class="fc-chip sc-press sc-chip"
+              data-fc-section={s}
+            >
               {s}
             </button>
           ))}
@@ -69,7 +78,9 @@ const hasSections = sections.length > 0;
       <button type="button" class="fc-chip sc-press sc-chip" data-fc-unknown
         >Kun ukjente</button
       >
-      <button type="button" class="fc-chip sc-press sc-chip" data-fc-shuffle>Bland</button>
+      <button type="button" class="fc-chip sc-press sc-chip" data-fc-shuffle
+        >Bland</button
+      >
     </div>
   </div>
 
@@ -87,12 +98,16 @@ const hasSections = sections.length > 0;
         >
           <span class="fc-inner">
             <span class="fc-face fc-front sc-panel">
-              {card.section && <span class="fc-section sc-kicker">{card.section}</span>}
+              {card.section && (
+                <span class="fc-section sc-kicker">{card.section}</span>
+              )}
               <span class="fc-text" set:html={card.front} />
               <span class="fc-hint">{labels.flip}</span>
             </span>
             <span class="fc-face fc-back sc-panel">
-              {card.section && <span class="fc-section sc-kicker">{card.section}</span>}
+              {card.section && (
+                <span class="fc-section sc-kicker">{card.section}</span>
+              )}
               <span class="fc-text" set:html={card.back} />
             </span>
           </span>
@@ -126,7 +141,12 @@ const hasSections = sections.length > 0;
         {labels.known}
       </button>
     </div>
-    <button type="button" class="fc-btn fc-nav sc-press" data-fc-next aria-label="Neste">
+    <button
+      type="button"
+      class="fc-btn fc-nav sc-press"
+      data-fc-next
+      aria-label="Neste"
+    >
       <Icon name="chevron-right" size={18} />
     </button>
   </div>
@@ -159,7 +179,9 @@ const hasSections = sections.length > 0;
     color: var(--muted);
     background: none;
     border: 0;
-    transition: color var(--dur-fast) var(--ease);
+    transition:
+      color var(--dur-fast) var(--ease),
+      transform var(--dur-fast) var(--ease);
   }
   .fc-reset:hover {
     color: var(--accent-ink);
@@ -180,7 +202,7 @@ const hasSections = sections.length > 0;
   .fc-toggles {
     display: flex;
     flex-wrap: wrap;
-    gap: var(--space-1);
+    gap: var(--space-2);
   }
   /* Chips are fully the shared .sc-chip (size, hover, selected state). */
   /* Empty/finished state — fills the card slot (dashed placeholder), and the
@@ -356,7 +378,8 @@ const hasSections = sections.length > 0;
     font-weight: var(--weight-medium);
     transition:
       border-color var(--dur-fast) var(--ease),
-      color var(--dur-fast) var(--ease);
+      color var(--dur-fast) var(--ease),
+      transform var(--dur-fast) var(--ease);
   }
   .fc-nav {
     display: inline-grid;

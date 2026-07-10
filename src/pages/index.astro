@@ -5,6 +5,7 @@ import Icon from "../components/Icon.astro";
 import ImportanceTag from "../components/ImportanceTag.astro";
 import { loadCourse } from "../lib/loadCourse.ts";
 import { validateXrefs } from "../lib/xref.ts";
+import { formatExamCountdown } from "../lib/countdown.ts";
 import { absoluteUrl, truncateDescription } from "../lib/seo.ts";
 import { courseLd } from "../lib/jsonLd.ts";
 import { readFileSync } from "node:fs";
@@ -144,7 +145,12 @@ const jsonLd = [
           <p class="hero-done">
             <span data-progress-done>0</span> av {tiles.length} moduler fullført
           </p>
-          <a class="hero-continue sc-pill sc-press" data-hero-continue href="#" hidden>
+          <a
+            class="hero-continue sc-pill sc-press"
+            data-hero-continue
+            href="#"
+            hidden
+          >
             Fortsett der du slapp
             <Icon name="arrow-right" size={14} />
           </a>
@@ -164,10 +170,7 @@ const jsonLd = [
           <p>
             <strong>Dato:</strong> {examDate}
             {daysToExam != null && daysToExam >= 0 && (
-              <span>
-                {" "}
-                — {daysToExam === 0 ? "i dag" : `om ${daysToExam} dager`}
-              </span>
+              <span> — {formatExamCountdown(daysToExam)}</span>
             )}
           </p>
         )}
@@ -203,9 +206,15 @@ const jsonLd = [
                 {t.week && <span class="tile-week">{t.week}</span>}
               </div>
               {course.features.progress && (
-                <span class="tile-check" aria-hidden="true">
-                  <Icon name="check" size={11} />
-                </span>
+                <>
+                  <span class="tile-check" aria-hidden="true">
+                    <Icon name="check" size={11} />
+                  </span>
+                  {/* Text companion to the aria-hidden check icon, kept in
+                      sync with the .done class by the paint script below so
+                      the tile's accessible name always states completion. */}
+                  <span class="sr-only" data-done-sr />
+                </>
               )}
             </a>
           ))}
@@ -231,7 +240,12 @@ const jsonLd = [
 
     var tiles = Array.from(document.querySelectorAll("[data-tile-order]"));
     tiles.forEach(function (t) {
-      if (done.has(Number(t.dataset.tileOrder))) t.classList.add("done");
+      var on = done.has(Number(t.dataset.tileOrder));
+      if (on) t.classList.add("done");
+      // Keep the sr-only text companion (see the aria-hidden check icon
+      // beside it) in lockstep with the visual .done class.
+      var sr = t.querySelector("[data-done-sr]");
+      if (sr) sr.textContent = on ? ", fullført" : "";
     });
 
     var row = document.querySelector("[data-hero-progress-row]");

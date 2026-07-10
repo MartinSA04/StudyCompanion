@@ -14,7 +14,11 @@ const { label = "Søk" } = Astro.props;
 import Icon from "./Icon.astro";
 ---
 
-<button type="button" class="search-trigger sc-pill sc-press" aria-label={label}>
+<button
+  type="button"
+  class="search-trigger sc-pill sc-press"
+  aria-label={label}
+>
   <Icon name="search" size={17} class="search-icon" />
   <span class="search-trigger-text">{label}</span>
   <kbd class="search-kbd sc-kbd" data-search-kbd>⌘K</kbd>
@@ -49,7 +53,9 @@ import Icon from "./Icon.astro";
       spellcheck="false"
       aria-label={label}
     />
-    <button type="submit" value="close" class="search-esc sc-press sc-kbd">Esc</button>
+    <button type="submit" value="close" class="search-esc sc-press sc-kbd"
+      >Esc</button
+    >
   </form>
   <div class="search-results" aria-live="polite"></div>
 </dialog>
@@ -84,9 +90,34 @@ import Icon from "./Icon.astro";
     box-shadow: var(--shadow-lg);
     overflow: hidden;
   }
+  /* Entry motion only — instant close is fine for a palette. Both keyframes
+     run over --dur-fast, which zeroes under prefers-reduced-motion, so this
+     collapses to a plain pop with no extra handling needed. */
+  .search-dialog[open] {
+    animation: search-dialog-in var(--dur-fast) var(--ease);
+  }
   .search-dialog::backdrop {
     background: var(--scrim);
     backdrop-filter: blur(2px);
+    animation: search-backdrop-in var(--dur-fast) var(--ease);
+  }
+  @keyframes search-dialog-in {
+    from {
+      opacity: 0;
+      transform: translateY(-8px) scale(0.98);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes search-backdrop-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
   }
   .search-box {
     display: flex;
@@ -118,7 +149,8 @@ import Icon from "./Icon.astro";
     padding: 0.15em 0.5em;
     transition:
       color var(--dur-fast) var(--ease),
-      border-color var(--dur-fast) var(--ease);
+      border-color var(--dur-fast) var(--ease),
+      transform var(--dur-fast) var(--ease);
   }
   .search-esc:hover {
     color: var(--accent-ink);
@@ -165,7 +197,7 @@ import Icon from "./Icon.astro";
     text-align: center;
   }
 
-  @media (max-width: 600px) {
+  @media (max-width: 640px) {
     .search-trigger-text,
     .search-kbd {
       display: none;

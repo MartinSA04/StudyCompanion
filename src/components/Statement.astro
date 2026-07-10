@@ -31,6 +31,7 @@ const anchor = id ?? slugify(name);
 <aside
   class={`statement statement-${kind}`}
   id={anchor}
+  tabindex="-1"
   aria-label={LABELS[kind]}
 >
   <p class="statement-head">
@@ -59,7 +60,7 @@ const anchor = id ?? slugify(name);
   /* Flash on deep-link arrival, same as <FormulaRef>/<Term> row targets. It
      settles back to the statement's own accent-soft ground. */
   .statement:target {
-    animation: sc-target-flash 1.8s var(--ease);
+    animation: sc-target-flash var(--dur-flash) var(--ease);
   }
   @media (prefers-reduced-motion: reduce) {
     .statement:target {

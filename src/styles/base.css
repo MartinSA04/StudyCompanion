@@ -46,9 +46,30 @@ body {
   font-size: var(--text-base);
   font-weight: var(--weight-normal);
   min-height: 100dvh;
+}
+
+/* Theme-swap coherence: body easing its own background/color while every
+   panel, border and icon snapped instantly produced a staggered paper-swap.
+   ThemeToggle adds this class to <html> around the data-theme flip and
+   removes it ~250ms later, so the whole swap eases as ONE event; the rest of
+   the time, every element's own hover/press micro-transitions are untouched.
+   `transition` is a shorthand and this selector's specificity (plus
+   !important) beats every component's own single-class transition rule
+   outright, so the list below also carries transform/opacity/box-shadow —
+   the sub-transitions .sc-press's dip, .sc-lift's rise, the copy icon
+   cross-fade and .progressfill's fill all rely on — so the swap window eases
+   colour without silently snapping those interactions for its ~250ms. */
+html.theme-transitioning *,
+html.theme-transitioning *::before,
+html.theme-transitioning *::after {
   transition:
     background-color var(--dur) var(--ease),
-    color var(--dur) var(--ease);
+    color var(--dur) var(--ease),
+    border-color var(--dur) var(--ease),
+    fill var(--dur) var(--ease),
+    transform var(--dur) var(--ease),
+    opacity var(--dur) var(--ease),
+    box-shadow var(--dur) var(--ease) !important;
 }
 
 ::selection {
@@ -86,6 +107,15 @@ ol,
 blockquote,
 table {
   font-size: var(--text-base);
+}
+
+/* Ragged-edge prose (not headings, which balance instead): avoids a lonely
+   short last line where the browser supports it, no layout cost otherwise. */
+p,
+li,
+blockquote,
+figcaption {
+  text-wrap: pretty;
 }
 
 a {
@@ -158,19 +188,55 @@ pre {
   line-height: var(--leading-snug);
 }
 
+/* Overflow affordance for horizontally scrollable code. The background-
+   attachment scroll-shadow technique (opaque cover, local-attached, over a
+   scroll-attached edge shadow) is fragile against this element's own padding
+   and Shiki's scroll geometry, so this ships the documented fallback instead:
+   a persistent thin scrollbar, which browsers already suppress when the code
+   doesn't overflow (overflow-x: auto). Colours are literal, tuned against
+   Shiki's fixed dark surface (#1c1b1a, flexoki-dark) rather than the page
+   theme, since that surface never theme-switches. Scoped to pre.astro-code —
+   a plain un-highlighted <pre> keeps --card and the browser default. */
+pre.astro-code {
+  scrollbar-width: thin;
+  scrollbar-color: #6f6e69 #1c1b1a; /* Flexoki base-600 thumb, 3.4:1 on the fixed surface */
+}
+
 /* Copy button injected by the layout's enhancement script onto every <pre>.
    Box, hover and icon-swap come from the shared .sc-copy / .sc-press primitives;
    base.css owns only what is code-block-specific — it floats over the code and
-   fades in on hover. */
+   fades in on hover. Shiki always paints the code surface in its own fixed dark
+   palette (#1c1b1a, flexoki-dark — see shiki-flexoki.ts), independent of the
+   page theme, so the shared primitive's THEMED fill/border (tracking
+   --bg-elevated/--border) collapse onto that surface in dark mode — byte-
+   identical fill, a ~1.6:1 border — and fail the 3:1 non-text contrast minimum
+   (WCAG 1.4.11). The overrides below are literal Flexoki tones picked against
+   #1c1b1a specifically: the surface never theme-switches, so the control
+   sitting on it shouldn't either. !important beats primitives.css's
+   later-loaded .sc-copy rule at equal selector specificity. */
 .code-copy {
   position: absolute;
   top: var(--space-2);
   right: var(--space-2);
+  background: #282726 !important; /* Flexoki base-900 */
+  border-color: #878580 !important; /* Flexoki base-500, 4.7:1 on #1c1b1a */
+  /* The shared .sc-copy primitive's resting `color: var(--muted)` is themed —
+     in light mode that's the dark ink (#575653), which measures 2.03:1 on this
+     literal fill and fails 3:1. Reuse the same base-500 tone as the border so
+     the icon (Icon.astro's svg uses stroke="currentColor") stays legible at
+     rest, not just on hover/copied — the button is visible in this exact state
+     whenever the pointer hasn't reached it, and permanently on touch devices. */
+  color: #878580 !important; /* Flexoki base-500, 4.7:1 on #1c1b1a, 4:1 on this fill */
   opacity: 0;
+  /* !important + the transform sub-transition (matching .sc-press) because
+     primitives.css's .sc-press rule loads AFTER this file: at equal
+     specificity the later rule would otherwise win the whole `transition`
+     shorthand outright and silently drop this reveal/hover animation. */
   transition:
     opacity var(--dur-fast) var(--ease),
     color var(--dur-fast) var(--ease),
-    border-color var(--dur-fast) var(--ease);
+    border-color var(--dur-fast) var(--ease),
+    transform var(--dur-fast) var(--ease) !important;
 }
 pre:hover .code-copy,
 .code-copy:focus-visible {
@@ -181,6 +247,23 @@ pre:hover .code-copy,
   .code-copy {
     opacity: 1;
   }
+}
+/* The shared hover recolors border/text to --accent-ink/--accent, both derived
+   toward --fg — in light mode that's the dark ink, which measures as low as
+   1.7:1 for some course accents on #1c1b1a. Lightening the accent toward white
+   keeps each course's own hue identity while guaranteeing a legible mark
+   against the fixed dark surface in both page themes (≥6:1 across the
+   Flexoki accent set). */
+.code-copy:hover {
+  color: color-mix(in srgb, var(--accent) 55%, white) !important;
+  border-color: color-mix(in srgb, var(--accent) 55%, white) !important;
+}
+/* --tip's dark-theme value already reads at 11:1 on #1c1b1a; reused literally
+   here since the copied state sits on that same fixed surface in both page
+   themes (the light-theme --tip fails at 2.8:1). */
+.code-copy[data-copied="true"] {
+  color: #cdd597 !important;
+  border-color: #cdd597 !important;
 }
 pre code {
   background: none;
@@ -246,6 +329,34 @@ tbody td {
 tbody tr:hover th,
 tbody tr:hover td {
   background: var(--card-hover);
+}
+
+/* Wrapper a rehype plugin adds around plain Markdown tables (course MDX),
+   matching <Table>'s .data-table-scroll recipe so an authored table scrolls
+   the same way as the data-driven component. */
+.table-scroll {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+/* The wrapper still sits inside `.prose`, so the bare `table` it wraps still
+   matches `.prose table { margin-bottom }` (shell.css, loaded AFTER this
+   file) — at equal selector specificity (one class + one type) the
+   later-loaded rule wins the cascade, so zeroing the margin here needs
+   !important to actually land (Table.astro's own `.data-table table`
+   override doesn't need it: Astro's per-component scoping attribute already
+   raises its specificity above `.prose table`, which this global rule has
+   no such boost to rely on). Without this the last row keeps a gap before
+   the wrapper's own bottom border. */
+.table-scroll table {
+  margin: 0 !important;
+}
+/* The wrapper's own border already closes the bottom edge; without this the
+   last row's border-bottom would double it (Table.astro carries the same
+   override for its .data-table-scroll). */
+.table-scroll tbody tr:last-child th,
+.table-scroll tbody tr:last-child td {
+  border-bottom: 0;
 }
 
 /* --- Forms / interactive --- */

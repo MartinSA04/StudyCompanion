@@ -10,7 +10,20 @@
 
 /* --- Tactile press ---
    Every clickable dips 1px on press. Deliberately excludes the flashcard flip
-   card, disclosure <summary>s and glyph-nudge elements — they own a transform. */
+   card, disclosure <summary>s and glyph-nudge elements — they own a transform.
+   The transition lives on the resting selector so both the dip-in and the
+   release ease. `transition` is a shorthand: two same-specificity rules that
+   both set it don't merge, the later one in the file wins outright. Every
+   other primitive here that combines with .sc-press on real markup
+   (.sc-icon-btn, .sc-pill, .sc-chip, .sc-lift) therefore repeats this SAME
+   transform sub-transition in its own list, so whichever rule ends up
+   winning, the value is identical and there is only ever one effective
+   transform transition per element. (.code-copy in base.css does the same
+   with !important, since it needs to beat this file's later cascade
+   position.) */
+.sc-press {
+  transition: transform var(--dur-fast) var(--ease);
+}
 .sc-press:active {
   transform: translateY(1px);
 }
@@ -30,9 +43,14 @@
   color: var(--muted);
 }
 .sc-icon-btn {
+  /* Carries the SAME transform sub-transition as .sc-press (below): this rule
+     and .sc-press are equal specificity, so whichever is later in the file
+     wins the whole `transition` shorthand outright — matching the value here
+     keeps the press dip eased either way. */
   transition:
     color var(--dur-fast) var(--ease),
-    border-color var(--dur-fast) var(--ease);
+    border-color var(--dur-fast) var(--ease),
+    transform var(--dur-fast) var(--ease);
 }
 .sc-icon-btn:hover,
 .sc-copy:hover {
@@ -42,28 +60,34 @@
 
 /* --- Copy control (code blocks + formula sheet) ---
    The shared icon box (above) at 32px, plus a copy→check swap once copied. NO
-   transition here: the <pre> copy button animates opacity on reveal and keeps
-   its own transition; positioning/visibility is the caller's. Icons come from
-   <Icon> children; this file is global, so no :global() reaches .i-copy/.i-check. */
+   transition on .sc-copy itself: the <pre> copy button animates opacity on
+   reveal and keeps its own transition; positioning/visibility is the caller's.
+   The icon swap cross-fades instead of snapping: both <Icon> children share
+   the same grid cell (grid-area 1/1 — this container is inline-grid) and trade
+   opacity. Icons come from <Icon> children; this file is global, so no
+   :global() reaches .i-copy/.i-check. */
 .sc-copy {
   width: 32px;
   height: 32px;
 }
 .sc-copy svg {
   display: block;
+  grid-area: 1 / 1;
+  opacity: 1;
+  transition: opacity var(--dur-fast) var(--ease);
 }
 .sc-copy .i-check {
-  display: none;
+  opacity: 0;
 }
 .sc-copy[data-copied="true"] {
   color: var(--tip);
   border-color: var(--tip);
 }
 .sc-copy[data-copied="true"] .i-copy {
-  display: none;
+  opacity: 0;
 }
 .sc-copy[data-copied="true"] .i-check {
-  display: block;
+  opacity: 1;
 }
 
 /* --- Labelled outline pill (search trigger, done button, hero "continue") ---
@@ -80,9 +104,12 @@
   color: var(--muted);
   font-family: var(--font-mono);
   font-size: var(--text-sm);
+  /* Same transform sub-transition as .sc-press (equal-specificity, later rule
+     wins the whole shorthand) — see the comment on .sc-icon-btn. */
   transition:
     color var(--dur-fast) var(--ease),
-    border-color var(--dur-fast) var(--ease);
+    border-color var(--dur-fast) var(--ease),
+    transform var(--dur-fast) var(--ease);
 }
 .sc-pill:hover {
   border-color: var(--accent);
@@ -138,10 +165,13 @@ details[open] > summary .sc-chev {
   font-family: var(--font-mono);
   font-size: var(--text-xs);
   color: var(--muted);
+  /* Same transform sub-transition as .sc-press (equal-specificity, later rule
+     wins the whole shorthand) — see the comment on .sc-icon-btn. */
   transition:
     color var(--dur-fast) var(--ease),
     background-color var(--dur-fast) var(--ease),
-    border-color var(--dur-fast) var(--ease);
+    border-color var(--dur-fast) var(--ease),
+    transform var(--dur-fast) var(--ease);
 }
 .sc-chip:hover {
   color: var(--accent-ink);

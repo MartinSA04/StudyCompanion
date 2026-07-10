@@ -108,7 +108,24 @@ const html = ignoreInSearch(
     color: var(--accent-ink);
     font-weight: var(--weight-semibold);
   }
+  /* nowrap keeps the formula from breaking mid-expression, but an unbroken
+     formula wider than the content column would otherwise push the whole page
+     into horizontal scroll on phones — contain the overflow to the span
+     itself instead. inline-block is required for max-width/overflow-x to
+     apply to an inline element; once overflow isn't `visible`, the box's
+     reported baseline becomes its bottom margin edge (same rule the UA
+     stylesheet uses for <input>/<select>), which sits below the KaTeX
+     glyphs' true baseline (descender space is reserved there). Seating that
+     edge on the surrounding text's baseline via `vertical-align: baseline`
+     lifts the whole formula off the line; `vertical-align: bottom` seats that
+     same edge on the line box's own bottom instead, matching the plain
+     inline KaTeX span's position. A formula that fits needs no scrollbar and
+     renders identically to before. */
   .formula-inline {
+    display: inline-block;
+    max-width: 100%;
+    overflow-x: auto;
+    vertical-align: bottom;
     white-space: nowrap;
   }
 

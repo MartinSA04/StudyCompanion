@@ -27,16 +27,36 @@ export const flexokiDark: ShikiTheme = {
       settings: { foreground: "#878580", fontStyle: "italic" },
     },
     {
-      scope: ["string", "string.quoted", "string.template", "markup.inline.raw", "markup.raw"],
+      scope: [
+        "string",
+        "string.quoted",
+        "string.template",
+        "markup.inline.raw",
+        "markup.raw",
+      ],
       settings: { foreground: "#879a39" },
     },
     {
-      scope: ["constant.numeric", "constant.language", "constant.language.boolean", "constant.other"],
+      scope: [
+        "constant.numeric",
+        "constant.language",
+        "constant.language.boolean",
+        "constant.other",
+      ],
       settings: { foreground: "#8b7ec8" },
     },
     {
-      scope: ["keyword", "keyword.control", "storage", "storage.type", "storage.modifier", "keyword.other"],
-      settings: { foreground: "#d14d41" },
+      // Flexoki red-400 (#d14d41) is 3.97:1 on the #1c1b1a bg — fails AA. Swapped
+      // for red-300 (#e8705f, 5.66:1), the same hue's lighter dark-theme step.
+      scope: [
+        "keyword",
+        "keyword.control",
+        "storage",
+        "storage.type",
+        "storage.modifier",
+        "keyword.other",
+      ],
+      settings: { foreground: "#e8705f" },
     },
     {
       scope: ["keyword.operator", "punctuation.accessor"],
@@ -45,18 +65,35 @@ export const flexokiDark: ShikiTheme = {
     {
       // `.generic` is the called NAME; the broad `meta.function-call` also wraps
       // the arguments, which tinted plain variables (e.g. theta1) orange.
-      scope: ["entity.name.function", "support.function", "meta.function-call.generic", "variable.function"],
+      scope: [
+        "entity.name.function",
+        "support.function",
+        "meta.function-call.generic",
+        "variable.function",
+      ],
       settings: { foreground: "#da702c" },
     },
     {
-      scope: ["entity.name.type", "support.type", "entity.name.class", "support.class", "entity.other.inherited-class"],
+      scope: [
+        "entity.name.type",
+        "support.type",
+        "entity.name.class",
+        "support.class",
+        "entity.other.inherited-class",
+      ],
       settings: { foreground: "#d0a215" },
     },
     {
-      scope: ["variable", "variable.other.readwrite", "meta.definition.variable"],
+      scope: [
+        "variable",
+        "variable.other.readwrite",
+        "meta.definition.variable",
+      ],
       settings: { foreground: "#cecdc3" },
     },
     {
+      // Flexoki blue-400 (#4385be) is 4.37:1 on the #1c1b1a bg — fails AA. Swapped
+      // for blue-300 (#66a0c8, 6.08:1), the same hue's lighter dark-theme step.
       scope: [
         "variable.parameter",
         "variable.other.object.property",
@@ -65,25 +102,43 @@ export const flexokiDark: ShikiTheme = {
         "support.type.property-name",
         "entity.name.tag.yaml",
       ],
-      settings: { foreground: "#4385be" },
+      settings: { foreground: "#66a0c8" },
     },
     {
+      // Same red-400 → red-300 swap as the keyword scope above (3.97:1 → 5.66:1).
       scope: ["entity.name.tag", "punctuation.definition.tag"],
-      settings: { foreground: "#d14d41" },
+      settings: { foreground: "#e8705f" },
     },
-    { scope: ["entity.other.attribute-name"], settings: { foreground: "#d0a215" } },
     {
-      scope: ["punctuation", "meta.brace", "punctuation.separator", "punctuation.terminator", "punctuation.definition"],
+      scope: ["entity.other.attribute-name"],
+      settings: { foreground: "#d0a215" },
+    },
+    {
+      scope: [
+        "punctuation",
+        "meta.brace",
+        "punctuation.separator",
+        "punctuation.terminator",
+        "punctuation.definition",
+      ],
       settings: { foreground: "#9f9d96" },
     },
     {
-      scope: ["constant.character.escape", "constant.other.placeholder", "string.regexp"],
+      scope: [
+        "constant.character.escape",
+        "constant.other.placeholder",
+        "string.regexp",
+      ],
       settings: { foreground: "#3aa99f" },
     },
-    { scope: ["markup.heading", "markup.heading entity.name"], settings: { foreground: "#da702c", fontStyle: "bold" } },
+    {
+      scope: ["markup.heading", "markup.heading entity.name"],
+      settings: { foreground: "#da702c", fontStyle: "bold" },
+    },
     { scope: ["markup.bold"], settings: { fontStyle: "bold" } },
     { scope: ["markup.italic"], settings: { fontStyle: "italic" } },
     { scope: ["markup.inserted"], settings: { foreground: "#879a39" } },
-    { scope: ["markup.deleted"], settings: { foreground: "#d14d41" } },
+    // Same red-400 → red-300 swap as the keyword scope above (3.97:1 → 5.66:1).
+    { scope: ["markup.deleted"], settings: { foreground: "#e8705f" } },
   ],
 };

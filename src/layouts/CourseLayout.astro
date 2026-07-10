@@ -5,7 +5,7 @@ import { TOOL_SLUGS, partGroups } from "../lib/nav.ts";
 import ThemeToggle from "../components/ThemeToggle.astro";
 import SearchPalette from "../components/SearchPalette.astro";
 import Icon from "../components/Icon.astro";
-import { contrastText, accentOnBg } from "../lib/color.ts";
+import { contrastText, accentOnBg, accentInk } from "../lib/color.ts";
 import { faviconDataUri } from "../lib/favicon.ts";
 import { ogLocale, trimTrailingSlash, warnMissingSiteOnce } from "../lib/seo.ts";
 import { serializeLd } from "../lib/jsonLd.ts";
@@ -21,6 +21,12 @@ import "../styles/shell.css";
 // heading weights; Spectral 400 is the body face.
 import displayFont from "../styles/fonts/fraunces-400-latin.woff2";
 import bodyFont from "../styles/fonts/spectral-400-latin.woff2";
+// The two KaTeX faces every math-bearing page paints on first render (upright
+// + italic variables); preloading them avoids the flash-of-fallback-serif a
+// module full of formulas would otherwise show while katex.min.css's own
+// @font-face rules resolve.
+import katexMainFont from "katex/dist/fonts/KaTeX_Main-Regular.woff2?url";
+import katexMathItalicFont from "katex/dist/fonts/KaTeX_Math-Italic.woff2?url";
 
 interface Props {
   course: Course;
@@ -72,6 +78,55 @@ const { ui, features } = course;
 // The framework's own source — linked from the "Bygget med" footer attribution.
 const FRAMEWORK_REPO = "https://github.com/MartinSA04/StudyCompanion";
 
+// ---- Accent-Ink Rule guardrail ----
+// Grounds --accent-ink text actually sits on, verbatim from tokens.css (light:
+// the page and its one panel step; dark: the panel and its nested recess —
+// dark-theme accent text lives on --bg-elevated/--card-nested, not raw --bg,
+// per the --accent-ink comment in tokens.css). Kept as literal hex, matching
+// the THEME_COLOR_* constants below, so this warns against the same values the
+// CSS paints even if this file's imports ever get tree-shaken from a build.
+const LIGHT_BG = "#fffcf0"; // --bg (light)
+const LIGHT_BG_ELEVATED = "#f2f0e5"; // --bg-elevated (light)
+const LIGHT_FG = "#100f0f"; // --fg (light)
+const DARK_BG_ELEVATED = "#1c1b1a"; // --bg-elevated (dark)
+const DARK_CARD_NESTED = "#282726"; // --card-nested (dark)
+const DARK_FG = "#cecdc3"; // --fg (dark)
+
+// De-duped per accent+fg pair per build. Astro re-runs a component's whole
+// frontmatter on every page's render (unlike a plain imported .ts module,
+// which is a real singleton — see `siteWarned` in lib/seo.ts), so a `const`
+// here would reset every page; stash the guard on `globalThis` instead, which
+// is the one thing that actually survives across those re-runs for the life
+// of the `astro build`/`astro dev` process.
+const scGlobal = globalThis as unknown as { __scWarnedAccents?: Set<string> };
+const warnedAccents = (scGlobal.__scWarnedAccents ??= new Set<string>());
+
+/**
+ * Warn (never throw — an unreadable accent shouldn't fail a course's build)
+ * when `accent` mixed through the Accent-Ink Rule (--accent-ink: 75% accent /
+ * 25% ink) would fail AA as TEXT on the grounds it actually renders on.
+ */
+function checkAccentInk(
+  accent: string,
+  fg: string,
+  surfaces: [name: string, hex: string][],
+  theme: "light" | "dark",
+) {
+  const key = `${theme}:${accent}:${fg}`;
+  if (warnedAccents.has(key)) return;
+  const ink = accentInk(accent, fg);
+  for (const [name, hex] of surfaces) {
+    const r = accentOnBg(ink, hex);
+    if (r != null && r < 4.5) {
+      warnedAccents.add(key);
+      console.warn(
+        `[study-companion] ${theme} accent "${accent}" mixed through --accent-ink has ${r.toFixed(2)}:1 on ${name} — accent text may be hard to read. Pick a ${theme === "dark" ? "lighter (set accentDark)" : "darker"} shade.`,
+      );
+      return;
+    }
+  }
+}
+
 // Module nav grouped into parts (single null-part group when no section sets one).
 const moduleGroups = partGroups(nav);
 
@@ -92,19 +147,24 @@ const onAccentDark = contrastText(accentDark);
 const accentVars =
   `--accent-light: ${accentLight}; --accent-dark: ${accentDark}; ` +
   `--accent-contrast-light: ${onAccentLight}; --accent-contrast-dark: ${onAccentDark};`;
-if (import.meta.env.DEV) {
-  // Warn when an accent is hard to read as text/links on its theme's ground.
-  const check = (hex: string, bg: string, theme: "light" | "dark") => {
-    const r = accentOnBg(hex, bg);
-    if (r != null && r < 4.5) {
-      console.warn(
-        `[study-companion] ${theme} accent "${hex}" has ${r.toFixed(2)}:1 on the ${theme} page ground — accent text/links may be hard to read. Pick a ${theme === "dark" ? "lighter (set accentDark)" : "darker"} shade.`,
-      );
-    }
-  };
-  check(accentLight, "#f2f0e5", "light");
-  check(accentDark, "#100f0f", "dark");
-}
+checkAccentInk(
+  accentLight,
+  LIGHT_FG,
+  [
+    ["--bg", LIGHT_BG],
+    ["--bg-elevated", LIGHT_BG_ELEVATED],
+  ],
+  "light",
+);
+checkAccentInk(
+  accentDark,
+  DARK_FG,
+  [
+    ["--bg-elevated", DARK_BG_ELEVATED],
+    ["--card-nested", DARK_CARD_NESTED],
+  ],
+  "dark",
+);
 
 const themeKey = `sc:theme:${course.code}`;
 const progressKey = `sc:progress:${course.code}`;
@@ -140,7 +200,7 @@ const twitterHandle = course.seo?.twitter
 
 // Browser-chrome / native-control colours — verbatim from tokens.css grounds
 // (explicit over derived), so the mobile toolbar matches the page per theme.
-const THEME_COLOR_LIGHT = "#f2f0e5"; // --bg (light, Flexoki base-50)
+const THEME_COLOR_LIGHT = "#fffcf0"; // --bg (light, Flexoki paper)
 const THEME_COLOR_DARK = "#100f0f"; // --bg (dark, Flexoki black)
 
 type IconName = "sigma" | "book" | "layers" | "file";
@@ -245,6 +305,20 @@ const hasTools = toolNav.some((t) => t.show);
       href={displayFont}
       crossorigin
     />
+    <link
+      rel="preload"
+      as="font"
+      type="font/woff2"
+      href={katexMainFont}
+      crossorigin
+    />
+    <link
+      rel="preload"
+      as="font"
+      type="font/woff2"
+      href={katexMathItalicFont}
+      crossorigin
+    />
     {
       features.theme && (
         <script is:inline define:vars={{ themeKey }}>
@@ -277,6 +351,34 @@ const hasTools = toolNav.some((t) => t.show);
             document.addEventListener("astro:after-swap", function () {
               applyTheme();
             });
+            // Track a live OS theme flip (e.g. the system switching at sunset)
+            // for a reader who never picked a theme explicitly — an explicit
+            // localStorage choice always wins and this listener leaves it alone.
+            // Guarded so a view-transition swap re-embedding this same inline
+            // script never registers the listener twice.
+            if (!window.__scOsThemeBound) {
+              window.__scOsThemeBound = true;
+              matchMedia("(prefers-color-scheme: dark)").addEventListener(
+                "change",
+                function () {
+                  try {
+                    if (localStorage.getItem(themeKey)) return;
+                  } catch (e) {
+                    /* private mode / storage disabled — fall through, OS still wins */
+                  }
+                  applyTheme();
+                  document.dispatchEvent(
+                    new CustomEvent("sc:themechange", {
+                      detail:
+                        document.documentElement.getAttribute("data-theme") ===
+                        "dark"
+                          ? "dark"
+                          : "light",
+                    }),
+                  );
+                },
+              );
+            }
           })();
         </script>
       )
@@ -423,6 +525,10 @@ const hasTools = toolNav.some((t) => t.show);
                   <span class="nav-check" aria-hidden="true">
                     <Icon name="check" size={14} />
                   </span>
+                  {/* Text companion to the aria-hidden check icon, kept in sync
+                      with the .done class by paintProgress() so the link's
+                      accessible name always states completion too. */}
+                  <span class="sr-only" data-done-sr></span>
                 </a>
               ))}
             </>
@@ -519,6 +625,59 @@ const hasTools = toolNav.some((t) => t.show);
         } catch {}
       };
 
+      // ---- Mobile menu open/close ----
+      // A plain function (not nested in setupPage) so the global Escape
+      // handler further down can reuse the same trap/scroll-lock logic;
+      // elements are queried fresh each call since a view-transition swap
+      // replaces the sidebar/topbar DOM.
+      function toggleMenu(open) {
+        const sidebar = document.getElementById("sidebar");
+        if (!sidebar) return;
+        const menuBtn = document.querySelector(".menu-toggle");
+        const scrim = document.querySelector("[data-scrim]");
+        const next = open ?? !sidebar.classList.contains("open");
+        sidebar.classList.toggle("open", next);
+        if (scrim) scrim.classList.toggle("show", next);
+        if (menuBtn) menuBtn.setAttribute("aria-expanded", String(next));
+        // Trap focus in the open drawer: `inert` everything else reachable by
+        // Tab — the skip-link (rendered before the topbar, so it's a sibling
+        // rather than a topbar-inner child), the main content, the TOC rail,
+        // and the topbar's other controls (the toggle itself lives among
+        // those and must stay operable) — and lock the background scroll.
+        // The scrim is left alone so a click on it still closes the drawer.
+        const skipLink = document.querySelector(".skip-link");
+        const content = document.getElementById("content");
+        const tocRail = document.querySelector(".toc-rail");
+        const topbarInner = document.querySelector(".topbar-inner");
+        const outside = [
+          skipLink,
+          content,
+          tocRail,
+          ...(topbarInner ? [...topbarInner.children] : []),
+        ];
+        outside.forEach((el) => {
+          if (el && el !== menuBtn) el.toggleAttribute("inert", next);
+        });
+        document.documentElement.style.overflow = next ? "hidden" : "";
+        // Move focus into the drawer on open; return it to the toggle on close.
+        if (next) sidebar.querySelector("a")?.focus();
+        else if (menuBtn) menuBtn.focus();
+      }
+
+      // ---- Deep-link arrival focus ----
+      // The browser already scrolled `:target` into view; if it's one of the
+      // rows the widgets mark `tabindex="-1"` (Statement / Glossary /
+      // FormulaSheet anchors), also move keyboard focus there so a screen
+      // reader announces it and Tab continues from that row.
+      function focusDeepLinkTarget() {
+        const hash = location.hash.slice(1);
+        if (!hash) return;
+        const target = document.getElementById(hash);
+        if (target && target.getAttribute("tabindex") === "-1") {
+          target.focus({ preventScroll: true });
+        }
+      }
+
       function paintProgress(doc) {
         doc = doc || document;
         const fill = doc.querySelector("[data-progress-fill]");
@@ -526,14 +685,19 @@ const hasTools = toolNav.some((t) => t.show);
         const bar = fill ? fill.closest(".progressbar") : null;
         const navLinks = [...doc.querySelectorAll("[data-nav-order]")];
         const set = new Set(readProg());
-        navLinks.forEach((a) =>
-          a.classList.toggle("done", set.has(Number(a.dataset.navOrder))),
-        );
+        navLinks.forEach((a) => {
+          const on = set.has(Number(a.dataset.navOrder));
+          a.classList.toggle("done", on);
+          // Keep the sr-only text companion (see the aria-hidden check icon
+          // beside it) in lockstep with the visual .done class.
+          const sr = a.querySelector("[data-done-sr]");
+          if (sr) sr.textContent = on ? ", fullført" : "";
+        });
         const count = navLinks.filter((a) =>
           set.has(Number(a.dataset.navOrder)),
         ).length;
         const pct = total ? Math.round((count / total) * 100) : 0;
-        if (fill) fill.style.width = pct + "%";
+        if (fill) fill.style.transform = `scaleX(${pct / 100})`;
         if (bar) bar.setAttribute("aria-valuenow", String(pct));
         if (text) text.textContent = count + "/" + total;
       }
@@ -556,6 +720,7 @@ const hasTools = toolNav.some((t) => t.show);
       function setupPage() {
         paintProgress();
         paintDoneBtn();
+        focusDeepLinkTarget();
 
         const doneBtn = document.querySelector("[data-done-order]");
         if (doneBtn && !doneBtn.dataset.scBound) {
@@ -576,16 +741,6 @@ const hasTools = toolNav.some((t) => t.show);
         const menuBtn = document.querySelector(".menu-toggle");
         const sidebar = document.getElementById("sidebar");
         const scrim = document.querySelector("[data-scrim]");
-        function toggleMenu(open) {
-          if (!sidebar) return;
-          const next = open ?? !sidebar.classList.contains("open");
-          sidebar.classList.toggle("open", next);
-          if (scrim) scrim.classList.toggle("show", next);
-          if (menuBtn) menuBtn.setAttribute("aria-expanded", String(next));
-          // Move focus into the drawer on open; return it to the toggle on close.
-          if (next) sidebar.querySelector("a")?.focus();
-          else if (menuBtn) menuBtn.focus();
-        }
         if (menuBtn && !menuBtn.dataset.scBound) {
           menuBtn.dataset.scBound = "1";
           menuBtn.addEventListener("click", () => toggleMenu());
@@ -613,11 +768,14 @@ const hasTools = toolNav.some((t) => t.show);
                 await navigator.clipboard.writeText(
                   code ? code.innerText : pre.innerText,
                 );
-                // The copy→check icon swap is pure CSS on [data-copied].
+                // The copy→check icon swap is pure CSS on [data-copied]; the
+                // label swap is the announcement an AT user gets in its place.
                 btn.dataset.copied = "true";
+                btn.setAttribute("aria-label", "Kopiert");
                 clearTimeout(copyTimer);
                 copyTimer = setTimeout(() => {
                   btn.dataset.copied = "false";
+                  btn.setAttribute("aria-label", "Kopier kode");
                 }, 1500);
               } catch {}
             });
@@ -635,14 +793,13 @@ const hasTools = toolNav.some((t) => t.show);
         const sidebar = document.getElementById("sidebar");
         if (e.key !== "Escape" || !sidebar || !sidebar.classList.contains("open"))
           return;
-        sidebar.classList.remove("open");
-        document.querySelector("[data-scrim]")?.classList.remove("show");
-        const menuBtn = document.querySelector(".menu-toggle");
-        if (menuBtn) {
-          menuBtn.setAttribute("aria-expanded", "false");
-          menuBtn.focus();
-        }
+        toggleMenu(false);
       });
+
+      // A hash change while already on the page (clicking an in-page anchor,
+      // not a full navigation — astro:page-load covers that case) also moves
+      // focus to a `tabindex="-1"` deep-link target.
+      addEventListener("hashchange", focusDeepLinkTarget);
 
       // ---- Arrow-key prev/next module ----
       document.addEventListener("keydown", (e) => {
