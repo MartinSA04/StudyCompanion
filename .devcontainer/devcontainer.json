@@ -1,0 +1,53 @@
+{
+  "name": "study-companion",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+
+  // Personal baseline (mise + git + gh + Claude Code, and zsh/starship),
+  // published from github.com/MartinSA04/devcontainer-base.
+  //
+  // As of feature v1.2.0, Claude persistence (the CLAUDE_CONFIG_DIR env, the
+  // claude-${devcontainerId} volume, and its chown) is baked into the feature
+  // itself — so there is nothing to wire up here for it.
+  "features": {
+    "ghcr.io/martinsa04/devcontainer-base/mise-and-tools:1": {
+      "installZsh": true,
+      "installClaudeCode": true,
+      "claudeCodeVersion": "stable"
+    }
+  },
+
+  // Keep node_modules in a named volume (keyed by ${devcontainerId}, so it's
+  // isolated per project and survives rebuilds) => the container's arch-specific
+  // installs never collide with tooling run on the host, and installs are faster.
+  "mounts": [
+    "source=node-modules-${devcontainerId},target=${containerWorkspaceFolder}/node_modules,type=volume"
+  ],
+
+  // A freshly created volume is root-owned — hand node_modules to the remote
+  // user, then provision the toolchain from mise.toml and install dependencies.
+  // `mise exec` runs pnpm with the mise-managed tools on PATH (postCreate is a
+  // non-interactive shell where mise isn't auto-activated).
+  "postCreateCommand": "sudo chown -R $(whoami) node_modules 2>/dev/null; mise trust && mise install && mise exec -- pnpm install",
+
+  "remoteUser": "vscode",
+
+  // Astro dev server.
+  "forwardPorts": [4321],
+  "portsAttributes": {
+    "4321": { "label": "astro dev", "onAutoForward": "notify" }
+  },
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "astro-build.astro-vscode",
+        "esbenp.prettier-vscode",
+        "unifiedjs.vscode-mdx"
+      ],
+      "settings": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.formatOnSave": true
+      }
+    }
+  }
+}
