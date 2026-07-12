@@ -1,10 +1,12 @@
 ---
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
 import { parse } from "yaml";
 import { ClientRouter } from "astro:transitions";
 import ThemeToggle from "../../src/components/ThemeToggle.astro";
 import { faviconDataUri } from "../../src/lib/favicon.ts";
+// Vite resolves `?raw` relative to this source file at bundle time
+// (cwd-independent) and puts the YAML in the module graph so `hub:dev`
+// hot-reloads it.
+import raw from "../courses.yaml?raw";
 import "../../src/styles/fonts.css";
 import "../../src/styles/tokens.css";
 import "../../src/styles/base.css";
@@ -16,9 +18,7 @@ import "../../src/styles/primitives.css";
  * comes from the framework's own styles; this page only lays out tiles.
  */
 type HubCourse = { code: string; title: string; url: string; term: string };
-const courses = parse(
-  readFileSync(join(process.cwd(), "hub/courses.yaml"), "utf8"),
-) as HubCourse[];
+const courses = parse(raw) as HubCourse[];
 
 // Group by term, groups in file order of first appearance — no sort logic.
 const groups: { term: string; courses: HubCourse[] }[] = [];

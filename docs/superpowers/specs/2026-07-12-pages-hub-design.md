@@ -82,9 +82,11 @@ contract are untouched. `dist-hub/` joins `.gitignore`.
 ## Deployment
 
 - `.github/workflows/pages.yml`: on push to `main` filtered to `hub/**`,
-  `src/styles/**`, `astro.config.hub.mjs`, and the workflow itself, plus
-  `workflow_dispatch` — install with pnpm, `pnpm hub:build`,
-  `actions/upload-pages-artifact` on `dist-hub/`, `actions/deploy-pages`.
+  `src/styles/**`, the shared hub dependencies (`ThemeToggle.astro`,
+  `Icon.astro`, `favicon.ts`, `pageLifecycle.ts`), `astro.config.hub.mjs`,
+  and the workflow itself, plus `workflow_dispatch` — install with pnpm,
+  `pnpm test`, `pnpm hub:build`, `actions/upload-pages-artifact` on
+  `dist-hub/`, `actions/deploy-pages`.
 - One-time manual steps (repo owner): set the repo's Pages source to
   "GitHub Actions"; add a DNS `CNAME` record `kurs` →
   `martinsa04.github.io`.
