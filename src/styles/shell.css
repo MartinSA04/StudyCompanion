@@ -102,7 +102,10 @@
   width: 120px;
   height: 6px;
   border-radius: var(--radius-xs);
-  background: var(--border);
+  /* One step darker than --border: the empty track was near-invisible on the
+     topbar fill (~1.2:1), so 0/5 looked like a missing control, not an empty
+     bar. Still a quiet hairline — the mono count carries the exact number. */
+  background: var(--border-strong);
   overflow: hidden;
 }
 .progressfill {
@@ -238,6 +241,11 @@
   align-items: center;
   justify-content: center;
 }
+/* The faint number dips just under AA (4.47:1) on the hovered row's elevated
+   fill — step it up with the rest of the row while the pointer is on it. */
+.nav-link:hover .nav-num {
+  color: var(--muted);
+}
 .nav-link.active .nav-num {
   color: var(--accent-ink);
 }
@@ -245,9 +253,9 @@
   flex: 1;
   line-height: var(--leading-snug);
 }
-/* Completion shows only once a module is done — a bare green check, no empty
-   box on the pending rows (that read as a clickable form control it isn't). The
-   slot keeps its width so marking done never reflows the title. */
+/* Completion shows only once a module is done — a bare accent-ink check, no
+   empty box on the pending rows (that read as a clickable form control it
+   isn't). The slot keeps its width so marking done never reflows the title. */
 .nav-check {
   margin-left: auto;
   width: 16px;
@@ -281,13 +289,22 @@
   scrollbar-width: thin;
 }
 /* Add the rail only when the viewport can fit nav + content + rail without
-   shrinking the content; below this it collapses to PageToc's inline copy. */
+   shrinking the content; below this it collapses to PageToc's inline copy.
+   The rail sits BEFORE <main> in the DOM (nav → on-this-page → content, so a
+   keyboard user reaches the TOC without first traversing the whole article);
+   explicit grid placement puts it back in the visual third column. */
 @media (min-width: 1440px) {
   .layout--toc {
     grid-template-columns: var(--sidebar-w) minmax(0, var(--maxw)) var(--toc-w);
   }
+  .layout--toc .content {
+    grid-column: 2;
+    grid-row: 1;
+  }
   .layout--toc .toc-rail {
     display: block;
+    grid-column: 3;
+    grid-row: 1;
   }
 }
 
@@ -459,6 +476,14 @@
    shows when there's nothing to resume. */
 .hero-continue[hidden] {
   display: none;
+}
+/* The hero's LAST visible child sits flush on the panel padding — without this
+   the trailing element's own margin-bottom stacked ~24px of dead air onto the
+   40px panel padding. :has() covers the common case where the true :last-child
+   is the [hidden] progress row. */
+.hero > :last-child,
+.hero > :has(+ [hidden]:last-child) {
+  margin-bottom: 0;
 }
 
 /* ====== module header ====== */

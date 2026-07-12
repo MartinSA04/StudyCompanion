@@ -178,6 +178,31 @@ import Icon from "./Icon.astro";
       const explain = quiz.querySelector<HTMLElement>(".quiz-explain");
       let done = false;
 
+      // Plain-text of an option's label, for the announced feedback. KaTeX
+      // output carries both MathML (what a screen reader gets) and an
+      // aria-hidden visual tree plus the raw LaTeX <annotation>; keep only the
+      // MathML text so math reads as symbols, not doubled markup.
+      const optionText = (btn: HTMLButtonElement): string => {
+        const label = btn.querySelector<HTMLElement>(
+          ":scope > span:not(.quiz-mark)",
+        );
+        if (!label) return "";
+        const clone = label.cloneNode(true) as HTMLElement;
+        clone
+          .querySelectorAll(".katex-html, annotation, .sr-only")
+          .forEach((n) => n.remove());
+        return clone.textContent?.replace(/\s+/g, " ").trim() ?? "";
+      };
+
+      // Visually-hidden state suffix, so a graded option's accessible name says
+      // what the colour + icon show ("…, riktig svar" / "…, ditt svar").
+      const addSrState = (btn: HTMLButtonElement, text: string) => {
+        const s = document.createElement("span");
+        s.className = "sr-only quiz-sr-state";
+        s.textContent = `, ${text}`;
+        btn.appendChild(s);
+      };
+
       // ↑/↓ moves focus between options (arrow-key group navigation)
       options.forEach((btn, i) => {
         btn.addEventListener(
@@ -214,15 +239,41 @@ import Icon from "./Icon.astro";
 
             options.forEach((b, i) => {
               b.disabled = true;
-              if (i === answer) b.dataset.state = "correct";
-              else if (i === chosen) b.dataset.state = "wrong";
+              if (i === answer) {
+                b.dataset.state = "correct";
+                addSrState(b, "riktig svar");
+              } else if (i === chosen) {
+                b.dataset.state = "wrong";
+                addSrState(b, "ditt svar");
+              }
             });
 
             feedback.hidden = false;
             feedback.dataset.result = correct ? "correct" : "wrong";
-            feedback.textContent = correct
-              ? "Riktig!"
-              : "Ikke helt. Se riktig svar.";
+            if (correct) {
+              feedback.textContent = "Riktig!";
+            } else {
+              // Two audiences, one clean sentence each: sighted readers get
+              // "Se riktig svar." (the green row above shows the answer, so
+              // repeating it visibly is redundant); the live region announces
+              // the answer by name instead, since the row's reveal is colour +
+              // an aria-hidden icon — invisible in an announcement. aria-hidden
+              // strips the pointer sentence from the announced text; sr-only
+              // text is announced but not shown.
+              feedback.textContent = "Ikke helt. ";
+              const answerText = optionText(options[answer]);
+              const pointer = document.createElement("span");
+              pointer.textContent = "Se riktig svar.";
+              if (answerText) {
+                pointer.setAttribute("aria-hidden", "true");
+                const sr = document.createElement("span");
+                sr.className = "sr-only";
+                sr.textContent = `Riktig svar: ${answerText}.`;
+                feedback.append(pointer, sr);
+              } else {
+                feedback.append(pointer);
+              }
+            }
             if (explain) explain.hidden = false;
             if (hadFocus) feedback.focus({ preventScroll: true });
           },

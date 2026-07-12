@@ -39,8 +39,21 @@ const hasSections = sections.length > 0;
   data-total={rendered.length}
 >
   <div class="fc-head">
-    <p class="fc-progress">
-      <strong data-fc-known>0</strong> / <span>{rendered.length}</span> kan
+    {
+      /* role="status": rating updates this line ("1 øvd", "2 kan"), which is the
+        visible — and announced — acknowledgment that a Kan/Øv press landed. */
+    }
+    <p
+      class="fc-progress"
+      role="status"
+      title="Lagres lokalt i denne nettleseren"
+    >
+      <strong data-fc-known>0</strong> / <span>{rendered.length}</span> kan<span
+        data-fc-practiced-wrap
+        hidden
+      >
+        · <span data-fc-practiced>0</span> øvd</span
+      >
     </p>
     <button type="button" class="fc-reset sc-press" data-fc-reset hidden
       >{labels.reset}</button
@@ -87,6 +100,11 @@ const hasSections = sections.length > 0;
   <div class="fc-stage">
     {
       rendered.map((card, i) => (
+        /* No aria-label: it would REPLACE the button's accessible name, so a
+           screen reader would hear "Snu" instead of the question. The name is
+           the visible face's text (the script keeps the hidden face
+           aria-hidden), and the fc-hint "Snu" inside the front face supplies
+           the verb. */
         <button
           type="button"
           class="fc-card sc-lift"
@@ -94,7 +112,6 @@ const hasSections = sections.length > 0;
           data-index={i}
           data-section={card.section}
           hidden={i !== 0}
-          aria-label={labels.flip}
         >
           <span class="fc-inner">
             <span class="fc-face fc-front sc-panel">
@@ -104,7 +121,7 @@ const hasSections = sections.length > 0;
               <span class="fc-text" set:html={card.front} />
               <span class="fc-hint">{labels.flip}</span>
             </span>
-            <span class="fc-face fc-back sc-panel">
+            <span class="fc-face fc-back sc-panel" aria-hidden="true">
               {card.section && (
                 <span class="fc-section sc-kicker">{card.section}</span>
               )}
@@ -121,7 +138,17 @@ const hasSections = sections.length > 0;
         </button>
       ))
     }
-    <div class="fc-empty" data-fc-empty>Ingen kort matcher filteret.</div>
+    {
+      /* Two empty states, set by show(): the earned one (every card in scope
+        rated "kan") and the plain filter mismatch — with a next step each,
+        so the end of a run never reads as a dead filter error. */
+    }
+    <div class="fc-empty" data-fc-empty>
+      <p class="fc-empty-title" data-fc-empty-title>
+        Ingen kort matcher filteret.
+      </p>
+      <p class="fc-empty-hint" data-fc-empty-hint></p>
+    </div>
   </div>
 
   <div class="fc-controls">
@@ -152,6 +179,17 @@ const hasSections = sections.length > 0;
   </div>
   <p class="fc-counter">
     <span data-fc-pos>1</span> / <span data-fc-total>{rendered.length}</span>
+  </p>
+  {
+    /* The deck's keyboard vocabulary as one quiet marginalia line — plain faint
+      mono, no keycap boxes (a row of framed keys reads as a toolbar and pulls
+      focus off the card). The keys sit one ink-step up from the connective
+      words so the line still parses. Hidden on touch-only devices. */
+  }
+  <p class="fc-keys">
+    <kbd>←→</kbd> bla · <kbd>mellomrom</kbd> snu · <kbd>1</kbd>{" "}
+    {labels.review.toLowerCase()} · <kbd>2</kbd>
+    {labels.known.toLowerCase()}
   </p>
 </div>
 
@@ -214,11 +252,32 @@ const hasSections = sections.length > 0;
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    gap: var(--space-2);
     text-align: center;
     color: var(--muted);
     font-size: var(--text-sm);
     border: 1px dashed var(--border-strong);
     border-radius: var(--radius);
+    padding: var(--space-4);
+  }
+  /* The earned all-known state trades the dashed placeholder frame for the
+     completion language the rest of the site uses: a quiet accent wash. */
+  .fc-empty[data-complete="true"] {
+    border: 0;
+    background: var(--accent-soft);
+  }
+  .fc-empty[data-complete="true"] .fc-empty-title {
+    color: var(--accent-ink);
+    font-weight: var(--weight-medium);
+  }
+  /* --muted, not --faint: the hint also sits on the completion state's
+     accent wash, where --faint measures 3.9:1 (light) — below AA. */
+  .fc-empty-hint {
+    font-size: var(--text-xs);
+    color: var(--muted);
+  }
+  .fc-empty-hint:empty {
+    display: none;
   }
   .flashcards[data-empty="true"] .fc-empty {
     display: flex;
@@ -400,6 +459,24 @@ const hasSections = sections.length > 0;
     color: var(--muted);
     font-variant-numeric: tabular-nums;
   }
+  .fc-keys {
+    text-align: center;
+    margin-top: var(--space-3);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--faint);
+  }
+  /* No box — just a hair more ink than the connective words so the keys read as
+     keys (both stay AA on --bg: --muted 7.1:1, --faint 5.0:1). */
+  .fc-keys kbd {
+    color: var(--muted);
+  }
+  /* No keyboard to hint at on touch-only devices. */
+  @media (hover: none) {
+    .fc-keys {
+      display: none;
+    }
+  }
 </style>
 
 <script>
@@ -416,9 +493,37 @@ const hasSections = sections.length > 0;
       ...deck.querySelectorAll<HTMLButtonElement>("[data-fc-card]"),
     ];
     const knownOut = deck.querySelector<HTMLElement>("[data-fc-known]")!;
+    const practicedWrap = deck.querySelector<HTMLElement>(
+      "[data-fc-practiced-wrap]",
+    )!;
+    const practicedOut = deck.querySelector<HTMLElement>(
+      "[data-fc-practiced]",
+    )!;
     const posOut = deck.querySelector<HTMLElement>("[data-fc-pos]")!;
     const totalOut = deck.querySelector<HTMLElement>("[data-fc-total]")!;
     const resetBtn = deck.querySelector<HTMLButtonElement>("[data-fc-reset]")!;
+    const resetLabel = resetBtn.textContent;
+    const emptyBox = deck.querySelector<HTMLElement>("[data-fc-empty]")!;
+    const emptyTitle = deck.querySelector<HTMLElement>(
+      "[data-fc-empty-title]",
+    )!;
+    const emptyHint = deck.querySelector<HTMLElement>("[data-fc-empty-hint]")!;
+
+    // Both faces are always in the DOM (the flip is CSS backface-visibility,
+    // which hides nothing from assistive tech): keep exactly the visible face
+    // in the accessibility tree, so the button's name is the question at rest
+    // and the answer once flipped — never both.
+    const syncFaces = (c: HTMLButtonElement) => {
+      const flipped = c.dataset.flipped === "true";
+      c.querySelector(".fc-front")?.setAttribute(
+        "aria-hidden",
+        String(flipped),
+      );
+      c.querySelector(".fc-back")?.setAttribute(
+        "aria-hidden",
+        String(!flipped),
+      );
+    };
 
     const load = (): Levels => {
       try {
@@ -437,6 +542,10 @@ const hasSections = sections.length > 0;
     let queue: number[] = [];
     let pos = 0;
     const filter = { section: "", onlyUnknown: false };
+    // One-level undo for "Nullstill" (an undo beats a confirm dialog: no modal,
+    // no friction on the honest path, and a slip is still recoverable).
+    let undoStash: Levels | null = null;
+    let undoTimer: ReturnType<typeof setTimeout> | undefined;
 
     const buildQueue = () => {
       let indices = [...Array(total).keys()];
@@ -463,8 +572,16 @@ const hasSections = sections.length > 0;
 
     const renderProgress = () => {
       const known = Object.values(levels).filter((v) => v >= 2).length;
+      // Level 1 ("øvd") counts visibly too: a first "Kan" press must move the
+      // header, or the two-press mastery scheme reads as a rating that didn't
+      // save. The øvd segment only appears while something is at level 1.
+      const practiced = Object.values(levels).filter((v) => v === 1).length;
       knownOut.textContent = String(known);
-      resetBtn.hidden = Object.keys(levels).length === 0;
+      practicedOut.textContent = String(practiced);
+      practicedWrap.hidden = practiced === 0;
+      // Keep the button while an undo is pending, or "Angre" vanishes the
+      // moment the reset it undoes empties the levels.
+      resetBtn.hidden = !undoStash && Object.keys(levels).length === 0;
       paintBadges();
     };
 
@@ -481,12 +598,35 @@ const hasSections = sections.length > 0;
       cards.forEach((c) => {
         c.hidden = isEmpty || Number(c.dataset.index) !== idx;
         c.dataset.flipped = "false";
+        syncFaces(c);
       });
       if (refocus && !isEmpty) {
         cards.find((c) => !c.hidden)?.focus({ preventScroll: true });
       }
       posOut.textContent = isEmpty ? "0" : String(pos + 1);
       if (totalOut) totalOut.textContent = String(queue.length);
+      if (isEmpty) {
+        // Say WHY the deck is empty. Every card in scope rated "kan" is the
+        // earned end of a run — acknowledge it quietly; anything else is a
+        // filter mismatch, and both get their next step spelled out.
+        const scope = cards.filter(
+          (c) => !filter.section || c.dataset.section === filter.section,
+        );
+        const allKnown =
+          filter.onlyUnknown &&
+          scope.length > 0 &&
+          scope.every((c) => (levels[Number(c.dataset.index)] ?? 0) >= 2);
+        emptyBox.dataset.complete = String(allKnown);
+        if (allKnown) {
+          emptyTitle.textContent = `Alle ${scope.length} kort er markert som kan.`;
+          emptyHint.textContent =
+            "Slå av «Kun ukjente» for å bla gjennom alle, eller nullstill og øv på nytt.";
+        } else {
+          emptyTitle.textContent = "Ingen kort matcher filteret.";
+          emptyHint.textContent =
+            "Velg en annen seksjon, eller slå av «Kun ukjente».";
+        }
+      }
     };
 
     // Navigation is a stable carousel: the queue order only changes when the
@@ -512,6 +652,7 @@ const hasSections = sections.length > 0;
     cards.forEach((c) =>
       c.addEventListener("click", () => {
         c.dataset.flipped = c.dataset.flipped === "true" ? "false" : "true";
+        syncFaces(c);
       }),
     );
 
@@ -527,12 +668,42 @@ const hasSections = sections.length > 0;
         b.addEventListener("click", () => rate(b.dataset.fcRate === "1")),
       );
     resetBtn.addEventListener("click", () => {
+      if (undoStash) {
+        // "Angre": restore the stashed ratings.
+        clearTimeout(undoTimer);
+        levels = undoStash;
+        undoStash = null;
+        resetBtn.textContent = resetLabel;
+        save(levels);
+        buildQueue();
+        pos = 0;
+        renderProgress();
+        show();
+        return;
+      }
+      undoStash = levels;
       levels = {};
       save(levels);
       buildQueue();
       pos = 0;
       renderProgress();
       show();
+      // The button itself becomes the undo affordance for a beat; the label
+      // swap is also what a screen reader hears on the still-focused control.
+      resetBtn.textContent = "Angre";
+      undoTimer = setTimeout(() => {
+        undoStash = null;
+        resetBtn.textContent = resetLabel;
+        // renderProgress() hides the button once the window closes (levels is
+        // empty) — if it still holds keyboard focus, hiding it would orphan
+        // focus to <body>. Hand focus to the current card first, mirroring
+        // show()'s refocus guard.
+        const hadFocus = document.activeElement === resetBtn;
+        renderProgress();
+        if (hadFocus && resetBtn.hidden) {
+          cards.find((c) => !c.hidden)?.focus({ preventScroll: true });
+        }
+      }, 8000);
     });
 
     // Section filter chips
@@ -601,6 +772,7 @@ const hasSections = sections.length > 0;
           e.preventDefault();
           cur.dataset.flipped =
             cur.dataset.flipped === "true" ? "false" : "true";
+          syncFaces(cur);
         } else if (e.key === "ArrowLeft") {
           e.preventDefault();
           advance(-1);

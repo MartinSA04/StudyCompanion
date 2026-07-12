@@ -43,18 +43,26 @@ const auto = !solution && !label;
 
 <style>
   /* Float (fill + shadow) comes from the shared .sc-panel; this small reveal
-     keeps the tighter --radius-sm. */
+     keeps the tighter --radius-sm. No overflow:hidden — it clipped descendant
+     focus outlines; the summary rounds itself instead. */
   .hint {
     border-radius: var(--radius-sm);
-    overflow: hidden;
   }
   .hint-num {
     counter-increment: hint;
   }
   /* Summary type, hover, marker-hide, [open] divider and chevron come from the
-     shared .sc-summary / .sc-chev primitives; only the padding is local. */
+     shared .sc-summary / .sc-chev primitives; only the padding is local.
+     Concrete token, not `inherit`: a <summary> is slotted into the <details>
+     UA shadow tree, so `inherit` resolves to the slot's 0, not the panel's
+     radius. */
   .hint > summary {
     padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-sm);
+  }
+  .hint[open] > summary {
+    border-end-start-radius: 0;
+    border-end-end-radius: 0;
   }
   /* The word "Hint" is real DOM text (the accessible name); the number is
      decorative and stays in a counter so re-ordering hints never needs an

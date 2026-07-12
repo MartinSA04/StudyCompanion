@@ -39,9 +39,35 @@ const seo = { description: "Siden finnes ikke.", noindex: true };
         <Icon name="grid" size={16} />
         Til oversikt
       </a>
+      {
+        course.features.search && (
+          <button type="button" class="nf-home sc-pill sc-press" data-nf-search>
+            <Icon name="search" size={16} />
+            Søk i kurset
+          </button>
+        )
+      }
     </p>
   </section>
 </CourseLayout>
+
+<script>
+  // The lead copy says "søk etter det du leter etter" — the [data-nf-search]
+  // button is the affordance that promise was missing: it opens the topbar's
+  // search palette. No-ops on courses without the search feature (the button
+  // isn't rendered).
+  import { onPage } from "../lib/pageLifecycle.ts";
+  onPage((signal) => {
+    document
+      .querySelector("[data-nf-search]")
+      ?.addEventListener(
+        "click",
+        () =>
+          document.querySelector<HTMLButtonElement>(".search-trigger")?.click(),
+        { signal },
+      );
+  });
+</script>
 
 <style>
   .notfound {
@@ -67,6 +93,10 @@ const seo = { description: "Siden finnes ikke.", noindex: true };
   }
   .nf-actions {
     margin: 0;
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: var(--gap-3);
   }
   /* Frame + accent hover from the shared .sc-pill primitive (same recipe as
      the hero "continue" pill); only the gap, padding and link reset are local. */

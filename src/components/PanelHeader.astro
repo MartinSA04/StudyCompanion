@@ -63,6 +63,11 @@ const {
     padding: var(--space-3) var(--space-4);
     background: var(--card);
     border-bottom: 1px solid var(--border);
+    /* Follow the host panel's top rounding, so panels don't need
+       overflow:hidden (which clips descendant focus outlines) to keep this
+       tinted strip inside their corners. */
+    border-start-start-radius: inherit;
+    border-start-end-radius: inherit;
   }
   .align-baseline {
     align-items: baseline;

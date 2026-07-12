@@ -434,7 +434,10 @@ const hasTools = toolNav.some((t) => t.show);
         <div class="spacer"></div>
         {
           features.progress && (
-            <div class="progresswrap" aria-label={ui.progressLabel}>
+            <div
+              class="progresswrap"
+              aria-label={ui.progressLabel}
+              title="Lagres lokalt i denne nettleseren">
               <span class="lbl-txt">{ui.progressLabel}</span>
               <div
                 class="progressbar"
@@ -550,6 +553,17 @@ const hasTools = toolNav.some((t) => t.show);
         }
       </aside>
 
+      {
+        /* Before <main> in the DOM so the tab order runs nav → on-this-page →
+           content; the grid (shell.css) still paints it as the right column.
+           Without this the rail was the LAST stop, after the footer. */
+        hasToc && (
+          <aside class="toc-rail" aria-label={ui.tocLabel}>
+            <slot name="toc" />
+          </aside>
+        )
+      }
+
       <main class="content" id="content" tabindex="-1">
         <slot />
         <footer class="site-footer">
@@ -599,13 +613,6 @@ const hasTools = toolNav.some((t) => t.show);
           </p>
         </footer>
       </main>
-      {
-        hasToc && (
-          <aside class="toc-rail" aria-label={ui.tocLabel}>
-            <slot name="toc" />
-          </aside>
-        )
-      }
     </div>
 
     <script is:inline define:vars={{ progressKey, total: nav.length }}>

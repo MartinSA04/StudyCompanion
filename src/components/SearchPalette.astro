@@ -164,6 +164,33 @@ import Icon from "./Icon.astro";
   .search-results:empty {
     display: none;
   }
+  /* Hits are grouped per owning page; the head is the module's mono kicker
+     (number + title), so identically-titled sections ("Hovedpunkter") from
+     different modules stay tellable apart. */
+  :global(.search-group) {
+    margin-bottom: var(--space-2);
+  }
+  :global(.search-group:last-of-type) {
+    margin-bottom: 0;
+  }
+  /* --muted, not --faint, throughout the dialog: the palette sits on
+     --bg-elevated, where --faint is 4.47:1 in light — just under AA (--faint
+     is only calibrated against the page --bg). */
+  :global(.search-group-head) {
+    margin: var(--space-2) var(--space-3) 2px;
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-semibold);
+    text-transform: uppercase;
+    letter-spacing: var(--tracking);
+    color: var(--muted);
+  }
+  :global(.search-more) {
+    padding: var(--space-2) var(--space-3) var(--space-1);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--muted);
+  }
   :global(.search-result) {
     display: block;
     padding: var(--space-3);
@@ -196,6 +223,14 @@ import Icon from "./Icon.astro";
     font-size: var(--text-sm);
     text-align: center;
   }
+  :global(.search-empty-tip) {
+    padding: 0 var(--space-4) var(--space-4);
+    margin-top: calc(-1 * var(--space-3));
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    text-align: center;
+  }
 
   @media (max-width: 640px) {
     .search-trigger-text,
@@ -215,9 +250,16 @@ import Icon from "./Icon.astro";
   type PagefindSubResult = { title: string; url: string; excerpt: string };
   type PagefindData = {
     url: string;
-    meta: { title?: string };
+    /** `num` is the module folio number ([slug].astro sets it via data-pagefind-meta). */
+    meta: { title?: string; num?: string };
     excerpt: string;
     sub_results?: PagefindSubResult[];
+  };
+  /** One owning page and its section hits. */
+  type ResultGroup = {
+    num?: string;
+    title: string;
+    items: PagefindSubResult[];
   };
   type PagefindResult = { data: () => Promise<PagefindData> };
   type Pagefind = {
@@ -256,9 +298,30 @@ import Icon from "./Icon.astro";
     const results = document.querySelector<HTMLDivElement>(".search-results");
     if (!trigger || !dialog || !input || !results) return;
 
-    // Shown in the empty panel so an opened palette isn't a blank void.
+    // Shown in the empty panel so an opened palette isn't a blank void. The tip
+    // line is where "/" gets its one piece of on-screen documentation.
+    const isApple = /mac|iphone|ipad|ipod/i.test(
+      (navigator as { userAgentData?: { platform?: string } }).userAgentData
+        ?.platform ??
+        navigator.platform ??
+        "",
+    );
     const HINT =
-      '<p class="search-empty">Søk i moduler, formler, begreper og eksempler.</p>';
+      '<p class="search-empty">Søk i moduler, formler, begreper og eksempler.</p>' +
+      `<p class="search-empty-tip">Tips: «/» eller ${isApple ? "⌘K" : "Ctrl K"} åpner søket fra hvor som helst.</p>`;
+
+    const esc = (s: string) =>
+      s.replace(
+        /[&<>"']/g,
+        (c) =>
+          ({
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#39;",
+          })[c]!,
+      );
 
     const open = async () => {
       if (!dialog.open) dialog.showModal();
@@ -292,19 +355,39 @@ import Icon from "./Icon.astro";
       { signal },
     );
 
-    const render = (items: PagefindSubResult[]) => {
-      if (!items.length) {
-        results.innerHTML = '<p class="search-empty">Ingen treff.</p>';
+    const render = (groups: ResultGroup[], totalPages: number, q: string) => {
+      if (!groups.length) {
+        // A dead end with a next step, not just a verdict.
+        results.innerHTML =
+          `<p class="search-empty">Ingen treff for «${esc(q)}».<br>` +
+          "Prøv et kortere ord eller et annet begrep.</p>";
         return;
       }
-      results.innerHTML = items
-        .map(
-          (r) =>
-            `<a class="search-result" href="${r.url}">` +
-            `<div class="search-result-title">${r.title}</div>` +
-            `<div class="search-result-excerpt">${r.excerpt}</div></a>`,
-        )
-        .join("");
+      const shownPages = groups.length;
+      results.innerHTML =
+        groups
+          .map(
+            (g) =>
+              '<section class="search-group">' +
+              (g.title
+                ? `<h3 class="search-group-head">${
+                    g.num ? `${esc(g.num)} · ` : ""
+                  }${esc(g.title)}</h3>`
+                : "") +
+              g.items
+                .map(
+                  (r) =>
+                    `<a class="search-result" href="${r.url}">` +
+                    `<div class="search-result-title">${esc(r.title)}</div>` +
+                    `<div class="search-result-excerpt">${r.excerpt}</div></a>`,
+                )
+                .join("") +
+              "</section>",
+          )
+          .join("") +
+        (totalPages > shownPages
+          ? `<p class="search-more">Treff på ${totalPages} sider — viser de ${shownPages} første. Skriv mer for å avgrense.</p>`
+          : "");
       // Close the dialog when a result is chosen.
       results
         .querySelectorAll("a")
@@ -318,9 +401,14 @@ import Icon from "./Icon.astro";
       if (!pf) return;
       const search = await pf.search(q);
       if (mine !== token) return; // a newer query superseded this one
-      const flat: PagefindSubResult[] = [];
+      // Keep hits grouped under their owning page (module) so same-titled
+      // sections stay distinguishable; cap at 8 section hits over 5 pages.
+      const groups: ResultGroup[] = [];
+      let shown = 0;
       for (const r of search.results.slice(0, 5)) {
+        if (shown >= 8) break;
         const data = await r.data();
+        if (mine !== token) return;
         const subs = data.sub_results?.length
           ? data.sub_results
           : [
@@ -330,10 +418,15 @@ import Icon from "./Icon.astro";
                 excerpt: data.excerpt,
               },
             ];
-        flat.push(...subs);
-        if (flat.length >= 8) break;
+        const items = subs.slice(0, 8 - shown);
+        shown += items.length;
+        groups.push({
+          num: data.meta.num,
+          title: data.meta.title ?? "",
+          items,
+        });
       }
-      render(flat.slice(0, 8));
+      render(groups, search.results.length, q);
     };
 
     let debounce: ReturnType<typeof setTimeout>;

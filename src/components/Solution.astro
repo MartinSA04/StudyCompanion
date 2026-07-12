@@ -13,6 +13,10 @@ interface Props {
   open?: boolean;
 }
 const { label = "Vis løsning", open = false } = Astro.props;
+// The summary flips with the state ("Vis løsning" ⇄ "Skjul løsning") so the
+// control never claims an action it won't do. Labels not phrased as "Vis …"
+// stay the same in both states.
+const openLabel = label.startsWith("Vis ") ? `Skjul ${label.slice(4)}` : label;
 ---
 
 <details class="solution sc-panel" open={open}>
@@ -20,23 +24,40 @@ const { label = "Vis løsning", open = false } = Astro.props;
     <span class="solution-chev sc-chev" aria-hidden="true">
       <Icon name="chevron-right" size={13} />
     </span>
-    {label}
+    <span class="sum-closed">{label}</span>
+    <span class="sum-open">{openLabel}</span>
   </summary>
   <div class="solution-body"><slot /></div>
 </details>
 
 <style>
   /* Float (fill + shadow) comes from the shared .sc-panel; this small nested
-     reveal keeps the tighter --radius-sm. base.css recesses it when nested. */
+     reveal keeps the tighter --radius-sm. base.css recesses it when nested.
+     No overflow:hidden — it clipped descendants' focus outlines (and any
+     positioned child) at the panel edge; the summary rounds itself instead. */
   .solution {
     margin-top: var(--space-4);
     border-radius: var(--radius-sm);
-    overflow: hidden;
   }
   /* Summary type, hover, marker-hide, [open] divider and chevron come from the
-     shared .sc-summary / .sc-chev primitives; only the padding is local. */
+     shared .sc-summary / .sc-chev primitives; only the padding is local. The
+     hover wash follows the panel's rounding (squared at the bottom while open,
+     where the body continues below it). Concrete token, not `inherit`: a
+     <summary> is slotted into the <details> UA shadow tree, so `inherit`
+     resolves against the internal slot's 0, never the panel's radius. */
   .solution > summary {
     padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-sm);
+  }
+  .solution[open] > summary {
+    border-end-start-radius: 0;
+    border-end-end-radius: 0;
+  }
+  .solution[open] > summary .sum-closed {
+    display: none;
+  }
+  .solution:not([open]) > summary .sum-open {
+    display: none;
   }
   .solution-body {
     padding: var(--space-3);

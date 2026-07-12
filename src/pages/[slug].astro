@@ -258,10 +258,21 @@ const seo = {
           />
         )}
 
-        <article class="prose" data-pagefind-body data-section={head.order}>
+        {/* data-pagefind-meta num: the module folio number, so the search
+            palette can label each hit group "02 · <module>" (meta title is the
+            page h1 already). */}
+        <article
+          class="prose"
+          data-pagefind-body
+          data-pagefind-meta={`num:${head.index}`}
+          data-section={head.order}
+        >
           <Content components={mdxComponents} />
         </article>
 
+        {/* Lean prev/next: folio number only. The sidebar carries the module
+            names, and the reader lands on the titled module header anyway; a
+            compact pager also stays on one line at every width. */}
         <nav class="page-actions" aria-label="Moduler">
           {props.prev ? (
             <a
@@ -291,6 +302,7 @@ const seo = {
               data-page-next
             >
               Til oversikt
+              <Icon name="chevron-right" size={15} />
             </a>
           )}
         </nav>

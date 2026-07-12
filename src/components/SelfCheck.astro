@@ -8,6 +8,10 @@ interface Props {
   revealLabel?: string;
 }
 const { question, revealLabel = "Vis svar" } = Astro.props;
+// State-matching summary ("Vis svar" ⇄ "Skjul svar"); non-"Vis …" labels stay put.
+const hideLabel = revealLabel.startsWith("Vis ")
+  ? `Skjul ${revealLabel.slice(4)}`
+  : revealLabel;
 import { renderMathString } from "../lib/katex.ts";
 import Icon from "./Icon.astro";
 ---
@@ -24,7 +28,8 @@ import Icon from "./Icon.astro";
       <span class="selfcheck-chev sc-chev" aria-hidden="true">
         <Icon name="chevron-right" size={13} />
       </span>
-      {revealLabel}
+      <span class="sum-closed">{revealLabel}</span>
+      <span class="sum-open">{hideLabel}</span>
     </summary>
     <div class="selfcheck-body"><slot /></div>
   </details>
@@ -65,6 +70,12 @@ import Icon from "./Icon.astro";
   }
   .selfcheck-a[open] > summary {
     border-bottom: 0;
+  }
+  .selfcheck-a[open] > summary .sum-closed {
+    display: none;
+  }
+  .selfcheck-a:not([open]) > summary .sum-open {
+    display: none;
   }
   /* The chevron's display/transition/rotate come from the shared .sc-chev
      primitive; the summary itself stays local (an inline underline reveal). */

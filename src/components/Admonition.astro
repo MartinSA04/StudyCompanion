@@ -80,4 +80,14 @@ const t = TONES[tone];
   .adm-body :global(> :last-child) {
     margin-bottom: 0;
   }
+  /* Body copy at full ink: the tinted fill would otherwise show .prose's muted
+     gray (#575653 on the orange-low fill is the classic washed-out
+     gray-on-colour pairing). The tone lives in the kicker + fill; the text
+     stays as readable as the page. */
+  .adm-body :global(:is(p, li)) {
+    color: var(--fg);
+  }
+  .adm-body :global(li)::marker {
+    color: var(--c);
+  }
 </style>

@@ -40,10 +40,10 @@ const { label = "Regneeksempel", title } = Astro.props;
 
 <style>
   /* Float (fill + shadow + radius) comes from the shared .sc-panel; base.css
-     recesses it to --card-nested when actually nested. */
+     recesses it to --card-nested when actually nested. No overflow:hidden — it
+     clipped descendant focus outlines; PanelHeader rounds its own top corners. */
   .example {
     margin-block: var(--space-5);
-    overflow: hidden;
   }
   .example-body {
     padding: var(--space-4);
