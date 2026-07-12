@@ -1,0 +1,26 @@
+# Course hub data (kurs.martinsundal.no) — one entry per course site.
+# File order is display order; keep the newest semester first.
+- code: FY2045
+  title: Kvantemekanikk I
+  url: https://kvante.martinsundal.no
+  term: H2026
+- code: TDT4120
+  title: Algoritmer og datastrukturer
+  url: https://algdat.martinsundal.no
+  term: H2026
+- code: TFE4146
+  title: Halvlederkomponenter
+  url: https://halvleder.martinsundal.no
+  term: H2026
+- code: TFY4220
+  title: Faste stoffers fysikk
+  url: https://fastestoffer.martinsundal.no
+  term: H2026
+- code: TFY4345
+  title: Klassisk mekanikk
+  url: https://klasmek.martinsundal.no
+  term: H2026
+- code: TFY4195
+  title: Optikk
+  url: https://optikk.martinsundal.no
+  term: V2026
