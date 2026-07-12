@@ -497,6 +497,9 @@ const hasSections = sections.length > 0;
       );
     };
 
+    const focusCard = () =>
+      cards.find((c) => !c.hidden)?.focus({ preventScroll: true });
+
     const load = (): Levels => {
       try {
         const raw = JSON.parse(localStorage.getItem(key) || "{}") as Levels;
@@ -581,7 +584,7 @@ const hasSections = sections.length > 0;
         syncFaces(c);
       });
       if (refocus && !isEmpty) {
-        cards.find((c) => !c.hidden)?.focus({ preventScroll: true });
+        focusCard();
       }
       posOut.textContent = isEmpty ? "0" : String(pos + 1);
       if (totalOut) totalOut.textContent = String(queue.length);
@@ -681,7 +684,7 @@ const hasSections = sections.length > 0;
         const hadFocus = document.activeElement === resetBtn;
         renderProgress();
         if (hadFocus && resetBtn.hidden) {
-          cards.find((c) => !c.hidden)?.focus({ preventScroll: true });
+          focusCard();
         }
       }, 8000);
     });
@@ -729,7 +732,24 @@ const hasSections = sections.length > 0;
       });
     }
 
-    // Keyboard: Space/Enter=flip, ←/→=navigate, 1=Øv, 2=Kan
+    // A mouse click leaves focus on the clicked control, and a focused button
+    // natively re-activates on Space — the deck's flip key. After a pointer
+    // click on any deck control, hand focus to the current card so the next
+    // Space flips it. Keyboard activation (detail 0) keeps focus where the
+    // user tabbed. Bubble phase: the control's own handler has already run,
+    // so the visible card is the post-action one.
+    deck.addEventListener("click", (e) => {
+      if (e.detail === 0) return;
+      const btn = (e.target as Element).closest("button");
+      if (!btn || btn.dataset.fcCard !== undefined) return;
+      focusCard();
+    });
+
+    // Keyboard: Space/Enter=flip, ←/→=navigate, 1=Øv, 2=Kan.
+    // Every handled key also hands focus to the current card: the card is what
+    // the keys control, so it — not whatever container the last click landed
+    // focus on (e.g. the tabindex="-1" <main>, whose UA focus ring frames the
+    // whole page) — should carry the keyboard highlight.
     document.addEventListener(
       "keydown",
       (e) => {
@@ -749,22 +769,29 @@ const hasSections = sections.length > 0;
           // A focused button (the card itself or a control) already activates on
           // Space/Enter natively — don't also flip here, or the two cancel out.
           if (active instanceof HTMLButtonElement) return;
+          // Enter on a focused link is navigation, not a deck key.
+          if (e.key === "Enter" && active instanceof HTMLAnchorElement) return;
           e.preventDefault();
           cur.dataset.flipped =
             cur.dataset.flipped === "true" ? "false" : "true";
           syncFaces(cur);
+          focusCard();
         } else if (e.key === "ArrowLeft") {
           e.preventDefault();
           advance(-1);
+          focusCard();
         } else if (e.key === "ArrowRight") {
           e.preventDefault();
           advance(1);
+          focusCard();
         } else if (e.key === "1") {
           e.preventDefault();
           rate(false);
+          focusCard();
         } else if (e.key === "2") {
           e.preventDefault();
           rate(true);
+          focusCard();
         }
       },
       { signal },
