@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { parse } from "yaml";
 import { ClientRouter } from "astro:transitions";
 import ThemeToggle from "../../src/components/ThemeToggle.astro";
+import { faviconDataUri } from "../../src/lib/favicon.ts";
 import "../../src/styles/fonts.css";
 import "../../src/styles/tokens.css";
 import "../../src/styles/base.css";
@@ -43,6 +44,7 @@ const themeKey = "sc:theme:hub";
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Studieguider — Martin Sundal</title>
     <meta name="description" content={description} />
+    <link rel="icon" href={faviconDataUri("#205ea6")} />
     <script is:inline define:vars={{ themeKey }}>
       // No-flash theme init — trimmed from CourseLayout (single page: no
       // view-transition swaps to re-apply across). An explicit stored choice
@@ -86,6 +88,19 @@ const themeKey = "sc:theme:hub";
         );
       })();
     </script>
+    {
+      /* Privacy-friendly analytics — mirrors CourseLayout's wiring: production
+         builds only (never `astro dev`), cookieless, `is:inline` so the
+         third-party CDN tag is emitted verbatim. */
+      import.meta.env.PROD && (
+        <script
+          is:inline
+          data-goatcounter="https://kursmartinsundal.goatcounter.com/count"
+          async
+          src="https://gc.zgo.at/count.js"
+        />
+      )
+    }
     {
       /* ClientRouter so astro:page-load fires and ThemeToggle's onPage wiring
         runs — the same lifecycle contract the toggle has in CourseLayout. */
