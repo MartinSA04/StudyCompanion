@@ -37,6 +37,9 @@
 .sc-copy {
   display: inline-grid;
   place-items: center;
+  /* border: 0 (not merely unset): base.css's button reset leaves the UA's
+     2px outset border in place, so every borderless control must say so. */
+  border: 0;
   border-radius: var(--radius-sm);
   background: transparent;
   color: var(--muted);
@@ -109,6 +112,7 @@
 .sc-pill {
   display: inline-flex;
   align-items: center;
+  border: 0; /* see .sc-icon-btn — the UA button border must be zeroed */
   border-radius: var(--radius-sm);
   background: transparent;
   color: var(--muted);
@@ -213,6 +217,7 @@ details[open] > summary .sc-chev {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  border: 0; /* see .sc-icon-btn — the UA button border must be zeroed */
   border-radius: var(--radius-sm);
   background: var(--control-fill, var(--bg-elevated));
   font-family: var(--font-mono);
