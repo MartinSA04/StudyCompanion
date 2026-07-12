@@ -26,10 +26,12 @@
 ### Task 1: Tokens + primitives — the two new recipes
 
 **Files:**
+
 - Modify: `src/styles/tokens.css` (add `--wash` to `:root`)
 - Modify: `src/styles/primitives.css` (`.sc-icon-btn`, `.sc-copy`, `.sc-pill`, `.sc-chip`, `.sc-summary`; add `.sc-btn`, `.sc-field`)
 
 **Interfaces:**
+
 - Produces: `--wash` token; marginalia recipes on `.sc-icon-btn`/`.sc-copy`/`.sc-pill`; paper recipe on `.sc-chip`; new `.sc-btn` (paper labelled button — surface/shape/type only, size + text color stay the caller's) and `.sc-field` (paper field wrapper with `:focus-within` accent ring). `--control-fill` read with fallback `var(--bg-elevated)` by `.sc-chip`/`.sc-btn`/`.sc-field`; panels that host paper controls may set it to `var(--card-nested)` (Task 4 uses this for sim controls).
 
 - [ ] **Step 1: Add the `--wash` token**
@@ -208,9 +210,11 @@ git commit -m "feat: paper + marginalia control primitives (borders retired)"
 ### Task 2: Flashcards — rating to paper, arrows to marginalia
 
 **Files:**
+
 - Modify: `src/components/Flashcards.astro` (markup lines ~150–170; styles `.fc-reset`, `.fc-btn`, `.fc-nav`, `.fc-btn:hover`)
 
 **Interfaces:**
+
 - Consumes: `.sc-btn`, `.sc-icon-btn`, `--wash` from Task 1. JS unaffected (hooks are `data-fc-*`).
 
 - [ ] **Step 1: Recompose the deck buttons' classes**
@@ -282,10 +286,12 @@ git commit -m "feat: flashcard rating on paper, deck arrows in the margin"
 ### Task 3: Formula sheet + glossary fields; formula copy transition
 
 **Files:**
+
 - Modify: `src/components/FormulaSheet.astro` (`.fs-search` markup + styles, `.fs-copy` transition)
 - Modify: `src/components/Glossary.astro` (`.gloss-search` markup + styles)
 
 **Interfaces:**
+
 - Consumes: `.sc-field` from Task 1.
 
 - [ ] **Step 1: FormulaSheet search → `.sc-field`**
@@ -333,6 +339,7 @@ git commit -m "feat: search fields become borderless paper (.sc-field)"
 ### Task 4: Shell + done button + search Esc + simulation buttons
 
 **Files:**
+
 - Modify: `src/pages/[slug].astro` (done-btn class)
 - Modify: `src/styles/shell.css` (`.done-btn`, `.done-btn.done`, comments)
 - Modify: `src/components/SearchPalette.astro` (`.search-esc` hover, comments)
@@ -340,6 +347,7 @@ git commit -m "feat: search fields become borderless paper (.sc-field)"
 - Modify: `src/pages/404.astro` (comment only)
 
 **Interfaces:**
+
 - Consumes: `.sc-btn`, `--wash`, `--control-fill` contract from Task 1.
 
 - [ ] **Step 1: Done button becomes paper**
@@ -423,9 +431,11 @@ git commit -m "feat: done/sim buttons on paper; Esc + shell chrome in the margin
 ### Task 5: Code-block copy button — marginalia on the fixed slab
 
 **Files:**
+
 - Modify: `src/styles/base.css` (`.code-copy` block + hover + copied state)
 
 **Interfaces:**
+
 - Consumes: `.sc-copy` marginalia recipe from Task 1. The slab is the one fixed near-black surface (both themes), so every color here stays a calibrated LITERAL, and `!important` still guards against primitives.css loading later.
 
 - [ ] **Step 1: Rewrite the calibrated block**
@@ -464,6 +474,7 @@ git commit -m "feat: code copy button as bare marginalia glyph on the slab"
 ### Task 6: DESIGN.md + Quiz comment — document the new contract
 
 **Files:**
+
 - Modify: `DESIGN.md` (frontmatter `components.icon-button`; §1 hover phrasing; §2 Named Rules + the Line/Line Strong bullet; §5 Buttons/Chips/Inputs; §6 Do's & Don'ts)
 - Modify: `src/components/Quiz.astro` (one comment)
 
@@ -537,6 +548,7 @@ git commit -m "docs: retire the Two-Border Rule for paper + marginalia"
 ### Task 7: Verification sweep + visual snapshots
 
 **Files:**
+
 - Modify: `visual/kitchen-sink.spec.ts-snapshots/*.png` (regenerated)
 
 - [ ] **Step 1: Full checks**
