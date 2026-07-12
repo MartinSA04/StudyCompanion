@@ -1,0 +1,137 @@
+---
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+import { parse } from "yaml";
+import "../../src/styles/fonts.css";
+import "../../src/styles/tokens.css";
+import "../../src/styles/base.css";
+import "../../src/styles/primitives.css";
+
+/**
+ * kurs.martinsundal.no — course hub one-pager (spec:
+ * docs/superpowers/specs/2026-07-12-pages-hub-design.md). All visual language
+ * comes from the framework's own styles; this page only lays out tiles.
+ */
+type HubCourse = { code: string; title: string; url: string; term: string };
+const courses = parse(
+  readFileSync(join(process.cwd(), "hub/courses.yaml"), "utf8"),
+) as HubCourse[];
+
+// Group by term, groups in file order of first appearance — no sort logic.
+const groups: { term: string; courses: HubCourse[] }[] = [];
+for (const c of courses) {
+  const g = groups.find((g) => g.term === c.term);
+  if (g) g.courses.push(c);
+  else groups.push({ term: c.term, courses: [c] });
+}
+// "H2026" → "Høst 2026", "V2026" → "Vår 2026" (term shape is CI-tested).
+const termLabel = (t: string) =>
+  `${t[0] === "H" ? "Høst" : "Vår"} ${t.slice(1)}`;
+
+const description =
+  "Interaktive studieguider med flashcards, quiz og formelsamling.";
+---
+
+<!doctype html>
+<html lang="no">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Studieguider — Martin Sundal</title>
+    <meta name="description" content={description} />
+  </head>
+  <body>
+    <div class="hub">
+      <header class="hub-head">
+        <h1>Studieguider</h1>
+      </header>
+      <p class="hub-intro">{description}</p>
+      {
+        groups.map((g) => (
+          <section class="hub-term">
+            <h2 class="hub-term-label sc-kicker">{termLabel(g.term)}</h2>
+            <ul class="hub-list">
+              {g.courses.map((c) => (
+                <li>
+                  <a class="hub-tile sc-panel sc-lift" href={c.url}>
+                    <span class="hub-code sc-kicker">{c.code}</span>
+                    <span class="hub-title">{c.title}</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ))
+      }
+      <footer class="hub-foot">
+        <a href="https://github.com/MartinSA04/StudyCompanion"
+          >StudyCompanion på GitHub</a
+        > · <a href="https://martinsundal.no">martinsundal.no</a>
+      </footer>
+    </div>
+  </body>
+</html>
+
+<style>
+  .hub {
+    max-width: var(--measure);
+    margin-inline: auto;
+    padding: var(--space-6) var(--space-4);
+  }
+  .hub-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--space-2);
+  }
+  .hub-intro {
+    color: var(--muted);
+    margin-bottom: var(--space-6);
+  }
+  .hub-term {
+    margin-bottom: var(--space-6);
+  }
+  .hub-term-label {
+    margin-bottom: var(--space-3);
+  }
+  .hub-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+  /* Float (fill + shadow + radius) and hover-raise come from the shared
+     .sc-panel / .sc-lift primitives; only layout and type are local. */
+  .hub-tile {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    padding: var(--space-4);
+    text-decoration: none;
+    color: var(--fg);
+  }
+  /* Mono uppercase recipe from .sc-kicker; --accent-ink for AA on the panel
+     fill in both themes (same reasoning as the flashcard section kicker). */
+  .hub-code {
+    color: var(--accent-ink);
+  }
+  .hub-title {
+    font-size: var(--text-lg);
+    line-height: var(--leading-snug);
+  }
+  .hub-foot {
+    margin-top: var(--space-6);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--muted);
+    text-align: center;
+  }
+  .hub-foot a {
+    color: var(--muted);
+  }
+  .hub-foot a:hover {
+    color: var(--accent-ink);
+  }
+</style>
