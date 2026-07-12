@@ -159,7 +159,10 @@
     transparent
   ); /* modal / drawer backdrop */
 
-  --maxw: 820px; /* readable content measure */
+  --maxw: 820px; /* structural content frame — framed plates + wide math fill it */
+  --measure: 35rem; /* reading measure for open prose — 70ch of Spectral (0.5em
+                       per "0", so 35rem = 70ch at the 1rem body). The margin
+                       strip that plates break out into is --maxw − --measure. */
   --sidebar-w: 288px;
   --toc-w: 200px; /* right "on this page" rail (module pages, wide screens) */
   --layout-max: 1440px; /* topbar + layout outer width (fits nav + prose + toc) */

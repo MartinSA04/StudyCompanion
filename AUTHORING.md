@@ -69,6 +69,7 @@ Reach for a widget by intent. All are global in MDX — **no imports**.
 | List module objectives / exam priorities | `<LearningGoals>` / `<ExamFocus>` |
 | Recap at the end of a module | `<KeyTakeaways>` |
 | Add a note / tip / warning | `<Callout type="…">` |
+| Drop a short aside / cross-ref in the margin | `<Sidenote>` |
 | Hide a long derivation behind a toggle | `<Derivation>` |
 | Pose a quick self-test or MCQ | `<SelfCheck>` / `<Quiz>` |
 | Show code (syntax-highlighted, copy button) | `` ```lang `` fence, or `<CodeBlock>` for a title/active line |

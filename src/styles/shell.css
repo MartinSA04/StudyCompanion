@@ -533,7 +533,10 @@
   padding: var(--gap-2) var(--gap-4);
   cursor: pointer;
   white-space: nowrap;
-  transition: background-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
+  transition:
+    background-color var(--dur-fast) var(--ease),
+    color var(--dur-fast) var(--ease),
+    border-color var(--dur-fast) var(--ease);
 }
 /* The check shows only once the module is marked done. */
 .done-check {

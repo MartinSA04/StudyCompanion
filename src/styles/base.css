@@ -122,23 +122,36 @@ figcaption {
    Two-width editorial scheme. The 820px content frame (--maxw, shell.css) is
    the STRUCTURAL width — formula panels, figures, tables, code slabs and
    asides fill it edge to edge as breakout plates. Running prose in the open
-   flow caps at 76ch instead: full-frame 17px Spectral measures ~96ch, ~30%
-   past the 65–75ch return-sweep ideal, and that fatigue compounds over the
-   long reading sessions the product exists for. Direct-child scoping IS the
+   flow caps at --measure (70ch) instead: full-frame 17px Spectral measures
+   ~96ch, ~30% past the 65–75ch return-sweep ideal, and that fatigue compounds
+   over the long reading sessions the product exists for. 70ch sits mid-range
+   for sustained reading and widens the frame-vs-prose contrast (a 225px margin
+   strip) so the breakout reads as deliberate. Direct-child scoping IS the
    panel exemption — prose inside a framed widget is that panel's own
-   interior, and a ~76ch line stopping short inside an 820px box reads as an
-   accident, so only the open column takes the measure (display math renders
-   as a top-level .katex-display, never inside a <p>, so it keeps the frame
-   for free). Headings sit on the same edge as the text they head — and with
-   them the h3 section rule and hr — keeping ONE reading edge so the
-   full-frame plates read as deliberate. Stated in rem, not ch, because ch
-   resolves against each element's own font: on the larger Fraunces headings
-   76ch would be inert; Spectral's "0" is exactly 0.5em, so 38rem IS 76ch at
-   the 1rem body size, and the size-adjusted Georgia fallback (fonts.css)
-   tracks it within 0.05%. max-width only shrinks: below 640px the column is
-   already narrower and the cap goes inert on its own. */
+   interior, and a measure-capped line stopping short inside an 820px box reads
+   as an accident, so only the open column takes the measure (display math
+   renders as a top-level .katex-display, never inside a <p>, so it stays on
+   the reading edge — see below). Headings sit on the same edge as the text
+   they head — and with them the h3 section rule and hr — keeping ONE reading
+   edge so the full-frame plates read as deliberate. Stated in rem, not ch,
+   because ch resolves against each element's own font: on the larger Fraunces
+   headings 70ch would be inert; Spectral's "0" is exactly 0.5em, so 35rem IS
+   70ch at the 1rem body size, and the size-adjusted Georgia fallback
+   (fonts.css) tracks it within 0.05%. max-width only shrinks: below 640px the
+   column is already narrower and the cap goes inert on its own. */
 .prose > :is(p, ul, ol, blockquote, h2, h3, h4, hr) {
-  max-width: 38rem;
+  max-width: var(--measure);
+}
+/* Framed plates — every direct child that ISN'T measure-capped prose — clear a
+   preceding floated <Sidenote> so they drop BELOW it instead of sliding under
+   it: the note lives in the margin strip, a plate wants the full frame, and the
+   two can't share a row. Capped prose (the :is() list above) is deliberately
+   NOT cleared — it's narrower than the strip, so it flows past the note. Inert
+   when no note is floated (no other right floats exist), so pages without a
+   <Sidenote> are unaffected. */
+.prose
+  > :not(p, ul, ol, blockquote, h2, h3, h4, hr, .sidenote, script, style) {
+  clear: right;
 }
 
 a {
@@ -305,14 +318,71 @@ pre code {
    stays light and floating; nested cards drop the lift. !important beats each
    component's own scoped fill/shadow. .figure stays out of the ancestor lists
    so a figure's own .figure-frame isn't treated as nested. */
-:is(.example, .quiz, .selfcheck, .simulation, .stepper, .compare-col, .solution, .hint, .derivation, .formula)
-  :is(.example, .quiz, .selfcheck, .simulation, .stepper, .compare-col, .solution, .hint, .derivation, .formula, .figure-frame) {
+:is(
+    .example,
+    .quiz,
+    .selfcheck,
+    .simulation,
+    .stepper,
+    .compare-col,
+    .solution,
+    .hint,
+    .derivation,
+    .formula
+  )
+  :is(
+    .example,
+    .quiz,
+    .selfcheck,
+    .simulation,
+    .stepper,
+    .compare-col,
+    .solution,
+    .hint,
+    .derivation,
+    .formula,
+    .figure-frame
+  ) {
   background: var(--card-nested) !important;
   box-shadow: none !important;
 }
-:is(.example, .quiz, .selfcheck, .simulation, .stepper, .compare-col, .solution, .hint, .derivation, .formula)
-  :is(.example, .quiz, .selfcheck, .simulation, .stepper, .compare-col, .solution, .hint, .derivation, .formula)
-  :is(.example, .quiz, .selfcheck, .simulation, .stepper, .compare-col, .solution, .hint, .derivation, .formula, .figure-frame) {
+:is(
+    .example,
+    .quiz,
+    .selfcheck,
+    .simulation,
+    .stepper,
+    .compare-col,
+    .solution,
+    .hint,
+    .derivation,
+    .formula
+  )
+  :is(
+    .example,
+    .quiz,
+    .selfcheck,
+    .simulation,
+    .stepper,
+    .compare-col,
+    .solution,
+    .hint,
+    .derivation,
+    .formula
+  )
+  :is(
+    .example,
+    .quiz,
+    .selfcheck,
+    .simulation,
+    .stepper,
+    .compare-col,
+    .solution,
+    .hint,
+    .derivation,
+    .formula,
+    .figure-frame
+  ) {
   background: var(--bg-elevated) !important;
 }
 
@@ -412,10 +482,24 @@ button {
 .katex {
   font-size: 1.05em;
 }
+/* Left-set display math to the shared reading edge instead of KaTeX's default
+   centering. The whole layout is built on ONE left edge (headings, prose,
+   plates all start at the same x); centering on the 820px frame was the sole
+   element that abandoned it, floating a short equation ~80px right of the
+   paragraph that introduces it. Left-aligned, narrow math stays tied to its
+   column and wide math still extends right into the frame and scrolls — both
+   starting where the reader's eye returns. base.css loads after katex.min.css,
+   so these win the same-specificity tie — and the inner selector is needed
+   because KaTeX left-justifies the glyphs via `.katex-display > .katex`, not
+   the wrapper. */
 .katex-display {
   overflow-x: auto;
   overflow-y: hidden;
   padding-block: var(--space-2);
+  text-align: left;
+}
+.katex-display > .katex {
+  text-align: left;
 }
 
 /* --- Accessibility helper --- */
