@@ -28,18 +28,17 @@
   transform: translateY(1px);
 }
 
-/* --- Square icon control + copy button (one shared box) ---
-   The theme toggle and the copy buttons (and, locally, the search trigger)
-   share one box and one accent hover: every bordered interactive control lights
-   up in accent (border+color) on hover — the page's dominant hover cue. Size is
-   the caller's (--control-h topbar chrome, 32px copy). */
+/* --- Square icon control + copy button (one shared marginalia box) ---
+   The theme toggle, menu/close buttons and the copy buttons are navigational/
+   utility controls: bare glyph at rest, ink wash + accent-ink on hover (the
+   marginalia recipe — state sits on paper, navigation sits in the margin).
+   Size is the caller's (--control-h topbar chrome, 32px copy). */
 .sc-icon-btn,
 .sc-copy {
   display: inline-grid;
   place-items: center;
-  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  background: var(--bg-elevated);
+  background: transparent;
   color: var(--muted);
 }
 .sc-icon-btn {
@@ -49,13 +48,13 @@
      keeps the press dip eased either way. */
   transition:
     color var(--dur-fast) var(--ease),
-    border-color var(--dur-fast) var(--ease),
+    background-color var(--dur-fast) var(--ease),
     transform var(--dur-fast) var(--ease);
 }
 .sc-icon-btn:hover,
 .sc-copy:hover {
   color: var(--accent-ink);
-  border-color: var(--accent);
+  background: var(--wash);
 }
 
 /* --- Copy control (code blocks + formula sheet) ---
@@ -95,7 +94,6 @@
 }
 .sc-copy[data-copied="true"] {
   color: var(--tip);
-  border-color: var(--tip);
 }
 .sc-copy[data-copied="true"] .i-copy {
   opacity: 0;
@@ -104,17 +102,15 @@
   opacity: 1;
 }
 
-/* --- Labelled outline pill (search trigger, done button, hero "continue") ---
-   The bordered-control recipe in a LABELLED inline-flex form (vs the square
-   .sc-icon-btn): --bg-elevated fill, neutral border, mono muted text; hover
-   lights the border + text to accent, no fill change. Callers add their own
-   size/padding (and any "done"/selected state on top). */
+/* --- Labelled marginalia pill (search trigger, hero "continue", 404 links) ---
+   The LABELLED form of the marginalia recipe: bare mono text at rest, ink wash
+   + accent-ink on hover. Callers add their own size/padding. Stateful labelled
+   controls (done button, flashcard rating) use .sc-btn instead. */
 .sc-pill {
   display: inline-flex;
   align-items: center;
-  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  background: var(--bg-elevated);
+  background: transparent;
   color: var(--muted);
   font-family: var(--font-mono);
   font-size: var(--text-sm);
@@ -122,11 +118,11 @@
      wins the whole shorthand) — see the comment on .sc-icon-btn. */
   transition:
     color var(--dur-fast) var(--ease),
-    border-color var(--dur-fast) var(--ease),
+    background-color var(--dur-fast) var(--ease),
     transform var(--dur-fast) var(--ease);
 }
 .sc-pill:hover {
-  border-color: var(--accent);
+  background: var(--wash);
   color: var(--accent-ink);
 }
 
@@ -149,9 +145,9 @@
   display: none;
 }
 /* The panel sits on --card-nested (== --card-hover), so a neutral fill hover is
-   invisible; a faint ink overlay darkens it on any surface. */
+   invisible; a faint ink overlay (--wash) darkens it on any surface. */
 .sc-summary:hover {
-  background: color-mix(in srgb, var(--fg) 6%, transparent);
+  background: var(--wash);
 }
 details[open] > .sc-summary {
   border-bottom: 1px solid var(--border);
@@ -165,17 +161,18 @@ details[open] > summary .sc-chev {
 }
 
 /* --- Pill chip (filter toggles, formula tags) ---
-   A COMPLETE chip: frame + compact mono type + accent hover + selected fill, so
-   every chip on the site is one size and one behaviour. Selected is either an
-   `.active` class or `aria-pressed="true"`. */
+   A COMPLETE paper chip: borderless fill one paper step off its ground
+   (--control-fill lets a hosting panel step it to --card-nested), compact mono
+   type, fill-darken + accent-ink hover, solid accent selected fill. Selected is
+   either an `.active` class or `aria-pressed="true"`. */
 .sc-chip {
   display: inline-flex;
   align-items: center;
   gap: 0.4em;
   padding: 0.35em 0.8em;
-  border: 1px solid var(--border-strong);
+  border: 0;
   border-radius: var(--radius-pill);
-  background: var(--bg-elevated);
+  background: var(--control-fill, var(--bg-elevated));
   font-family: var(--font-mono);
   font-size: var(--text-xs);
   color: var(--muted);
@@ -187,27 +184,69 @@ details[open] > summary .sc-chev {
   transition:
     color var(--dur-fast) var(--ease),
     background-color var(--dur-fast) var(--ease),
-    border-color var(--dur-fast) var(--ease),
     transform var(--dur-fast) var(--ease);
 }
-/* WCAG 2.5.8: the chip renders ~31px tall, under the 38px --control-h target.
+/* WCAG 2.5.8: the chip renders ~29px tall, under the 38px --control-h target.
    Keep the calm visual size and extend the HIT AREA with a transparent ::after
-   overhanging 4px block-wise (~31 + 2*4 = 39px) and 2px inline-wise, so taps land
+   overhanging 5px block-wise (~29 + 2*5 = 39px) and 2px inline-wise, so taps land
    without visually inflating the pill. */
 .sc-chip::after {
   content: "";
   position: absolute;
-  inset: -4px -2px;
+  inset: -5px -2px;
 }
 .sc-chip:hover {
   color: var(--accent-ink);
-  border-color: var(--accent);
+  background: var(--card-hover);
 }
 .sc-chip.active,
 .sc-chip[aria-pressed="true"] {
   background: var(--accent);
-  border-color: var(--accent);
   color: var(--accent-contrast);
+}
+
+/* --- Paper labelled button (done button, flashcard rating) ---
+   Stateful labelled controls keep a surface: borderless paper fill (nested-
+   aware via --control-fill), mono medium type, fill-darken + accent-ink hover.
+   Size, padding and resting text colour stay the caller's. */
+.sc-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  background: var(--control-fill, var(--bg-elevated));
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  /* Same transform sub-transition as .sc-press — see .sc-icon-btn. */
+  transition:
+    color var(--dur-fast) var(--ease),
+    background-color var(--dur-fast) var(--ease),
+    transform var(--dur-fast) var(--ease);
+}
+.sc-btn:hover {
+  background: var(--card-hover);
+  color: var(--accent-ink);
+}
+
+/* --- Paper search field (formula sheet, glossary) ---
+   A field is stateful (you type into it): paper fill, no frame. Focus is the
+   site's 2px accent ring on the wrapper — :focus-within, because a field is
+   "active" for pointer and keyboard alike (the accent border it replaces
+   answered both, too). */
+.sc-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--control-fill, var(--bg-elevated));
+  border-radius: var(--radius);
+  padding: 9px 14px;
+  color: var(--muted);
+}
+.sc-field:focus-within {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  color: var(--accent-ink);
 }
 
 /* --- Keycap (⌘K hint, Esc button) ---

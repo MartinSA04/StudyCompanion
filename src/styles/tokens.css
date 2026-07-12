@@ -53,6 +53,10 @@
   --border: #dad8ce; /* line (Flexoki base-150) */
   --border-strong: #cecdc3; /* line2 (Flexoki base-200) */
   --selection: color-mix(in srgb, var(--accent) 22%, transparent);
+  /* Faint ink wash — the marginalia hover fill (disclosure summaries, icon
+     buttons, copy buttons, bare pills). Derived from --fg, so it resolves per
+     theme; no dark-block override needed. */
+  --wash: color-mix(in srgb, var(--fg) 6%, transparent);
   --on-strong: #fffcf0; /* text on a filled categorical chip */
 
   /* --- Categorical hues (figures + semantic block accents) — Flexoki 600s --- */
