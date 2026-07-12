@@ -141,6 +141,11 @@ categorical hues for figures and semantic asides.
   primary actions. As TEXT on tinted or elevated grounds it is always mixed
   75% toward the ink (--accent-ink) to stay AA; raw accent is reserved for
   fills, borders, rings, and icons.
+- **Accent Contrast** (--accent-contrast: text/icon color placed ON solid
+  accent fills, e.g. chip-selected, primary buttons). Light theme: white.
+  Dark theme: the ink near-black (#100f0f), not white — dark-mode accent
+  fills are light, so white small text on them fails AA; ink-near-black is
+  the accent-fill's own foreground answer in dark mode.
 
 ### Neutral
 
@@ -188,10 +193,13 @@ overrides) so the webfont swap does not reflow the column.
 - **Display / h1** (600, 2.7rem, 1.18): module titles; folio-numbered.
 - **Headline / h2** (600, 1.95rem, 1.18): section headings; text-wrap balance.
 - **Title / h3** (600, 1.5rem, 1.18): subsections and panel headers.
-- **Body** (400, 1rem = 17px, 1.65): all prose; content column capped at
-  820px (~96ch measured — a deliberate carry-over of the original guide's
-  wide measure, wider than the classic 65–75ch ideal). Content sizes are rem
-  so the reading size scales; shell chrome is fixed px on purpose.
+- **Body** (400, 1rem = 17px, 1.65): all prose. Two-width scheme: running
+  prose (paragraphs, list text, disclosure bodies) is capped at the classic
+  ~72–78ch ideal measure for sustained reading; formula panels, figures,
+  tables, code blocks, and framed widgets keep the wider 820px frame, since
+  those need the extra width for equations, wide tables, and code lines to
+  avoid awkward wraps. Content sizes are rem so the reading size scales;
+  shell chrome is fixed px on purpose.
 - **Label** (600 mono, 0.72–0.84rem, uppercase kickers at 0.02em; wide
   0.08em for part dividers): chips, kickers, keycaps, disclosure summaries,
   nav numbers.
@@ -201,6 +209,13 @@ overrides) so the webfont swap does not reflow the column.
 **The Mono-Marginalia Rule.** If text is interface (label, kicker, control,
 badge, count), it is IBM Plex Mono. If it is content, it is a serif. No sans
 ever appears in rendered content.
+
+**The Fixed-Slab Exception.** Code blocks (Shiki) keep one fixed near-black
+surface in BOTH light and dark theme — the single deliberately cold slab on
+the warm paper (terminal-as-artifact). It does not tone with the paper ramp
+like every other panel; the copy-button's colors are calibrated specifically
+against that fixed surface (see base.css comments) and would mis-contrast if
+the block ever inherited theme-panel tokens.
 
 ## 4. Elevation
 
@@ -285,6 +300,12 @@ Feel: restrained at rest, tactile on touch.
   globally. The theme flip eases as one coordinated event: a transient
   html.theme-transitioning class carries the transition; nothing transitions
   theme colors at rest.
+- **The Lift-Shadow Exception.** The vocabulary is otherwise transform/opacity
+  only (compositor-cheap); .sc-lift's hover transition is the one bounded
+  exception, additionally transitioning box-shadow (a paint cost) so the
+  whisper-to-hover shadow growth reads as continuous rather than a hard swap.
+  Scope stays deliberately narrow: this exception does not license box-shadow
+  transitions elsewhere.
 
 ## 6. Do's and Don'ts
 
@@ -308,10 +329,15 @@ Feel: restrained at rest, tactile on touch.
 - **Don't** ship generic docs-site chrome ("the Starlight look"); this is an
   editorial reading surface, not a docs theme.
 - **Don't** use SaaS/AI-slop tells: gradient text, decorative glassmorphism
-  (the topbar's functional scroll-legibility backdrop blur is the single
-  sanctioned exception), hero-metric blocks, identical icon-card grids,
-  side-stripe callout borders (border-left > 1px as color accent).
-- **Don't** use pure #000/#fff anywhere; every neutral is a warm Flexoki tone.
+  (two sanctioned functional exceptions: the topbar's scroll-legibility
+  backdrop blur, and the search palette's ::backdrop scrim, which blurs
+  content behind an active overlay rather than frosting a resting surface),
+  hero-metric blocks, identical icon-card grids, side-stripe callout borders
+  (border-left > 1px as color accent).
+- **Don't** use pure #000/#fff anywhere; every neutral is a warm Flexoki tone
+  (the print stylesheet is exempt — print intentionally spends pure
+  white/black for ink economy, since paper toning and Flexoki tints have no
+  meaning on a printed page; screen themes never do this).
 - **Don't** mix border roles: panels never use --border-strong, controls
   never use --border (The Two-Border Rule).
 - **Don't** tint asides by color-mixing the accent onto paper; asides use
@@ -320,3 +346,24 @@ Feel: restrained at rest, tactile on touch.
   no orchestrated page-load choreography.
 - **Don't** put per-course logic or derived colors in the framework; courses
   set explicit accent + accentDark (Explicit over Derived).
+
+## 7. Adjudicated Design Decisions
+
+Deliberate choices that read as defects to conventional-UX review. Each was
+raised by a design critique and rejected with rationale; do not "fix" them,
+and do not re-report them in future reviews.
+
+- **The quiz is one-shot, with no retry control.** Retrying a small quiz
+  after the correct answer has been revealed tests nothing. Quiz state is
+  deliberately unpersisted; a later revisit naturally re-arms it.
+- **KeyTakeaways checkmarks are purple, not accent.** They tone-match the
+  purple takeaways card (Flexoki categorical) and are decorative list marks,
+  not completion indicators — completion-is-accent does not apply, and they
+  must never become accent-colored or interactive-looking.
+- **Flashcard rating is active before the card is flipped.** A student who
+  knows the answer by heart rates without being forced to flip first; the
+  widget trusts the user's self-assessment.
+- **The module pager shows numbers only ("Neste: 03").** The sidebar carries
+  full titles on desktop; titles on the pager would wrap multiple lines on
+  mobile; pressing next lands on the module's title immediately. The button
+  does not need to spell it out.

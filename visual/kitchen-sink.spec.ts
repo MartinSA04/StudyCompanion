@@ -33,6 +33,12 @@ for (const theme of THEMES) {
       }, theme);
       await page.goto(path);
       await page.waitForLoadState("networkidle");
+      // Framework contract guard: the overview module carries the demo's only
+      // display-math source, so this is where a build regression that drops
+      // .katex-display (e.g. $$…$$ getting parsed as inline) would surface.
+      if (name === "module-oversikt") {
+        await expect(page.locator(".katex-display").first()).toBeVisible();
+      }
       await expect(page).toHaveScreenshot(`${name}-${theme}.png`, {
         fullPage: true,
         mask: [page.locator(".sim-canvas")],

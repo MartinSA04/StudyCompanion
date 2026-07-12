@@ -4,11 +4,12 @@ import { renderMathString } from "../lib/katex.ts";
 import Icon from "./Icon.astro";
 
 /**
- * Flashcard deck (vanilla island) with a flip animation and a tiny
- * spaced-repetition scheme: rating a card "Kan" raises its level (it surfaces
- * later), "Øv" resets it (it surfaces sooner). Levels persist in localStorage
- * under `sc:flashcards:<code>`. Card text may contain $inline$ / $$display$$
- * math, rendered to KaTeX at build time.
+ * Flashcard deck (vanilla island) with a flip animation and a binary rating:
+ * "Kan" marks a card known (it surfaces later), "Øv" marks it not known (it
+ * surfaces sooner). Ratings persist in localStorage under
+ * `sc:flashcards:<code>`; load() migrates the legacy 0/1/2 mastery scheme.
+ * Card text may contain $inline$ / $$display$$ math, rendered to KaTeX at
+ * build time.
  */
 interface Props {
   cards: Flashcards["cards"];
@@ -40,7 +41,7 @@ const hasSections = sections.length > 0;
 >
   <div class="fc-head">
     {
-      /* role="status": rating updates this line ("1 øvd", "2 kan"), which is the
+      /* role="status": rating updates this line ("2 / 24 kan"), which is the
         visible — and announced — acknowledgment that a Kan/Øv press landed. */
     }
     <p
@@ -48,12 +49,7 @@ const hasSections = sections.length > 0;
       role="status"
       title="Lagres lokalt i denne nettleseren"
     >
-      <strong data-fc-known>0</strong> / <span>{rendered.length}</span> kan<span
-        data-fc-practiced-wrap
-        hidden
-      >
-        · <span data-fc-practiced>0</span> øvd</span
-      >
+      <strong data-fc-known>0</strong> / <span>{rendered.length}</span> kan
     </p>
     <button type="button" class="fc-reset sc-press" data-fc-reset hidden
       >{labels.reset}</button
@@ -129,7 +125,6 @@ const hasSections = sections.length > 0;
             </span>
           </span>
           <span class="fc-level" aria-hidden="true">
-            <span class="fc-level-dot" />
             <span class="fc-level-check">
               <Icon name="check" size={13} />
             </span>
@@ -256,7 +251,9 @@ const hasSections = sections.length > 0;
     text-align: center;
     color: var(--muted);
     font-size: var(--text-sm);
-    border: 1px dashed var(--border-strong);
+    /* --border, not --border-strong: a static placeholder, not a control
+       (the Two-Border Rule). */
+    border: 1px dashed var(--border);
     border-radius: var(--radius);
     padding: var(--space-4);
   }
@@ -364,8 +361,11 @@ const hasSections = sections.length > 0;
     color: var(--muted);
   }
 
-  /* Per-card mastery badge — sits outside .fc-inner so it never flips.
-     Driven by data-level on the card (0 = new, 1 = øvd, 2 = kan). */
+  /* Per-card known badge — sits outside .fc-inner so it never flips. Driven
+     by data-level on the card (0 = not known, 1 = known): an accent check +
+     "Kan" pill, the same accent "done" cue as the module done state, but
+     filled (the deck's active-chip treatment) so it reads on the
+     accent-washed answer side too. */
   .fc-level {
     position: absolute;
     top: var(--space-3);
@@ -373,30 +373,8 @@ const hasSections = sections.length > 0;
     z-index: 1;
     display: none;
     align-items: center;
-    gap: 5px;
-    line-height: 1;
-  }
-  .fc-card[data-level="1"] .fc-level,
-  .fc-card[data-level="2"] .fc-level {
-    display: inline-flex;
-  }
-  .fc-level-check,
-  .fc-level-text {
-    display: none;
-  }
-  /* Level 1 — seen once: a bare neutral dot, no capsule. */
-  .fc-level-dot {
-    width: 9px;
-    height: 9px;
-    border-radius: 50%;
-    flex: none;
-    background: var(--faint);
-  }
-  /* Level 2 — mastered: an accent check + "Kan" pill, the same accent "done"
-     cue as the module done state, but filled (the deck's active-chip
-     treatment) so it reads on the accent-washed answer side too. */
-  .fc-card[data-level="2"] .fc-level {
     gap: 4px;
+    line-height: 1;
     padding: 3px var(--space-2) 3px 6px;
     border-radius: var(--radius-pill);
     color: var(--accent-contrast);
@@ -405,15 +383,12 @@ const hasSections = sections.length > 0;
     font-size: var(--text-xs);
     font-weight: var(--weight-semibold);
   }
-  .fc-card[data-level="2"] .fc-level-dot {
-    display: none;
+  .fc-card[data-level="1"] .fc-level {
+    display: inline-flex;
   }
-  .fc-card[data-level="2"] .fc-level-check {
+  .fc-level-check {
     display: inline-flex;
     align-items: center;
-  }
-  .fc-card[data-level="2"] .fc-level-text {
-    display: inline;
   }
 
   .fc-controls {
@@ -428,6 +403,8 @@ const hasSections = sections.length > 0;
     gap: var(--space-2);
   }
   .fc-btn {
+    /* Padding alone measures 37px — 1px under the shared control norm. */
+    min-height: var(--control-h);
     padding: var(--space-2) var(--space-4);
     border: 1px solid var(--border);
     border-radius: var(--radius-sm);
@@ -493,12 +470,6 @@ const hasSections = sections.length > 0;
       ...deck.querySelectorAll<HTMLButtonElement>("[data-fc-card]"),
     ];
     const knownOut = deck.querySelector<HTMLElement>("[data-fc-known]")!;
-    const practicedWrap = deck.querySelector<HTMLElement>(
-      "[data-fc-practiced-wrap]",
-    )!;
-    const practicedOut = deck.querySelector<HTMLElement>(
-      "[data-fc-practiced]",
-    )!;
     const posOut = deck.querySelector<HTMLElement>("[data-fc-pos]")!;
     const totalOut = deck.querySelector<HTMLElement>("[data-fc-total]")!;
     const resetBtn = deck.querySelector<HTMLButtonElement>("[data-fc-reset]")!;
@@ -527,7 +498,21 @@ const hasSections = sections.length > 0;
 
     const load = (): Levels => {
       try {
-        return JSON.parse(localStorage.getItem(key) || "{}") as Levels;
+        const raw = JSON.parse(localStorage.getItem(key) || "{}") as Levels;
+        // A stored 2 can only come from the legacy 0/1/2 mastery scheme (the
+        // binary model writes 0/1), so it marks the whole record legacy:
+        // 2 (mastered) → known, 1 (seen once) → not known — collapsing
+        // downward, never fabricating mastery. A record without a 2 is
+        // indistinguishable from binary data and must load as-is, or a
+        // reload would wipe the new model's own known-marks (1s).
+        if (Object.values(raw).some((v) => v >= 2)) {
+          const migrated: Levels = {};
+          for (const [i, v] of Object.entries(raw)) {
+            migrated[Number(i)] = v >= 2 ? 1 : 0;
+          }
+          return migrated;
+        }
+        return raw;
       } catch {
         return {};
       }
@@ -555,15 +540,15 @@ const hasSections = sections.length > 0;
         );
       }
       if (filter.onlyUnknown) {
-        indices = indices.filter((i) => (levels[i] ?? 0) < 2);
+        indices = indices.filter((i) => (levels[i] ?? 0) < 1);
       }
-      // Least-known first, then original order — a stable study order. "Bland"
+      // Not-known first, then original order — a stable study order. "Bland"
       // reshuffles the built queue in place (below), on demand.
       indices.sort((a, b) => (levels[a] ?? 0) - (levels[b] ?? 0) || a - b);
       queue = indices;
     };
 
-    // Reflect each card's stored mastery level on the card (drives the badge).
+    // Reflect each card's stored known state on the card (drives the badge).
     const paintBadges = () => {
       cards.forEach((c) => {
         c.dataset.level = String(levels[Number(c.dataset.index)] ?? 0);
@@ -571,14 +556,8 @@ const hasSections = sections.length > 0;
     };
 
     const renderProgress = () => {
-      const known = Object.values(levels).filter((v) => v >= 2).length;
-      // Level 1 ("øvd") counts visibly too: a first "Kan" press must move the
-      // header, or the two-press mastery scheme reads as a rating that didn't
-      // save. The øvd segment only appears while something is at level 1.
-      const practiced = Object.values(levels).filter((v) => v === 1).length;
+      const known = Object.values(levels).filter((v) => v >= 1).length;
       knownOut.textContent = String(known);
-      practicedOut.textContent = String(practiced);
-      practicedWrap.hidden = practiced === 0;
       // Keep the button while an undo is pending, or "Angre" vanishes the
       // moment the reset it undoes empties the levels.
       resetBtn.hidden = !undoStash && Object.keys(levels).length === 0;
@@ -615,7 +594,7 @@ const hasSections = sections.length > 0;
         const allKnown =
           filter.onlyUnknown &&
           scope.length > 0 &&
-          scope.every((c) => (levels[Number(c.dataset.index)] ?? 0) >= 2);
+          scope.every((c) => (levels[Number(c.dataset.index)] ?? 0) >= 1);
         emptyBox.dataset.complete = String(allKnown);
         if (allKnown) {
           emptyTitle.textContent = `Alle ${scope.length} kort er markert som kan.`;
@@ -642,7 +621,7 @@ const hasSections = sections.length > 0;
     const rate = (known: boolean) => {
       const idx = queue[pos];
       if (idx === undefined) return;
-      levels[idx] = known ? Math.min(2, (levels[idx] ?? 0) + 1) : 0;
+      levels[idx] = known ? 1 : 0;
       save(levels);
       renderProgress();
       advance(1);

@@ -12,7 +12,7 @@ const { label = "Svar" } = Astro.props;
 ---
 
 <div class="answer">
-  <span class="answer-label sc-kicker">{label}</span>
+  <span class="answer-label sc-kicker" data-pagefind-ignore>{label}</span>
   <div class="answer-body"><slot /></div>
 </div>
 

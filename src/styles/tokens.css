@@ -42,7 +42,11 @@
   --bg-elevated: #f2f0e5; /* panels / cards (Flexoki base-50) */
   --fg: #100f0f; /* ink (Flexoki black) */
   --muted: #575653; /* ink-dim (Flexoki base-700, 7.1:1 on --bg) */
-  --faint: #6f6e69; /* ink-faint: nav numbers, captions (Flexoki base-600, 5.0:1 on --bg) */
+  /* ink-faint: nav numbers, captions (Flexoki base-600, 5.0:1 on --bg). Calibrated
+     against BARE --bg ONLY — it drops under AA on elevated/nested grounds (4.47:1
+     on --bg-elevated, 4.01:1 on --card-nested). Contract: use --faint on the page
+     ground; on any panel/card/nested surface use --muted instead. */
+  --faint: #6f6e69;
   --card: #f2f0e5; /* insets/headers sit flat with the panels (Flexoki base-50); a divider or hairline gives structure, not a darker fill */
   --card-nested: #e6e4d9; /* base-100 — recessed fill for revealed/nested panels; steps off both --bg and --card, so it reads inset on the page OR inside a card, no border needed */
   --card-hover: #e6e4d9; /* Flexoki base-100 (hover-darken) */
@@ -93,7 +97,8 @@
   --font-body:
     "Spectral", "Spectral Fallback", "Georgia", "Times New Roman", serif;
   --font-mono:
-    "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+    "IBM Plex Mono", "IBM Plex Mono Fallback", ui-monospace, "SFMono-Regular",
+    Menlo, monospace;
   --font-sans:
     ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 
@@ -195,9 +200,14 @@
   /* Dark-mode brand accent + its on-accent text colour (course-set, see
      CourseLayout). Falls back to the light accent if the course omits accentDark. */
   --accent: var(--accent-dark, var(--accent-light, #205ea6));
+  /* Dark accents are LIGHT colours (e.g. demo accentDark #4385be), so white small
+     text on the accent fill fails AA (3.93:1); the theme's near-black ink on that
+     same fill passes (~5.8:1). Default to ink here — unlike light, which keeps
+     white. Courses may still override per-theme via --accent-contrast-dark (no
+     per-course logic in the framework; this is just a better DARK default). */
   --accent-contrast: var(
     --accent-contrast-dark,
-    var(--accent-contrast-light, #ffffff)
+    var(--accent-contrast-light, #100f0f)
   );
   --on-strong: #100f0f;
 
@@ -206,7 +216,9 @@
   --bg-elevated: #1c1b1a; /* Flexoki base-950 */
   --fg: #cecdc3; /* Flexoki base-200 (warm ink) */
   --muted: #9f9d96; /* Flexoki base-400 (7.0:1 on --bg) */
-  --faint: #878580; /* Flexoki base-500 (5.2:1 on --bg) */
+  /* Flexoki base-500 (5.2:1 on --bg). Same bg-only contract as the light --faint:
+     it falls under AA on elevated/nested grounds — use --muted there. */
+  --faint: #878580;
   --card: #1c1b1a; /* insets/headers flat with the panels (Flexoki base-950) */
   --card-nested: #282726; /* base-900 — recessed fill for revealed/nested panels; steps off --bg/--card (lighter here = dark-mode elevation) so it reads inset without a border */
   --card-hover: #282726; /* Flexoki base-900 (hover) */

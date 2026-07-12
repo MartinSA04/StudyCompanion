@@ -106,6 +106,10 @@ const haystack = (e: GlossaryEntry) =>
   }
   <p class="gloss-empty" hidden>Ingen begreper matcher søket.</p>
 </div>
+<!-- Polite match-count feedback for screen readers: the filter is visual-only
+     otherwise (rows just get [hidden]). Mirrors the role=status pattern used by
+     Quiz/Flashcards; visually hidden since the sighted result is the list itself. -->
+<p class="sr-only" role="status" aria-live="polite" data-gloss-status></p>
 
 <style>
   .gloss-controls {
@@ -270,20 +274,31 @@ const haystack = (e: GlossaryEntry) =>
       ".gloss-search-input",
     );
     const empty = document.querySelector<HTMLElement>(".gloss-empty");
+    const status = document.querySelector<HTMLElement>("[data-gloss-status]");
 
     const apply = (term: string) => {
-      let anyVisible = false;
+      let visibleCount = 0;
       rows.forEach((r) => {
         const show = !term || (r.dataset.text ?? "").includes(term);
         r.hidden = !show;
-        if (show) anyVisible = true;
+        if (show) visibleCount++;
       });
       groups.forEach((g) => {
         g.hidden = ![...g.querySelectorAll<HTMLElement>(".gloss-row")].some(
           (r) => !r.hidden,
         );
       });
-      if (empty) empty.hidden = anyVisible;
+      if (empty) empty.hidden = visibleCount > 0;
+      // Announce the outcome only while a filter is active — an empty term is the
+      // reset-to-all state, which needs no announcement (and would be noise on
+      // load). Empty vs. "N treff" mirrors the visible .gloss-empty / list.
+      if (status) {
+        status.textContent = !term
+          ? ""
+          : visibleCount === 0
+            ? "Ingen begreper matcher søket."
+            : `${visibleCount} treff`;
+      }
     };
 
     searchInput?.addEventListener(

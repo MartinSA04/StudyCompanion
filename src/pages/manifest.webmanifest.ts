@@ -1,13 +1,16 @@
 import type { APIContext } from "astro";
 import { loadCourse } from "../lib/loadCourse.ts";
+import { THEME_COLOR_LIGHT } from "../lib/themeColor.ts";
 
 // Prerendered to a static /manifest.webmanifest (4.8) so the guide is
 // installable ("Add to Home Screen"). Course-derived, no per-course code. The
 // referenced PNG icons are generated per-course at build (4.9, astro:build:done).
 export const prerender = true;
 
-// Grounds verbatim from tokens.css (light theme) — the install splash colours.
-const BG = "#f5f7fa";
+// The install splash colours — the light-theme page ground (--bg), from the one
+// source CourseLayout's <meta name="theme-color"> also reads, so the installed
+// PWA's splash matches the page instead of drifting to a stale literal.
+const BG = THEME_COLOR_LIGHT;
 
 export async function GET(_context: APIContext): Promise<Response> {
   const { course } = await loadCourse();

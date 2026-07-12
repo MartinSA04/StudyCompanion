@@ -11,6 +11,8 @@ import Icon from "../components/Icon.astro";
 import PageToc from "../components/PageToc.astro";
 import ImportanceTag from "../components/ImportanceTag.astro";
 import { loadCourse } from "../lib/loadCourse.ts";
+import { bodyHasMath, stringsHaveMath } from "../lib/hasMath.ts";
+import { readFileSync } from "node:fs";
 import { absoluteUrl, truncateDescription, stripInline } from "../lib/seo.ts";
 import {
   breadcrumbList,
@@ -140,6 +142,34 @@ if (props.kind === "section") {
   pageTitle = course.ui.examsLabel;
 }
 
+// KaTeX-preload gate (lib/hasMath.ts): does THIS page paint any math? A module
+// checks its raw MDX body (delimiters + math-emitting widgets); the formula
+// sheet is always math; glossary/flashcards check their real schema strings; the
+// exam page renders none (its metadata is plain strings, no renderMathString).
+let hasMath = false;
+if (props.kind === "section") {
+  const e = props.entry as { body?: string; filePath?: string };
+  let body = e.body ?? "";
+  if (!body && e.filePath) {
+    try {
+      body = readFileSync(e.filePath, "utf8");
+    } catch {
+      /* unreadable source — fall through; bodyHasMath("") is false, but a
+         section is math-likely, so keep the preload rather than risk a flash */
+      hasMath = true;
+    }
+  }
+  hasMath = hasMath || bodyHasMath(body);
+} else if (props.kind === "formulas") {
+  hasMath = true;
+} else if (props.kind === "glossary") {
+  hasMath = stringsHaveMath(
+    course.glossary.flatMap((g) => [g.term, g.definition]),
+  );
+} else if (props.kind === "flashcards") {
+  hasMath = stringsHaveMath(flashcards.flatMap((c) => [c.front, c.back]));
+}
+
 // ---- SEO + JSON-LD (4.2–4.4, 4.6) ----
 // Module pages are `article`s (with a modified time + LearningResource); tool
 // pages are `website`s. Every page gets a breadcrumb; the glossary also gets a
@@ -214,6 +244,7 @@ const seo = {
   seo={seo}
   jsonLd={jsonLd}
   hasToc={showToc}
+  hasMath={hasMath}
 >
   {
     showToc && (

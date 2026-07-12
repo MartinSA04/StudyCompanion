@@ -6,6 +6,7 @@ import ThemeToggle from "../components/ThemeToggle.astro";
 import SearchPalette from "../components/SearchPalette.astro";
 import Icon from "../components/Icon.astro";
 import { contrastText, accentOnBg, accentInk } from "../lib/color.ts";
+import { THEME_COLOR_LIGHT, THEME_COLOR_DARK } from "../lib/themeColor.ts";
 import { faviconDataUri } from "../lib/favicon.ts";
 import { ogLocale, trimTrailingSlash, warnMissingSiteOnce } from "../lib/seo.ts";
 import { serializeLd } from "../lib/jsonLd.ts";
@@ -24,7 +25,9 @@ import bodyFont from "../styles/fonts/spectral-400-latin.woff2";
 // The two KaTeX faces every math-bearing page paints on first render (upright
 // + italic variables); preloading them avoids the flash-of-fallback-serif a
 // module full of formulas would otherwise show while katex.min.css's own
-// @font-face rules resolve.
+// @font-face rules resolve. Gated on the per-page `hasMath` prop below — a page
+// that renders zero KaTeX spans (overview, exam, most 404s) would otherwise pay
+// ~48KB of preload for faces it never paints.
 import katexMainFont from "katex/dist/fonts/KaTeX_Main-Regular.woff2?url";
 import katexMathItalicFont from "katex/dist/fonts/KaTeX_Math-Italic.woff2?url";
 
@@ -60,6 +63,13 @@ interface Props {
   jsonLd?: Record<string, unknown>[];
   /** Render the right "on this page" rail column (module pages with a TOC). */
   hasToc?: boolean;
+  /**
+   * Does this page paint any KaTeX? Gates the two KaTeX-font preloads (see the
+   * font imports). Pages compute it from their real inputs (lib/hasMath.ts);
+   * defaults to `true` so a page that forgets to pass it keeps the preload
+   * rather than risking a flash-of-fallback-serif on real math.
+   */
+  hasMath?: boolean;
 }
 const {
   course,
@@ -72,22 +82,25 @@ const {
   seo,
   jsonLd,
   hasToc = false,
+  hasMath = true,
 } = Astro.props;
 const { ui, features } = course;
 
 // The framework's own source — linked from the "Bygget med" footer attribution.
 const FRAMEWORK_REPO = "https://github.com/MartinSA04/StudyCompanion";
 
-// ---- Accent-Ink Rule guardrail ----
-// Grounds --accent-ink text actually sits on, verbatim from tokens.css (light:
-// the page and its one panel step; dark: the panel and its nested recess —
-// dark-theme accent text lives on --bg-elevated/--card-nested, not raw --bg,
-// per the --accent-ink comment in tokens.css). Kept as literal hex, matching
-// the THEME_COLOR_* constants below, so this warns against the same values the
-// CSS paints even if this file's imports ever get tree-shaken from a build.
+// ---- Accent contrast guardrails ----
+// Grounds these checks sit on, verbatim from tokens.css. Kept as literal hex,
+// matching the THEME_COLOR_* constants (lib/themeColor.ts), so this warns
+// against the same values the CSS paints even if this file's imports ever get
+// tree-shaken from a build. --accent-ink text (checkAccentInk): light lives on
+// the page + its one panel step; dark on the panel + nested recess, not raw
+// --bg (per the --accent-ink comment in tokens.css). --bg is also the ground
+// the raw-accent focus ring + fallback-accent link sit on (checkAccentFallback).
 const LIGHT_BG = "#fffcf0"; // --bg (light)
 const LIGHT_BG_ELEVATED = "#f2f0e5"; // --bg-elevated (light)
 const LIGHT_FG = "#100f0f"; // --fg (light)
+const DARK_BG = "#100f0f"; // --bg (dark, Flexoki black)
 const DARK_BG_ELEVATED = "#1c1b1a"; // --bg-elevated (dark)
 const DARK_CARD_NESTED = "#282726"; // --card-nested (dark)
 const DARK_FG = "#cecdc3"; // --fg (dark)
@@ -112,7 +125,7 @@ function checkAccentInk(
   surfaces: [name: string, hex: string][],
   theme: "light" | "dark",
 ) {
-  const key = `${theme}:${accent}:${fg}`;
+  const key = `ink:${theme}:${accent}:${fg}`;
   if (warnedAccents.has(key)) return;
   const ink = accentInk(accent, fg);
   for (const [name, hex] of surfaces) {
@@ -124,6 +137,49 @@ function checkAccentInk(
       );
       return;
     }
+  }
+}
+
+/**
+ * Warn (never throw) when the on-accent text tokens.css paints (--accent-contrast
+ * = `onAccent`, derived by contrastText) fails AA normal-text (4.5:1) as TEXT ON
+ * the accent FILL — the skip-link, SelfCheck badge and filled chips. contrastText
+ * already picks the higher-contrast of white / near-black ink per theme (in dark,
+ * light accents pair with the #100f0f ink the token default now also uses), so a
+ * warning here means the accent itself is a mid-tone that neither ink clears.
+ */
+function checkAccentContrast(
+  accent: string,
+  onAccent: string,
+  theme: "light" | "dark",
+) {
+  const key = `on:${theme}:${accent}:${onAccent}`;
+  if (warnedAccents.has(key)) return;
+  const r = accentOnBg(onAccent, accent);
+  if (r != null && r < 4.5) {
+    warnedAccents.add(key);
+    console.warn(
+      `[study-companion] ${theme} accent "${accent}" gives ${r.toFixed(2)}:1 for its on-accent text "${onAccent}" — text on the filled accent (skip-link, badges, chips) may be hard to read. Pick a shade further from mid-tone.`,
+    );
+  }
+}
+
+/**
+ * Warn (never throw) when a course omits `accentDark`: dark `--accent` then falls
+ * back to the light accent (tokens.css), which for a typical dark-enough brand is
+ * too weak against the dark `--bg` for the 3:1 UI floor — and raw `--accent`
+ * drives the global `:focus-visible` ring + accent-as-UI marks (icons, borders).
+ * Only meaningful on the fallback pairing, so callers gate on `accentDark` unset.
+ */
+function checkAccentFallback(accent: string) {
+  const key = `fallback:${accent}`;
+  if (warnedAccents.has(key)) return;
+  const r = accentOnBg(accent, DARK_BG);
+  if (r != null && r < 3) {
+    warnedAccents.add(key);
+    console.warn(
+      `[study-companion] dark mode falls back to the light accent "${accent}" (no accentDark set), only ${r.toFixed(2)}:1 on the dark --bg — below the 3:1 UI floor for the focus ring and accent marks. Set a lighter accentDark.`,
+    );
   }
 }
 
@@ -165,6 +221,12 @@ checkAccentInk(
   ],
   "dark",
 );
+// On-accent text (--accent-contrast) legibility ON the accent fill, both themes.
+checkAccentContrast(accentLight, onAccentLight, "light");
+checkAccentContrast(accentDark, onAccentDark, "dark");
+// Fallback-accent UI floor: only when the course left accentDark unset, so dark
+// `--accent` inherits the (often too-dark) light accent for its focus ring/marks.
+if (course.accentDark == null) checkAccentFallback(accentLight);
 
 const themeKey = `sc:theme:${course.code}`;
 const progressKey = `sc:progress:${course.code}`;
@@ -198,10 +260,9 @@ const twitterHandle = course.seo?.twitter
     : `@${course.seo.twitter}`
   : null;
 
-// Browser-chrome / native-control colours — verbatim from tokens.css grounds
-// (explicit over derived), so the mobile toolbar matches the page per theme.
-const THEME_COLOR_LIGHT = "#fffcf0"; // --bg (light, Flexoki paper)
-const THEME_COLOR_DARK = "#100f0f"; // --bg (dark, Flexoki black)
+// Browser-chrome / native-control colours (THEME_COLOR_*, imported from
+// lib/themeColor.ts) — the mobile toolbar per theme, and the same source the
+// PWA manifest install-splash reads, so the two can never drift.
 
 type IconName = "sigma" | "book" | "layers" | "file";
 const toolNav: { slug: string; icon: IconName; label: string; show: boolean }[] = [
@@ -305,20 +366,26 @@ const hasTools = toolNav.some((t) => t.show);
       href={displayFont}
       crossorigin
     />
-    <link
-      rel="preload"
-      as="font"
-      type="font/woff2"
-      href={katexMainFont}
-      crossorigin
-    />
-    <link
-      rel="preload"
-      as="font"
-      type="font/woff2"
-      href={katexMathItalicFont}
-      crossorigin
-    />
+    {
+      hasMath && (
+        <>
+          <link
+            rel="preload"
+            as="font"
+            type="font/woff2"
+            href={katexMainFont}
+            crossorigin
+          />
+          <link
+            rel="preload"
+            as="font"
+            type="font/woff2"
+            href={katexMathItalicFont}
+            crossorigin
+          />
+        </>
+      )
+    }
     {
       features.theme && (
         <script is:inline define:vars={{ themeKey }}>

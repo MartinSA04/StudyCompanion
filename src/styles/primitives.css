@@ -70,6 +70,20 @@
   width: 32px;
   height: 32px;
 }
+/* WCAG 2.5.8: the 32px box is below the 38px --control-h target. Rather than
+   inflate the visually calm button, extend the HIT AREA with a transparent
+   ::after that overhangs 3px on every side (32 + 2*3 = 38px). It anchors to the
+   nearest positioned ancestor: .code-copy is itself position:absolute (base.css)
+   and .fs-copy sits in a position:relative .fs-row — both give the overlay a
+   context, and the 3px overhang stays inside those bounds. NOTE: primitives.css
+   loads after base.css, so we must NOT set `position` on .sc-copy here (it would
+   override .code-copy's position:absolute at equal specificity); the pseudo
+   anchoring to an existing context sidesteps that. */
+.sc-copy::after {
+  content: "";
+  position: absolute;
+  inset: -3px;
+}
 .sc-copy svg {
   display: block;
   grid-area: 1 / 1;
@@ -165,6 +179,9 @@ details[open] > summary .sc-chev {
   font-family: var(--font-mono);
   font-size: var(--text-xs);
   color: var(--muted);
+  /* Positioning context for the hit-area pseudo (below). The chip is static
+     everywhere it's used, so this has no layout effect. */
+  position: relative;
   /* Same transform sub-transition as .sc-press (equal-specificity, later rule
      wins the whole shorthand) — see the comment on .sc-icon-btn. */
   transition:
@@ -172,6 +189,15 @@ details[open] > summary .sc-chev {
     background-color var(--dur-fast) var(--ease),
     border-color var(--dur-fast) var(--ease),
     transform var(--dur-fast) var(--ease);
+}
+/* WCAG 2.5.8: the chip renders ~31px tall, under the 38px --control-h target.
+   Keep the calm visual size and extend the HIT AREA with a transparent ::after
+   overhanging 4px block-wise (~31 + 2*4 = 39px) and 2px inline-wise, so taps land
+   without visually inflating the pill. */
+.sc-chip::after {
+  content: "";
+  position: absolute;
+  inset: -4px -2px;
 }
 .sc-chip:hover {
   color: var(--accent-ink);
@@ -224,7 +250,12 @@ details[open] > summary .sc-chev {
    shadow-grow on the right element (the surface itself, or a child face). The
    1px rise is guarded with :not(:active) so the .sc-press dip still wins on
    click. Used by the overview tiles, the pager, the sidebar rows, the
-   official-sheet link and the flashcard. */
+   official-sheet link and the flashcard.
+   box-shadow is a paint-only property (not transform/opacity), so this
+   transition is a DELIBERATE, bounded exception to the system's
+   transform/opacity-only motion claim: the shadow-grow IS the lift's depth cue
+   and can't be faked with a transform. Scoped to hover only, on a handful of
+   surfaces, and zeroed under prefers-reduced-motion via --dur-fast. */
 .sc-lift {
   transition:
     box-shadow var(--dur-fast) var(--ease),

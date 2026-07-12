@@ -118,6 +118,29 @@ figcaption {
   text-wrap: pretty;
 }
 
+/* --- Reading measure ---
+   Two-width editorial scheme. The 820px content frame (--maxw, shell.css) is
+   the STRUCTURAL width — formula panels, figures, tables, code slabs and
+   asides fill it edge to edge as breakout plates. Running prose in the open
+   flow caps at 76ch instead: full-frame 17px Spectral measures ~96ch, ~30%
+   past the 65–75ch return-sweep ideal, and that fatigue compounds over the
+   long reading sessions the product exists for. Direct-child scoping IS the
+   panel exemption — prose inside a framed widget is that panel's own
+   interior, and a ~76ch line stopping short inside an 820px box reads as an
+   accident, so only the open column takes the measure (display math renders
+   as a top-level .katex-display, never inside a <p>, so it keeps the frame
+   for free). Headings sit on the same edge as the text they head — and with
+   them the h3 section rule and hr — keeping ONE reading edge so the
+   full-frame plates read as deliberate. Stated in rem, not ch, because ch
+   resolves against each element's own font: on the larger Fraunces headings
+   76ch would be inert; Spectral's "0" is exactly 0.5em, so 38rem IS 76ch at
+   the 1rem body size, and the size-adjusted Georgia fallback (fonts.css)
+   tracks it within 0.05%. max-width only shrinks: below 640px the column is
+   already narrower and the cap goes inert on its own. */
+.prose > :is(p, ul, ol, blockquote, h2, h3, h4, hr) {
+  max-width: 38rem;
+}
+
 a {
   color: var(--accent-ink);
   text-decoration-color: var(--accent-ring);
@@ -309,7 +332,10 @@ td {
 }
 thead th {
   background: var(--card);
-  border-bottom: 1px solid var(--border-strong);
+  /* Structural divider, not a control edge — tables take --border throughout
+     (Two-Border Rule; keeps the authored-Markdown header rule in step with
+     <Table>'s). */
+  border-bottom: 1px solid var(--border);
   font-family: var(--font-display);
   font-weight: var(--weight-semibold);
   color: var(--fg);
