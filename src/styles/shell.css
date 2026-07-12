@@ -779,9 +779,13 @@
 .footer-edit:hover {
   text-decoration: underline;
 }
-.footer-meta span + .footer-edit::before {
+/* The "·" before the edit link is line punctuation, not part of the link:
+   generated on the freshness span (only when the link follows it), so the
+   link's hover underline, focus ring, hit area and accessible name all stop
+   at its own label. */
+.footer-meta span:not(:last-child)::after {
   content: "·";
-  margin-right: var(--gap-2);
+  margin-left: var(--gap-2);
   color: var(--border-strong);
 }
 
