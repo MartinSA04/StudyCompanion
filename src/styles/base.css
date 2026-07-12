@@ -239,14 +239,13 @@ pre.astro-code {
 }
 
 /* Copy button injected by the layout's enhancement script onto every <pre>.
-   Box, hover and icon-swap come from the shared .sc-copy / .sc-press primitives;
-   base.css owns only what is code-block-specific — it floats over the code and
-   fades in on hover. Shiki always paints the code surface in its own fixed dark
-   palette (#1c1b1a, flexoki-dark — see shiki-flexoki.ts), independent of the
-   page theme, so the shared primitive's THEMED fill/border (tracking
-   --bg-elevated/--border) collapse onto that surface in dark mode — byte-
-   identical fill, a ~1.6:1 border — and fail the 3:1 non-text contrast minimum
-   (WCAG 1.4.11). The overrides below are literal Flexoki tones picked against
+   Marginalia box, wash hover and icon-swap come from the shared .sc-copy /
+   .sc-press primitives; base.css owns only what is code-block-specific — it
+   floats over the code and fades in on hover. Shiki always paints the code
+   surface in its own fixed dark palette (#1c1b1a, flexoki-dark — see
+   shiki-flexoki.ts), independent of the page theme, so the shared primitive's
+   THEMED glyph/wash (tracking --muted/--fg) mis-contrast on that surface in
+   light mode. The overrides below are literal Flexoki tones picked against
    #1c1b1a specifically: the surface never theme-switches, so the control
    sitting on it shouldn't either. !important beats primitives.css's
    later-loaded .sc-copy rule at equal selector specificity. */
@@ -254,15 +253,12 @@ pre.astro-code {
   position: absolute;
   top: var(--space-2);
   right: var(--space-2);
-  background: #282726 !important; /* Flexoki base-900 */
-  border-color: #878580 !important; /* Flexoki base-500, 4.7:1 on #1c1b1a */
-  /* The shared .sc-copy primitive's resting `color: var(--muted)` is themed —
-     in light mode that's the dark ink (#575653), which measures 2.03:1 on this
-     literal fill and fails 3:1. Reuse the same base-500 tone as the border so
-     the icon (Icon.astro's svg uses stroke="currentColor") stays legible at
+  /* The GLYPH is the whole control at rest now (marginalia). The shared
+     resting `color: var(--muted)` is themed — in light mode that's the dark
+     ink, near-invisible on this fixed dark slab. Base-500 stays legible at
      rest, not just on hover/copied — the button is visible in this exact state
      whenever the pointer hasn't reached it, and permanently on touch devices. */
-  color: #878580 !important; /* Flexoki base-500, 4.7:1 on #1c1b1a, 4:1 on this fill */
+  color: #878580 !important; /* Flexoki base-500, 4.7:1 on #1c1b1a */
   opacity: 0;
   /* !important + the transform sub-transition (matching .sc-press) because
      primitives.css's .sc-press rule loads AFTER this file: at equal
@@ -271,7 +267,7 @@ pre.astro-code {
   transition:
     opacity var(--dur-fast) var(--ease),
     color var(--dur-fast) var(--ease),
-    border-color var(--dur-fast) var(--ease),
+    background-color var(--dur-fast) var(--ease),
     transform var(--dur-fast) var(--ease) !important;
 }
 pre:hover .code-copy,
@@ -284,22 +280,22 @@ pre:hover .code-copy,
     opacity: 1;
   }
 }
-/* The shared hover recolors border/text to --accent-ink/--accent, both derived
-   toward --fg — in light mode that's the dark ink, which measures as low as
-   1.7:1 for some course accents on #1c1b1a. Lightening the accent toward white
-   keeps each course's own hue identity while guaranteeing a legible mark
-   against the fixed dark surface in both page themes (≥6:1 across the
-   Flexoki accent set). */
+/* The shared wash hover derives from the themed --fg — in light mode that is
+   the dark ink, invisible on this fixed dark slab — and the shared accent-ink
+   text measures as low as 1.7:1 for some course accents on #1c1b1a. Use the
+   slab's own warm ink literal for the wash, and lighten the accent toward
+   white for the glyph: each course keeps its hue identity with a legible mark
+   against the fixed dark surface in both page themes (≥6:1 across the Flexoki
+   accent set). */
 .code-copy:hover {
   color: color-mix(in srgb, var(--accent) 55%, white) !important;
-  border-color: color-mix(in srgb, var(--accent) 55%, white) !important;
+  background: color-mix(in srgb, #cecdc3 12%, transparent) !important;
 }
 /* --tip's dark-theme value already reads at 11:1 on #1c1b1a; reused literally
    here since the copied state sits on that same fixed surface in both page
    themes (the light-theme --tip fails at 2.8:1). */
 .code-copy[data-copied="true"] {
   color: #cdd597 !important;
-  border-color: #cdd597 !important;
 }
 pre code {
   background: none;
