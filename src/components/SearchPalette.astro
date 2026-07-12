@@ -61,8 +61,8 @@ import Icon from "./Icon.astro";
 </dialog>
 
 <style>
-  /* Frame + accent hover come from the shared .sc-pill primitive; only the
-     control height + inline padding are local. */
+  /* Marginalia surface + wash hover come from the shared .sc-pill primitive;
+     only the control height + inline padding are local. */
   .search-trigger {
     gap: var(--space-2);
     /* min-height (not height) so the control grows when the kbd badge wraps to a
@@ -150,18 +150,19 @@ import Icon from "./Icon.astro";
     -webkit-appearance: none;
     appearance: none;
   }
-  /* Keycap frame from the shared .sc-kbd; the Esc button (it's clickable) keeps
-     its own padding + the shared accent hover. */
+  /* Keycap frame from the shared .sc-kbd — a keycap is a bordered glyph, not a
+     control, so the hairline stays (the sanctioned exception). Being clickable,
+     the Esc button answers hover with the marginalia ink wash. */
   .search-esc {
     padding: 0.15em 0.5em;
     transition:
       color var(--dur-fast) var(--ease),
-      border-color var(--dur-fast) var(--ease),
+      background-color var(--dur-fast) var(--ease),
       transform var(--dur-fast) var(--ease);
   }
   .search-esc:hover {
     color: var(--accent-ink);
-    border-color: var(--accent);
+    background: var(--wash);
   }
   .search-results {
     max-height: min(60vh, 480px);

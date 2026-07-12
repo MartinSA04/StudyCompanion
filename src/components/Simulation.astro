@@ -109,6 +109,8 @@ const { src, title, caption, height = 300, host = "canvas" } = Astro.props;
     display: none;
   }
   .sim-controls {
+    /* Paper controls hosted on this panel step to the nested fill. */
+    --control-fill: var(--card-nested);
     display: flex;
     flex-wrap: wrap;
     gap: var(--space-4) var(--space-6);
@@ -154,16 +156,18 @@ const { src, title, caption, height = 300, host = "canvas" } = Astro.props;
     font-family: var(--font-mono);
     font-size: var(--text-sm);
     padding: 0.3em 0.7em;
-    border: 1px solid var(--border);
+    border: 0;
     border-radius: var(--radius-sm);
-    background: var(--bg-elevated);
+    background: var(--control-fill, var(--bg-elevated));
     color: var(--muted);
     transition:
-      border-color var(--dur-fast) var(--ease),
+      background-color var(--dur-fast) var(--ease),
       color var(--dur-fast) var(--ease);
   }
+  /* --card-hover equals the resting nested fill, so hover is an ink wash over
+     it (same construction as the quiz options' accent wash). */
   .sim-controls :global(.sim-btn:hover:not(:disabled)) {
-    border-color: var(--accent);
+    background: color-mix(in srgb, var(--fg) 6%, var(--card-nested));
     color: var(--accent-ink);
   }
   /* Tactile press, kept local (not the shared .sc-press): .sim-btn is injected by
@@ -174,7 +178,6 @@ const { src, title, caption, height = 300, host = "canvas" } = Astro.props;
   }
   .sim-controls :global(.sim-btn[aria-pressed="true"]) {
     background: var(--accent-weak);
-    border-color: var(--accent);
     color: var(--accent-ink);
   }
   .sim-controls :global(.sim-btn:disabled) {

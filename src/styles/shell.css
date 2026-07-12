@@ -116,8 +116,9 @@
   background: var(--accent);
   transition: transform var(--dur) var(--ease);
 }
-/* Box + accent hover come from the shared .sc-icon-btn primitive (like the theme
-   toggle); only the square topbar-control size + collapsed-by-default are local. */
+/* Marginalia box + wash hover come from the shared .sc-icon-btn primitive (like
+   the theme toggle); only the square topbar-control size + collapsed-by-default
+   are local. */
 .menu-toggle {
   display: none;
   width: var(--control-h);
@@ -463,8 +464,8 @@
   color: var(--muted);
   margin: 0;
 }
-/* Frame + accent hover from the shared .sc-pill primitive (same recipe as the
-   search trigger + theme toggle); only the gap, padding and link reset are local. */
+/* Marginalia surface + wash hover from the shared .sc-pill primitive (same
+   recipe as the search trigger); only the gap, padding and link reset are local. */
 .hero-continue {
   gap: 6px;
   padding: var(--gap-1) var(--gap-3);
@@ -524,19 +525,17 @@
   flex-wrap: wrap;
   gap: var(--gap-2) var(--gap-3);
 }
-/* Frame + accent hover from the shared .sc-pill primitive (same as the search
-   trigger + hero continue); local: size + the --accent-soft "done" pill below.
-   background-color stays in the transition so the done toggle fades. */
+/* Surface + fill-darken hover from the shared .sc-btn (a stateful control keeps
+   paper); local: size, the muted resting label, and the --accent-soft "done"
+   state below. .sc-btn's transition already carries background-color, so the
+   done toggle still fades. */
 .done-btn {
   flex: none;
   gap: var(--gap-2);
   padding: var(--gap-2) var(--gap-4);
   cursor: pointer;
   white-space: nowrap;
-  transition:
-    background-color var(--dur-fast) var(--ease),
-    color var(--dur-fast) var(--ease),
-    border-color var(--dur-fast) var(--ease);
+  color: var(--muted);
 }
 /* The check shows only once the module is marked done. */
 .done-check {
@@ -551,7 +550,6 @@
 .done-btn.done {
   background: var(--accent-soft);
   color: var(--accent-ink);
-  border-color: transparent;
   font-weight: var(--weight-semibold);
 }
 
@@ -834,8 +832,8 @@
   }
   /* Sits in the drawer's top padding (80px), clear of the first nav row and any
      notch. */
-  /* Box + accent hover from .sc-icon-btn; only placement + the larger 40px touch
-     target are local. */
+  /* Marginalia box + wash hover from .sc-icon-btn; only placement + the larger
+     40px touch target are local. */
   .sidebar-close {
     display: grid;
     position: absolute;
