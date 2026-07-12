@@ -1,0 +1,52 @@
+name: Deploy hub to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "hub/**"
+      - "src/styles/**"
+      - "src/components/ThemeToggle.astro"
+      - "src/components/Icon.astro"
+      - "src/lib/favicon.ts"
+      - "src/lib/pageLifecycle.ts"
+      - "astro.config.hub.mjs"
+      - ".github/workflows/pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      # --no-frozen-lockfile: mirrors visual.yml (CI-only devDeps may lag the
+      # committed lockfile).
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --no-frozen-lockfile
+      - run: pnpm hub:build
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist-hub/
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

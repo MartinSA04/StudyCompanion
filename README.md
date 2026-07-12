@@ -142,3 +142,13 @@ natively) — no extra dependency. It covers the pure modules (`lib/nav`,
 `scripts/ensure-self-link.mjs`) so the injected routes resolve the package by
 name, exactly as a real course does. To develop against a real course instead:
 `pnpm --dir ../course dev`.
+
+## Course hub (kurs.martinsundal.no)
+
+A standalone one-pager listing every course site, deployed to GitHub Pages
+from this repo (`.github/workflows/pages.yml`, pushes to `main`). It is a
+second tiny Astro build — `astro.config.hub.mjs`, `srcDir: hub/`, no
+integration — whose page imports the framework's own `src/styles/*` and
+`ThemeToggle`, so it tracks the design system with zero copied CSS. Courses
+live in `hub/courses.yaml` (code/title/url/term; file order is display
+order). `pnpm hub:dev` to work on it locally.

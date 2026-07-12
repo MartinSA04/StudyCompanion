@@ -55,7 +55,8 @@ Single centered column in the site's reading measure, Norwegian copy:
 
 ## Files
 
-- `hub/index.astro` — the page. Frontmatter parses `hub/courses.yaml` with the
+- `hub/pages/index.astro` — the page (Astro requires `pages/` under
+  `srcDir`). Frontmatter parses `hub/courses.yaml` with the
   existing `yaml` dependency; imports `src/styles/fonts.css`,
   `src/styles/tokens.css`, and `src/styles/base.css` whole (a few unused KaTeX
   rules are the price of zero drift); page-scoped styles for the hub-specific
@@ -66,9 +67,9 @@ Single centered column in the site's reading measure, Norwegian copy:
   within their group — keep the file sorted newest semester first; no sort
   logic to get wrong.
 - `hub/public/CNAME` — `kurs.martinsundal.no`.
-- `hub/public/favicon.svg` — the CourseLayout brand-mark geometry as a
-  standalone SVG (small intentional duplication; extract a shared source
-  only if the mark ever changes).
+- Favicon: `faviconDataUri("#205ea6")` imported from `src/lib/favicon.ts` —
+  the framework's own mark, no duplicated geometry. (Supersedes the earlier
+  copied-SVG idea; the shared source already existed.)
 - `astro.config.hub.mjs` — `site: "https://kurs.martinsundal.no"`,
   `srcDir: "./hub"`, `publicDir: "./hub/public"`, `outDir: "./dist-hub"`.
   Plain Astro, no integration.
