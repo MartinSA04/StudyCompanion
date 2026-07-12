@@ -55,7 +55,7 @@ const haystack = (e: GlossaryEntry) =>
 ---
 
 <div class="gloss-controls">
-  <div class="gloss-search">
+  <div class="gloss-search sc-field">
     <Icon name="search" />
     <input
       type="search"
@@ -115,21 +115,7 @@ const haystack = (e: GlossaryEntry) =>
   .gloss-controls {
     margin-bottom: var(--space-5);
   }
-  .gloss-search {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: var(--card);
-    border: 1px solid var(--border-strong);
-    border-radius: var(--radius);
-    padding: 9px 14px;
-    color: var(--muted);
-    transition: border-color var(--dur-fast) var(--ease);
-  }
-  .gloss-search:focus-within {
-    border-color: var(--accent);
-    color: var(--accent-ink);
-  }
+  /* Fill, frame-less field + focus ring come from the shared .sc-field. */
   .gloss-search-input {
     flex: 1;
     min-width: 0;

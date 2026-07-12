@@ -81,7 +81,7 @@ const hasMemorize = examFormulaSheet && formulas.some((f) => f.memorize);
 }
 
 <div class="fs-controls">
-  <div class="fs-search">
+  <div class="fs-search sc-field">
     <Icon name="search" />
     <input
       type="search"
@@ -196,22 +196,10 @@ const hasMemorize = examFormulaSheet && formulas.some((f) => f.memorize);
     gap: 12px;
     margin-bottom: var(--space-5);
   }
+  /* Fill, frame-less field + focus ring come from the shared .sc-field. */
   .fs-search {
-    display: flex;
-    align-items: center;
-    gap: 8px;
     flex: 1;
     min-width: 220px;
-    background: var(--card);
-    border: 1px solid var(--border-strong);
-    border-radius: var(--radius);
-    padding: 9px 14px;
-    color: var(--muted);
-    transition: border-color var(--dur-fast) var(--ease);
-  }
-  .fs-search:focus-within {
-    border-color: var(--accent);
-    color: var(--accent-ink);
   }
   .fs-search-input {
     flex: 1;
@@ -321,7 +309,7 @@ const hasMemorize = examFormulaSheet && formulas.some((f) => f.memorize);
     color: var(--accent-ink);
     font-weight: var(--weight-semibold);
   }
-  /* Box, hover and icon-swap come from the shared .sc-copy / .sc-press
+  /* Box, wash hover and icon-swap come from the shared .sc-copy / .sc-press
      primitives; the sheet only positions the button at the row's trailing edge.
      The transition stays local — .sc-copy sets none, so each caller owns it. */
   .fs-copy {
@@ -329,7 +317,7 @@ const hasMemorize = examFormulaSheet && formulas.some((f) => f.memorize);
     margin-left: auto;
     transition:
       color var(--dur-fast) var(--ease),
-      border-color var(--dur-fast) var(--ease),
+      background-color var(--dur-fast) var(--ease),
       transform var(--dur-fast) var(--ease);
   }
   .fs-empty {
