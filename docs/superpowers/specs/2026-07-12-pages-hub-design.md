@@ -7,7 +7,8 @@ CSS.
 
 ## Goals
 
-- One simple page: kicker, headline, one intro sentence, course tiles, footer.
+- One simple page: headline, one intro sentence, theme toggle, course tiles
+  grouped by semester, footer.
 - Visual lockstep with the framework: the page consumes `src/styles/` directly,
   so token and typography changes propagate to the hub on its next deploy.
 - Data-driven: adding a course later is one YAML entry, no markup edits.
@@ -17,9 +18,7 @@ CSS.
 
 - No hub mode in the framework integration (the integration renders courses;
   the hub is repo-local).
-- No theme toggle: the hub follows `prefers-color-scheme`. Course sites keep
-  their per-course toggle.
-- No search, no analytics, no course metadata beyond code/title/URL.
+- No search, no course metadata beyond code/title/URL/term.
 
 ## Page content
 
@@ -28,24 +27,31 @@ Single centered column in the site's reading measure, Norwegian copy:
 - Headline `Studieguider` + one intro sentence: "Interaktive studieguider
   med flashcards, quiz og formelsamling." No separate kicker — the tiles
   carry the mono course-code kickers.
-- One tile per course, in this order (same as martinsundal.no), each an
-  `<a>` in the framework's tile language — `sc-panel` float, `sc-lift`
-  hover-raise, course code as mono accent kicker, title beneath:
+- Theme toggle top-right, same behavior and iconography as the course
+  sites: choice persists in localStorage under `sc:theme:hub` (the
+  framework's `sc:theme:<code>` pattern), falls back to
+  `prefers-color-scheme`, with the usual no-flash inline script.
+- Courses grouped by semester, one section per term, newest first. Section
+  headers render the term code as a human label (`H2026` → «Høst 2026»,
+  `V2026` → «Vår 2026») in the site's mono kicker style.
+- One tile per course, each an `<a>` in the framework's tile language —
+  `sc-panel` float, `sc-lift` hover-raise, course code as mono accent
+  kicker, title beneath:
 
-  | Code | Title | URL |
-  | --- | --- | --- |
-  | TFY4195 | Optikk | <https://optikk.martinsundal.no> |
-  | FY2045 | Kvantemekanikk I | <https://kvante.martinsundal.no> |
-  | TDT4120 | Algoritmer og datastrukturer | <https://algdat.martinsundal.no> |
-  | TFE4146 | Halvlederkomponenter | <https://halvleder.martinsundal.no> |
-  | TFY4220 | Faste stoffers fysikk | <https://fastestoffer.martinsundal.no> |
-  | TFY4345 | Klassisk mekanikk | <https://klasmek.martinsundal.no> |
+  | Term | Code | Title | URL |
+  | --- | --- | --- | --- |
+  | H2026 | FY2045 | Kvantemekanikk I | <https://kvante.martinsundal.no> |
+  | H2026 | TDT4120 | Algoritmer og datastrukturer | <https://algdat.martinsundal.no> |
+  | H2026 | TFE4146 | Halvlederkomponenter | <https://halvleder.martinsundal.no> |
+  | H2026 | TFY4220 | Faste stoffers fysikk | <https://fastestoffer.martinsundal.no> |
+  | H2026 | TFY4345 | Klassisk mekanikk | <https://klasmek.martinsundal.no> |
+  | V2026 | TFY4195 | Optikk | <https://optikk.martinsundal.no> |
 
 - Quiet mono footer: links to the GitHub repo
   (`github.com/MartinSA04/StudyCompanion`) and to `martinsundal.no`.
-- Dark mode: a tiny inline no-flash script sets `data-theme` on `:root` from
-  `prefers-color-scheme` (and tracks live changes). Same tokens as the
-  course sites.
+- Analytics: GoatCounter, mirroring the framework's wiring (async
+  `count.js`, cookieless, production builds only — never in `astro dev`),
+  counting to `https://kursmartinsundal.goatcounter.com/count`.
 
 ## Files
 
@@ -55,8 +61,10 @@ Single centered column in the site's reading measure, Norwegian copy:
   rules are the price of zero drift); page-scoped styles for the hub-specific
   layout. Head: `<title>Studieguider — Martin Sundal</title>`, meta
   description, `lang="no"`.
-- `hub/courses.yaml` — `code`, `title`, `url` per course; file order is
-  display order.
+- `hub/courses.yaml` — `code`, `title`, `url`, `term` per course. Groups
+  appear in order of first appearance in the file, tiles in file order
+  within their group — keep the file sorted newest semester first; no sort
+  logic to get wrong.
 - `hub/public/CNAME` — `kurs.martinsundal.no`.
 - `hub/public/favicon.svg` — the CourseLayout brand-mark geometry as a
   standalone SVG (small intentional duplication; extract a shared source
@@ -83,8 +91,10 @@ contract are untouched. `dist-hub/` joins `.gitignore`.
 ## Testing
 
 - Unit (`test/hub.test.ts`, node --test like the rest): `hub/courses.yaml`
-  parses, is non-empty, and every entry has a non-empty `code`, `title`, and
-  an `https://` URL — a typo'd link fails CI, not a visitor.
-- Visual: hub snapshots in light and dark join the existing Playwright suite;
-  the visual config gains a second `webServer` entry that builds and previews
-  the hub on its own port.
+  parses, is non-empty, and every entry has a non-empty `code`, `title`, an
+  `https://` URL, and a `term` matching `^[HV]\d{4}$` — a typo'd link fails
+  CI, not a visitor.
+- Visual: hub snapshots in light and dark join the existing Playwright suite
+  (forcing theme via the `sc:theme:hub` key, like the kitchen-sink tests);
+  the visual config gains a second `webServer` entry that builds and
+  previews the hub on its own port.
