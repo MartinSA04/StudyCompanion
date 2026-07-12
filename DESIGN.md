@@ -74,11 +74,14 @@ components:
     backgroundColor: "{colors.paper-panel}"
     rounded: "{rounded.md}"
   icon-button:
-    backgroundColor: "{colors.paper-panel}"
     textColor: "{colors.ink-dim}"
     rounded: "{rounded.sm}"
     size: "38px"
   pill-button:
+    textColor: "{colors.ink-dim}"
+    typography: "{typography.label}"
+    rounded: "{rounded.sm}"
+  paper-button:
     backgroundColor: "{colors.paper-panel}"
     textColor: "{colors.ink-dim}"
     typography: "{typography.label}"
@@ -113,7 +116,9 @@ interface marginalia (kickers, chips, keycaps, disclosure labels). The surface
 is Flexoki warm paper in light mode and warm near-black in dark; every neutral
 is tinted toward the ink, never pure #000/#fff. Interaction is quiet
 marginalia, not app chrome: controls sit restrained at rest and answer every
-touch (accent on hover, a 1px dip on press, a 1px lift on hover).
+touch (a surface answer on hover — paper fills darken a step, marginalia takes
+an ink wash — with text lighting to accent-ink, a 1px dip on press, a 1px lift
+on hover).
 
 The system explicitly rejects generic docs-site chrome (the Starlight look),
 SaaS/AI-slop tells (gradient text, glassmorphism, hero metrics, icon-card
@@ -156,15 +161,25 @@ categorical hues for figures and semantic asides.
   (base-100); nesting alternates fills rather than darkening forever.
 - **Ink** (#100f0f), **Ink Dim** (#575653, 7.1:1), **Ink Faint** (#6f6e69,
   5.0:1): text ramp; faint is for nav numbers and captions only.
-- **Line** (#dad8ce) for panel hairlines; **Line Strong** (#cecdc3) for
-  control borders. Panels=line, controls=line-strong is a contract.
+- **Line** (#dad8ce) / **Line Strong** (#cecdc3): structural hairlines only
+  (dividers, table rules, keycaps, the quiz radio ring); no interactive
+  control carries a border.
 - Dark theme mirrors the ramp on Flexoki black (#100f0f ground, #1c1b1a
   panels, #cecdc3 ink); accents get per-course dark variants.
 
 ### Named Rules
 
-**The Two-Border Rule.** Panels use --border; interactive controls use
---border-strong. A component that mixes them up is wrong.
+**The Structural-Border Rule.** Borders never mark interactivity. Hairlines
+are for structure (dividers, tables, canvas frames) and for two sanctioned
+form glyphs: the keycap (--border) and the quiz radio ring (--border-strong).
+An interactive control is surface-or-nothing.
+
+**The Paper/Marginalia Rule.** State sits on paper; navigation sits in the
+margin. A control you toggle, select, complete or type into keeps a
+borderless paper fill (var(--control-fill, var(--bg-elevated)); hosting
+panels set --control-fill to the nested tone). A control that acts instantly
+or navigates is bare mono type/glyph with an ink-wash hover (--wash). Hover
+text is --accent-ink in both families.
 
 **The Accent-Ink Rule.** Accent-colored TEXT always goes through --accent-ink
 (accent mixed 75% toward the ink); raw --accent on text is forbidden except on
@@ -246,17 +261,20 @@ Feel: restrained at rest, tactile on touch.
 ### Buttons
 
 - **Shape:** small radius (6px); square icon buttons at 38px (--control-h).
-- **Resting:** panel fill (#f2f0e5), 1px neutral border, mono dim-ink label.
-- **Hover / Focus:** border and text light to accent (--accent-ink for text);
-  focus is a 2px accent outline offset 2px. Press dips 1px (.sc-press).
-- **Labelled pill (.sc-pill):** same recipe in inline-flex labelled form
-  (search trigger, done button, continue).
+- **Paper (stateful — .sc-btn, .sc-chip, .sc-field):** borderless panel fill
+  one paper step off the ground, mono label; hover darkens the fill one step
+  (--card-hover; a 6% ink wash over nested fills) and lights text to
+  --accent-ink.
+- **Marginalia (navigational — .sc-pill, .sc-icon-btn, .sc-copy):** bare mono
+  label / bare glyph in dim ink; hover paints --wash and lights text to
+  --accent-ink.
+- **Focus:** 2px accent outline offset 2px. Press dips 1px (.sc-press).
 
 ### Chips (.sc-chip)
 
-- **Style:** pill radius, --border-strong frame, panel fill, mono xs text.
-- **State:** hover lights accent border+text; selected fills solid accent
-  with --accent-contrast text (aria-pressed="true").
+- **Style:** pill radius, borderless paper fill, mono xs text.
+- **State:** hover darkens the fill + accent-ink text; selected fills solid
+  accent with --accent-contrast text (aria-pressed="true").
 
 ### Cards / Containers (.sc-panel / .sc-tile)
 
@@ -270,8 +288,10 @@ Feel: restrained at rest, tactile on touch.
 
 ### Inputs / Fields
 
-- **Style:** quiz options and search input follow the control recipe:
-  panel fill, --border-strong, mono or body text per context.
+- **Style:** quiz options and search fields are paper: borderless fills one
+  step off their ground (quiz options recess to --card-nested; search fields
+  are .sc-field on the page ground), mono or body text per context. The quiz
+  radio ring keeps the one sanctioned --border-strong form glyph.
 - **Focus:** 2px accent outline, offset 2px, radius-sm.
 - **Error / correct:** literal Flexoki red/green -low fills with -high text
   (--wrong/--wrong-bg, --tip/--answer-bg).
@@ -314,7 +334,8 @@ Feel: restrained at rest, tactile on touch.
 - **Do** route every accent-colored text through --accent-ink; keep raw
   --accent for fills, borders, rings, icons.
 - **Do** give every interactive element the full state set: rest, hover
-  (accent light-up), focus-visible (2px accent outline), press (1px dip).
+  (surface answer + accent-ink text), focus-visible (2px accent outline),
+  press (1px dip).
 - **Do** use mono for anything that is interface, serif for anything that is
   content (The Mono-Marginalia Rule).
 - **Do** express depth by stepping paper tones (panel → nested → panel);
@@ -338,8 +359,8 @@ Feel: restrained at rest, tactile on touch.
   (the print stylesheet is exempt — print intentionally spends pure
   white/black for ink economy, since paper toning and Flexoki tints have no
   meaning on a printed page; screen themes never do this).
-- **Don't** mix border roles: panels never use --border-strong, controls
-  never use --border (The Two-Border Rule).
+- **Don't** put a border on an interactive control; borders are structural
+  only (The Structural-Border Rule).
 - **Don't** tint asides by color-mixing the accent onto paper; asides use
   literal Flexoki swatches (The Literal-Swatch Rule).
 - **Don't** add playful/bouncy motion, confetti, or gamification aesthetics;
