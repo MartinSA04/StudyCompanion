@@ -32,13 +32,22 @@ export default defineConfig({
     baseURL: "http://localhost:4321",
   },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
-  // One command so a fresh checkout (or CI) needs no manual build step first.
-  // cwd is the repo root so `pnpm build`/`preview` find astro.config.mjs.
-  webServer: {
-    command: "pnpm build && pnpm preview --port 4321",
-    cwd: repoRoot,
-    url: "http://localhost:4321",
-    reuseExistingServer: !process.env.CI,
-    timeout: 120_000,
-  },
+  // One command per site so a fresh checkout (or CI) needs no manual build
+  // step first. cwd is the repo root so pnpm scripts find their configs.
+  webServer: [
+    {
+      command: "pnpm build && pnpm preview --port 4321",
+      cwd: repoRoot,
+      url: "http://localhost:4321",
+      reuseExistingServer: !process.env.CI,
+      timeout: 120_000,
+    },
+    {
+      command: "pnpm hub:build && pnpm hub:preview --port 4322",
+      cwd: repoRoot,
+      url: "http://localhost:4322",
+      reuseExistingServer: !process.env.CI,
+      timeout: 120_000,
+    },
+  ],
 });
