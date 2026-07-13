@@ -17,7 +17,13 @@ import "../../src/styles/primitives.css";
  * docs/superpowers/specs/2026-07-12-pages-hub-design.md). All visual language
  * comes from the framework's own styles; this page only lays out tiles.
  */
-type HubCourse = { code: string; title: string; url: string; term: string };
+type HubCourse = {
+  code: string;
+  title: string;
+  url: string;
+  term: string;
+  note?: string;
+};
 const courses = parse(raw) as HubCourse[];
 
 // Group by term, groups in file order of first appearance — no sort logic.
@@ -121,9 +127,10 @@ const themeKey = "sc:theme:hub";
             <ul class="hub-list">
               {g.courses.map((c) => (
                 <li>
-                  <a class="hub-tile sc-panel sc-lift" href={c.url}>
+                  <a class="hub-tile sc-press sc-tile sc-lift" href={c.url}>
                     <span class="hub-code sc-kicker">{c.code}</span>
                     <span class="hub-title">{c.title}</span>
+                    {c.note && <span class="hub-note">{c.note}</span>}
                   </a>
                 </li>
               ))}
@@ -170,8 +177,10 @@ const themeKey = "sc:theme:hub";
     flex-direction: column;
     gap: var(--space-3);
   }
-  /* Float (fill + shadow + radius) and hover-raise come from the shared
-     .sc-panel / .sc-lift primitives; only layout and type are local. */
+  /* Float (fill + shadow + radius) plus the hover shadow-lift come from the
+     shared .sc-tile primitive; the 1px rise and press dip from .sc-lift /
+     .sc-press. These are big cards, so they use the same tile language as the
+     overview module tiles. Only layout and type are local. */
   .hub-tile {
     display: flex;
     flex-direction: column;
@@ -188,6 +197,13 @@ const themeKey = "sc:theme:hub";
   .hub-title {
     font-size: var(--text-lg);
     line-height: var(--leading-snug);
+  }
+  /* Small muted mono aside (e.g. "no longer maintained") — same tone as the
+     footer, kept quiet so it never competes with the title. */
+  .hub-note {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--muted);
   }
   .hub-foot {
     margin-top: var(--space-6);

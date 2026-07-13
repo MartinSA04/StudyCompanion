@@ -27,7 +27,15 @@
   // user, then provision the toolchain from mise.toml and install dependencies.
   // `mise exec` runs pnpm with the mise-managed tools on PATH (postCreate is a
   // non-interactive shell where mise isn't auto-activated).
-  "postCreateCommand": "sudo chown -R $(whoami) node_modules 2>/dev/null; mise trust && mise install && mise exec -- pnpm install",
+  //
+  // The final step installs the Chromium build + its apt system libs that
+  // `pnpm test:visual` (Playwright) needs — the SAME command CI runs
+  // (.github/workflows/visual.yml), so local snapshots match the committed
+  // Linux baselines. `--with-deps` shells out to `sudo apt-get`; the vscode user
+  // has passwordless sudo, so it runs unattended. Browsers land in
+  // ~/.cache/ms-playwright (outside the node_modules volume), so this reruns on
+  // each rebuild — which is correct, since the apt libs reset with the image too.
+  "postCreateCommand": "sudo chown -R $(whoami) node_modules 2>/dev/null; mise trust && mise install && mise exec -- pnpm install && mise exec -- pnpm exec playwright install --with-deps chromium",
 
   "remoteUser": "vscode",
 
