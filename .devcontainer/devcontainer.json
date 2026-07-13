@@ -3,7 +3,7 @@
   "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
 
   // Personal baseline (mise + git + gh + Claude Code, and zsh/starship),
-  // published from github.com/MartinSA04/devcontainer-base.
+  // published from github.com/MartinSA04/devcontainer-base (template: mise-claude).
   //
   // As of feature v1.2.0, Claude persistence (the CLAUDE_CONFIG_DIR env, the
   // claude-${devcontainerId} volume, and its chown) is baked into the feature
@@ -19,23 +19,25 @@
   // Keep node_modules in a named volume (keyed by ${devcontainerId}, so it's
   // isolated per project and survives rebuilds) => the container's arch-specific
   // installs never collide with tooling run on the host, and installs are faster.
+  //
+  // The id_git mount gives the container your GitHub SSH key (read-only). Only
+  // ~/.ssh/id_git is exposed — never your other keys — and post-create.sh writes
+  // an ~/.ssh/config that pins github.com to it. Without this, the forwarded SSH
+  // agent may offer another key first (e.g. a read-only work deploy key), which
+  // wins the handshake and blocks pushes. Requires ~/.ssh/id_git on the host (a
+  // key registered on your GitHub account); drop this line and the ssh block in
+  // post-create.sh if unused.
   "mounts": [
-    "source=node-modules-${devcontainerId},target=${containerWorkspaceFolder}/node_modules,type=volume"
+    "source=node-modules-${devcontainerId},target=${containerWorkspaceFolder}/node_modules,type=volume",
+    "source=${localEnv:HOME}/.ssh/id_git,target=/home/vscode/.ssh/id_git,type=bind,readonly"
   ],
 
-  // A freshly created volume is root-owned — hand node_modules to the remote
-  // user, then provision the toolchain from mise.toml and install dependencies.
-  // `mise exec` runs pnpm with the mise-managed tools on PATH (postCreate is a
-  // non-interactive shell where mise isn't auto-activated).
-  //
-  // The final step installs the Chromium build + its apt system libs that
-  // `pnpm test:visual` (Playwright) needs — the SAME command CI runs
-  // (.github/workflows/visual.yml), so local snapshots match the committed
-  // Linux baselines. `--with-deps` shells out to `sudo apt-get`; the vscode user
-  // has passwordless sudo, so it runs unattended. Browsers land in
-  // ~/.cache/ms-playwright (outside the node_modules volume), so this reruns on
-  // each rebuild — which is correct, since the apt libs reset with the image too.
-  "postCreateCommand": "sudo chown -R $(whoami) node_modules 2>/dev/null; mise trust && mise install && mise exec -- pnpm install && mise exec -- pnpm exec playwright install --with-deps chromium",
+  // Provisioning (dep-dir ownership, mise toolchain, pnpm install, the Playwright
+  // Chromium build for `pnpm test:visual`, and the GitHub SSH config) lives in
+  // .devcontainer/post-create.sh. Note: mise's managed tools are NOT auto-
+  // activated in this non-interactive shell, so install steps go through
+  // `mise exec --` (e.g. `mise exec -- pnpm install`).
+  "postCreateCommand": "bash .devcontainer/post-create.sh",
 
   "remoteUser": "vscode",
 
