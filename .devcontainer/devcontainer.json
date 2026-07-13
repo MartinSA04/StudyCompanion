@@ -27,9 +27,21 @@
   // wins the handshake and blocks pushes. Requires ~/.ssh/id_git on the host (a
   // key registered on your GitHub account); drop this line and the ssh block in
   // post-create.sh if unused.
+  //
+  // The last six binds expose the consuming course repos from the host at their
+  // ~/School/<CODE>/companion paths (mirrored 1:1 in-container, so CLAUDE.md's
+  // release paths resolve as-is). optics/TFY4195 is FROZEN, so it is read-only.
+  // NOTE: each host source must exist at rebuild time — Docker silently creates
+  // an empty root-owned dir at the target for any missing source.
   "mounts": [
     "source=node-modules-${devcontainerId},target=${containerWorkspaceFolder}/node_modules,type=volume",
-    "source=${localEnv:HOME}/.ssh/id_git,target=/home/vscode/.ssh/id_git,type=bind,readonly"
+    "source=${localEnv:HOME}/.ssh/id_git,target=/home/vscode/.ssh/id_git,type=bind,readonly",
+    "source=${localEnv:HOME}/School/TFY4195/companion,target=/home/vscode/School/TFY4195/companion,type=bind,readonly",
+    "source=${localEnv:HOME}/School/TDT4120/companion,target=/home/vscode/School/TDT4120/companion,type=bind",
+    "source=${localEnv:HOME}/School/TFY4345/companion,target=/home/vscode/School/TFY4345/companion,type=bind",
+    "source=${localEnv:HOME}/School/TFE4146/companion,target=/home/vscode/School/TFE4146/companion,type=bind",
+    "source=${localEnv:HOME}/School/TFY4220/companion,target=/home/vscode/School/TFY4220/companion,type=bind",
+    "source=${localEnv:HOME}/School/FY2045/companion,target=/home/vscode/School/FY2045/companion,type=bind"
   ],
 
   // Provisioning (dep-dir ownership, mise toolchain, pnpm install, the Playwright

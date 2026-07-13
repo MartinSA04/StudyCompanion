@@ -1,0 +1,17 @@
+{
+  // Multi-root workspace: study-companion + the consuming course repos, which are
+  // bind-mounted from the host at ~/School/<CODE>/companion (see .devcontainer/
+  // devcontainer.json). Open it with "File > Open Workspace from File..." inside the
+  // container; VS Code then reopens it on reconnect. Paths are container paths, so
+  // this file is specific to this devcontainer.
+  "folders": [
+    { "name": "study-companion", "path": "." },
+    { "name": "optics · TFY4195 (FROZEN)", "path": "/home/vscode/School/TFY4195/companion" },
+    { "name": "algdat · TDT4120", "path": "/home/vscode/School/TDT4120/companion" },
+    { "name": "klassisk mekanikk · TFY4345", "path": "/home/vscode/School/TFY4345/companion" },
+    { "name": "halvlederkomponenter · TFE4146", "path": "/home/vscode/School/TFE4146/companion" },
+    { "name": "faste stoffers fysikk · TFY4220", "path": "/home/vscode/School/TFY4220/companion" },
+    { "name": "kvantemekanikk I · FY2045", "path": "/home/vscode/School/FY2045/companion" }
+  ],
+  "settings": {}
+}
