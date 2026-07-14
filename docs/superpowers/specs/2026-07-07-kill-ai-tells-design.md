@@ -21,7 +21,7 @@ already look right.
 
 ### Shared pattern (target)
 
-```
+```text
 ┌────────────────────────────────────────┐
 │ ★ TIPS                                  │   kicker: mono, uppercase, 0.03em,
 │ Body copy, lists, math, links …         │   semibold, colored by the tone;

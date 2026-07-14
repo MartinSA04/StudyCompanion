@@ -7,7 +7,7 @@ export default defineConfig({
   // REQUIRED: this guide's public origin (no trailing path). The framework reads
   // it for the canonical link, Open Graph / Twitter cards and the sitemap — set
   // it to your real deploy URL. Without it those absolute-URL features are
-  // skipped (with a dev warning). See study-companion ROADMAP §4.1.
+  // skipped (with a dev warning).
   site: "https://your-course.example.com",
   integrations: [studyCompanion()],
 });

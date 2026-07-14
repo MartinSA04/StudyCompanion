@@ -68,8 +68,10 @@ Author under `content/` only. **[`course-template/content/`](course-template/con
 Fenced code blocks (` ```py `) are highlighted by Shiki and get a copy button automatically.
 
 > **Captions & labels** (`<Formula caption>`, `course.yaml` formula `label`, etc.) are
-> rendered with KaTeX for `$…$` spans and pass the rest through as **inline HTML** —
-> use `<b>…</b>`/`<em>…</em>` for emphasis, not Markdown `**…**`.
+> rendered with KaTeX for `$…$` spans; the rest is escaped except the simple inline
+> tags `<b> <i> <em> <strong> <sub> <sup> <code> <br>` (attribute-less) — so use
+> `<b>…</b>`/`<em>…</em>` for emphasis, not Markdown `**…**`, and a literal `<`/`&`
+> (e.g. `n<m`) is safe plain text.
 
 ---
 
@@ -93,9 +95,11 @@ export default function init({ canvas, ctx, controls, getSize, onResize }) {
 }
 ```
 
-`api` = `{ canvas, ctx, controls, getSize:()=>({w,h}), onResize:(cb)=>void, codeBlock:(id?)=>controller|null }`. The context is pre-scaled for `devicePixelRatio`, so you work in CSS pixels. The framework owns the chrome, DPR sizing, and lazy mount.
+`api` = `{ canvas, ctx, controls, getSize:()=>({w,h}), onResize:(cb)=>void, codeBlock:(id?)=>controller|null, signal }` (for `host="dom"`, `canvas`/`ctx` are replaced by `stage`, an element). The context is pre-scaled for `devicePixelRatio`, so you work in CSS pixels. The framework owns the chrome, DPR sizing, and lazy mount.
 
 `api.codeBlock(id)` returns a controller for a `<CodeBlock id="…">` on the page — `{ setActiveLine(n), setActiveLines([…]), clear() }` — so a simulation can walk the highlighted source line(s) in lockstep with what it paints (e.g. animate an algorithm). Returns `null` if no such block exists.
+
+`api.signal` is a page-lifecycle `AbortSignal` that fires when the page is swapped out (view transitions); an animating module must stop its `requestAnimationFrame` loop / timers on it (or bind listeners with `{ signal }`) so it doesn't keep painting after a navigation. The `src` is verified **at build time** — a root-relative path that doesn't resolve under the course's `public/` fails the build (same for `<Stepper src>`), so a typo can't ship a permanently dead widget.
 
 ---
 
@@ -103,7 +107,7 @@ export default function init({ canvas, ctx, controls, getSize, onResize }) {
 
 - **SemVer with intent:** breaking **schema** change → **major**; new optional field or widget → **minor**; fix → **patch**. Tag every release `vMAJOR.MINOR.PATCH`.
 - Courses **pin a tag** and never break on framework changes until they move the pin.
-- The injected page compares `course.schemaVersion` against the framework's `SCHEMA_VERSION` and **fails the build with a clear message** on a mismatch (newer → bump the pin; older → migrate, see `MIGRATIONS.md`).
+- `loadCourse` (the single content chokepoint) compares `course.schemaVersion` against the framework's `SCHEMA_VERSION` and **fails the build with a clear message** on a mismatch (newer → bump the pin; older → migrate, see `MIGRATIONS.md`). `schemaVersion` is **required** — there is deliberately no default, so an omitted version can't silently "match".
 - Within a major version `SCHEMA_VERSION` never changes.
 
 ## Development
@@ -133,15 +137,17 @@ full-page screenshots per route × theme. Baselines are platform-specific — ge
 them once on Linux with `pnpm test:visual:update` and commit
 `visual/*-snapshots/`; CI (`.github/workflows/visual.yml`) compares against them.
 
-`pnpm test` uses Node's built-in test runner (Node ≥ 23 strips the TS types
-natively) — no extra dependency. It covers the pure modules (`lib/nav`,
-`lib/color`, `lib/progress`) and statically checks the `mdxComponents` map; the
-`.astro` widgets themselves are exercised by the demo `pnpm build`.
+`pnpm test` uses Node's built-in test runner (the toolchain pins **Node 22**,
+which strips the TS types behind the experimental type-stripping flag) — no extra
+dependency. It covers the pure modules (`lib/nav`, `lib/color`, `lib/progress`)
+and statically checks the `mdxComponents` map; the `.astro` widgets themselves are
+exercised by the demo `pnpm build`.
 
-`dev`/`build` first self-link `node_modules/study-companion` → repo root (via
-`scripts/ensure-self-link.mjs`) so the injected routes resolve the package by
-name, exactly as a real course does. To develop against a real course instead:
-`pnpm --dir ../course dev`.
+The repo depends on itself by name (`"study-companion": "link:."` in
+`package.json`) so the injected routes resolve the package exactly as a real
+course does — `pnpm install` wires `node_modules/study-companion` → the repo root
+via pnpm's own `link:` mechanism, no bespoke script. To develop against a real
+course instead: `pnpm --dir ../course dev`.
 
 ## Course hub (kurs.martinsundal.no)
 
@@ -150,5 +156,6 @@ from this repo (`.github/workflows/pages.yml`, pushes to `main`). It is a
 second tiny Astro build — `astro.config.hub.mjs`, `srcDir: hub/`, no
 integration — whose page imports the framework's own `src/styles/*` and
 `ThemeToggle`, so it tracks the design system with zero copied CSS. Courses
-live in `hub/courses.yaml` (code/title/url/term; file order is display
-order). `pnpm hub:dev` to work on it locally.
+live in `hub/courses.yaml` (code/title/url/term, plus an optional `note`
+surfaced as a tile note — e.g. "Vedlikeholdes ikke lenger" for a frozen course;
+file order is display order). `pnpm hub:dev` to work on it locally.

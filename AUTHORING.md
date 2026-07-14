@@ -103,10 +103,15 @@ section in `course-template/content/sections/`.
 rather than re-deriving. Usually `importance: useful` or `extra`.
 
 **Section frontmatter** is the contract — `order` (the source of truth for
-sequence, not the filename), `title`, `importance`, optional `summary`,
-`estMinutes`, `tags`, `part`, `updated`, plus `draft: true` (hide the module from
+sequence, not the filename), `title`, `importance`, optional `summary`, `tag`
+(a single kicker label on the overview tile — e.g. "Uke 3"; renders nowhere
+else), `num`, `part`, `updated`, plus `draft: true` (hide the module from
 **production** builds while you draft it — still visible in `astro dev`) and
-`noindex: true` (keep it in-site but out of search + the sitemap).
+`noindex: true` (keep it in-site but out of search + the sitemap). The schema is
+**strict**: an unknown or misspelled frontmatter key **fails the build** naming
+the key, rather than being silently ignored. Section files must be **flat
+`*.mdx`** directly under `content/sections/` — a nested folder or a `.md` stray
+now errors at build time instead of vanishing from the guide.
 
 ---
 
@@ -129,9 +134,17 @@ export default function init({ canvas, ctx, controls, getSize, onResize }) {
 }
 ```
 
-`api = { canvas, ctx, controls, getSize, onResize, codeBlock }`. The context is
-pre-scaled for `devicePixelRatio`, so you work in CSS pixels; the framework owns
-the chrome, sizing, and lazy mount.
+`api = { canvas, ctx, controls, getSize, onResize, codeBlock, signal }`. The
+context is pre-scaled for `devicePixelRatio`, so you work in CSS pixels; the
+framework owns the chrome, sizing, and lazy mount. `signal` is a page-lifecycle
+`AbortSignal` that fires when the page is swapped out (view transitions): stop
+any `requestAnimationFrame` loop or timer on it — or bind listeners with `{
+signal }` — so a navigated-away sim doesn't keep painting a detached canvas.
+
+The `src` is checked **at build time**: a root-relative path (`/sims/…`) that
+doesn't resolve to a real file under the course's `public/` **fails the build**,
+so a typo can't ship a green build with a permanently dead widget. The same
+check covers `<Stepper src>`.
 
 **Sim-driven code stepping.** Give a `<CodeBlock>` an `id` and a simulation can
 walk its highlighted line(s) in lockstep with what it paints:
@@ -191,8 +204,11 @@ Keep `run(input)` deterministic for a given input (shuffle re-calls
 - **Math.** Inline `$d\sin\theta = m\lambda$`, display `$$ … $$`. In **`course.yaml`**
   LaTeX scalars must be **double-quoted with escaped backslashes**:
   `tex: "\\dfrac{a}{b}"`. Captions/labels (`<Formula caption>`, formula `label`,
-  glossary `definition`) render `$…$` with KaTeX and pass the rest as **inline
-  HTML** — use `<b>`/`<em>`, not Markdown `**…**`.
+  glossary `definition`) render `$…$` with KaTeX; the rest is escaped except the
+  simple inline tags `<b> <i> <em> <strong> <sub> <sup> <code> <br>`
+  (attribute-less) — use `<b>`/`<em>`, not Markdown `**…**`. A literal `<`/`&`
+  (`n<m`, `T&C`) is safe plain text; anything fancier belongs in the section
+  body, not a prop string.
 - **Explicit numbering.** Figures (`number`), formulas, and statement ids are set
   **by hand**, never auto-derived — so reordering content never silently
   renumbers, and a cross-ref target stays stable. Section display numbers are the
@@ -203,6 +219,11 @@ Keep `run(input)` deterministic for a given input (shuffle re-calls
   duplicate anchor (§8).
 - **Language.** Defaults and chrome are Norwegian (`language: nb`). Override
   individual strings under `course.yaml` → `ui` for `nn`/`en` courses.
+- **Strict schema.** `course.yaml` is validated against a strict schema: an
+  unknown or misspelled top-level or nested key **fails the build** naming the
+  key. `course.yaml` also requires `schemaVersion` (no default) — set it to the
+  framework's `SCHEMA_VERSION` (currently **3**); a mismatch fails the build with
+  a migrate/bump-the-pin message (see `MIGRATIONS.md`).
 
 ---
 
@@ -259,7 +280,8 @@ The polish bar is **library-grade**. A module is done when:
 - [ ] **Honest `importance`** — core vs useful vs extra reflects the syllabus.
 - [ ] **No ad-hoc HTML/Markdown table** where a widget exists (use `<Compare>`,
       `<Steps>`, `<Statement>`, …).
-- [ ] **Plausible `estMinutes`.**
+- [ ] **No unknown frontmatter keys** — the schema is strict, so a typo'd key
+      fails the build; keep the frontmatter to the documented fields.
 
 Per-course (in addition): **`site`** set in `astro.config.mjs` (canonical / social
 cards / sitemap); `courseUrl` set; exam metadata + `formulaSheetUrl` where the exam

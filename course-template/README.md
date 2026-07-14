@@ -18,10 +18,14 @@ Then:
 
 1. Edit `package.json` → set `name` and pin the framework tag. Use the **newest**
    `vX.Y.Z` tag, and keep it current — bump it to pick up new widgets and fixes.
+   The committed `pnpm-lock.yaml` is pinned to the template's tag; after you
+   change the pin, run `pnpm install` to update it.
 2. Set `site` in `astro.config.mjs` to your public origin (needed for the
    canonical link, social cards and the sitemap).
 3. Edit `content/course.yaml` → identity, accent, `courseUrl`, `institution`,
-   exam, formulas, glossary.
+   exam, formulas, glossary. Keep `schemaVersion` equal to the framework's
+   `SCHEMA_VERSION` (currently **3**); a mismatch fails the build. The schema is
+   strict — an unknown or misspelled key fails the build naming the key.
 4. Replace the example sections under `content/sections/` with your modules.
 5. Drop your favicon, figures, sims and any vendored exam PDFs into `public/`.
 

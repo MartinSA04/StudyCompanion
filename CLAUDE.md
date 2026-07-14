@@ -8,9 +8,11 @@ This is study-companion: an Astro 6 integration + component library for course s
 - Schemas live in src/schema.ts; bump SCHEMA_VERSION + MIGRATIONS.md on breaking changes.
 - SemVer: breaking schema=major, new field/widget=minor, fix=patch. Tag every release vX.Y.Z.
 - On every release: bump `package.json` version, then update the framework pin to
-  the newest tag in `course-template/` AND every consuming course repo (except any
-  marked FROZEN below). Keep all non-frozen course pins in lockstep with the latest
-  tag. Consuming repos:
+  the newest tag in `course-template/` (and regenerate `course-template/pnpm-lock.yaml`
+  so the committed lockfile matches the new pin — `pnpm install --lockfile-only`
+  in the template) AND every consuming course repo (except any marked FROZEN
+  below). Keep all non-frozen course pins in lockstep with the latest tag.
+  Consuming repos:
   - optics — `~/School/TFY4195/companion` — **FROZEN**: course is complete; do NOT
     bump its pin, apply schema migrations, or edit content (stays on v1.4.0 /
     schemaVersion 1) unless explicitly asked.

@@ -6,7 +6,9 @@ git tag in `package.json` and contains **only content**.
 ## Hard rules
 
 - **Author ONLY under `content/`** — `course.yaml`, `flashcards.yaml`, and
-  `sections/*.mdx`. Static assets go in `public/` (figures, sims, PDFs, favicon).
+  `sections/*.mdx` (flat `*.mdx` files directly under `content/sections/` — a
+  nested folder or a `.md` stray fails the build). Static assets go in `public/`
+  (figures, sims, PDFs, favicon).
 - **Do NOT add components, pages, layouts, styles, or toolchain config.** The
   framework injects all of it. There is no `src/pages/` here.
 - **To change the design or add a widget, change the FRAMEWORK repo** and bump
@@ -25,7 +27,9 @@ numbering, external references), and the **per-section definition-of-done**.
 ## Workflow
 
 1. Fill `content/course.yaml` (identity, accent, `courseUrl`, exam, formulas,
-   glossary).
+   glossary). Keep `schemaVersion` at the framework's `SCHEMA_VERSION` (currently
+   **3**). Both `course.yaml` and section frontmatter use a **strict** schema, so
+   a typo'd key fails the build naming the key.
 2. Outline sections by `order` (and optional `part`), one file per module.
 3. Draft each module against an archetype (see `AUTHORING.md` / the example
    sections in this template). Wire cross-refs: `<Term>`, `<FormulaRef>`,

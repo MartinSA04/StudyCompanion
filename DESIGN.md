@@ -107,7 +107,7 @@ components:
 
 ## 1. Overview
 
-**Creative North Star: "The Typeset Textbook"**
+**Creative North Star:** "The Typeset Textbook"
 
 A beautifully set course book whose margins happen to be alive. Print
 typography carries the entire hierarchy: Fraunces display headings, Spectral
@@ -304,8 +304,8 @@ Feel: restrained at rest, tactile on touch.
 ### Navigation
 
 - Sticky topbar (74px, --topbar-h contract) + left course sidebar (288px,
-  narrowed to 14rem in the 981–1199px band to protect the reading measure)
-  + right "on this page" rail (200px, ≥1440px). Sidebar rows: mono numbers
+  narrowed to 14rem in the 981–1199px band to protect the reading measure) +
+  right "on this page" rail (200px, ≥1440px). Sidebar rows: mono numbers
   in ink-faint, accent completion states, hover-lift. Breakpoints: 1440px
   reveals the TOC rail, 980px collapses the sidebar (drawer), 640px is the
   mobile pass — the complete vocabulary; no other widths.
@@ -334,7 +334,7 @@ Feel: restrained at rest, tactile on touch.
 
 ## 6. Do's and Don'ts
 
-### Do:
+### Do
 
 - **Do** route every accent-colored text through --accent-ink; keep raw
   --accent for fills, borders, rings, icons.
@@ -350,7 +350,7 @@ Feel: restrained at rest, tactile on touch.
 - **Do** honor prefers-reduced-motion via the duration tokens; any new
   animation must collapse to 0ms with them.
 
-### Don't:
+### Don't
 
 - **Don't** ship generic docs-site chrome ("the Starlight look"); this is an
   editorial reading surface, not a docs theme.
