@@ -68,13 +68,20 @@ export function makeCodeBlockController(
 
 // A native dynamic import the bundler never rewrites: the simulation/stepper
 // module lives in the COURSE repo's public/ folder, so it must be fetched as a
-// raw URL at runtime. A literal import() (even @vite-ignore) gets a `?import`
-// query appended in dev, and fetching that on a public asset fails — the module
-// then silently never mounts. Hiding import() inside a Function constructor keeps
-// Vite's transform away entirely, in dev and in the build.
-const nativeImport = new Function("u", "return import(u)") as (
-  u: string,
-) => Promise<Record<string, unknown>>;
+// raw URL at runtime. In DEV a literal import() (even @vite-ignore) gets a
+// `?import` query appended, and fetching that on a public asset fails — the
+// module then silently never mounts; hiding import() inside a Function
+// constructor keeps Vite's transform away. But `new Function` is eval, which a
+// CSP without unsafe-eval rejects AT MODULE EVALUATION — an uncaught error that
+// kills the whole island — so the dodge is scoped to dev, where no such CSP
+// applies. The production build leaves a variable-specifier import() alone
+// (@vite-ignore only silences the analyzer warning).
+const nativeImport = import.meta.env.DEV
+  ? (new Function("u", "return import(u)") as (
+      u: string,
+    ) => Promise<Record<string, unknown>>)
+  : (u: string) =>
+      import(/* @vite-ignore */ u) as Promise<Record<string, unknown>>;
 
 /** Dynamically import a course-provided ES module from a public/ URL. */
 export function importCourseModule<T = Record<string, unknown>>(

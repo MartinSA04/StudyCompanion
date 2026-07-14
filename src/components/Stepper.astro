@@ -22,6 +22,8 @@
  * active line(s); `desc`/`label` → the step caption; `vars`/`variables` → the
  * `key = value` strip on the linked <CodeBlock>.
  */
+import fs from "node:fs";
+import path from "node:path";
 import PanelHeader from "./PanelHeader.astro";
 import Icon from "./Icon.astro";
 
@@ -36,6 +38,25 @@ interface Props {
   height?: number;
 }
 const { src, codeId, title, caption, height = 300 } = Astro.props;
+
+// Build-time guard: a root-relative src must resolve to a real file under the
+// consuming project's public/ — a typo otherwise ships a green build with a
+// permanently dead widget (the runtime import just 404s). process.cwd() is the
+// project root in both `astro dev` and `astro build`, and public/ is Astro's
+// default publicDir; a project on a custom publicDir has no public/ here and
+// skips the check. Absolute URLs (CDN-hosted modules) are left to the network.
+if (src.startsWith("/") && !src.startsWith("//")) {
+  const file = path.join(process.cwd(), "public", src);
+  if (
+    fs.existsSync(path.join(process.cwd(), "public")) &&
+    !fs.existsSync(file)
+  ) {
+    throw new Error(
+      `study-companion: <Stepper src="${src}"> does not resolve to a file — ` +
+        `expected ${file}. Check the path against the course repo's public/.`,
+    );
+  }
+}
 ---
 
 <figure
@@ -150,10 +171,16 @@ const { src, codeId, title, caption, height = 300 } = Astro.props;
   .stepper-body {
     padding-bottom: var(--space-5);
   }
-  .stepper-fallback {
-    padding: 0 var(--space-5) var(--space-5);
+  /* :global twin: the module-load failure line is injected at runtime, so it
+     never carries this component's scope attribute. It sits inside the stage
+     (which already carries the margins), hence no padding of its own. */
+  .stepper-fallback,
+  .stepper-stage :global(.stepper-fallback) {
     color: var(--muted);
     font-size: var(--text-sm);
+  }
+  .stepper-fallback {
+    padding: 0 var(--space-5) var(--space-5);
   }
   .stepper:not([data-ready]) .stepper-body {
     display: none;
@@ -343,6 +370,10 @@ const { src, codeId, title, caption, height = 300 } = Astro.props;
         index: number;
         total: number;
         getSize: () => { w: number; h: number };
+        /** Page-lifecycle signal: aborts on the next view-transition swap, so
+         * a render that starts its own rAF/timers can tie them to it (same
+         * contract as the <Simulation> api). */
+        signal: AbortSignal;
       },
     ) => void;
     defaultData?: (size: number) => unknown;
@@ -372,14 +403,25 @@ const { src, codeId, title, caption, height = 300 } = Astro.props;
 
     importCourseModule<{ default?: StepperDef } & Partial<StepperDef>>(src)
       .then((mod) => {
+        // The lazy import can resolve after the page that mounted this stepper
+        // was swapped out — don't boot the module into a detached stage.
+        if (signal.aborted) return;
         const def = (mod.default ?? mod) as StepperDef;
         if (typeof def?.run !== "function" || typeof def?.render !== "function")
           throw new Error("stepper module must export run() and render()");
         init(def);
       })
-      .catch((err) =>
-        console.error(`study-companion: failed to load stepper ${src}`, err),
-      );
+      .catch((err) => {
+        console.error(`study-companion: failed to load stepper ${src}`, err);
+        // A 404/throwing module must fail visibly, not leave a titled panel
+        // over a permanently blank stage. The body stays hidden (no
+        // data-ready): its transport listeners are only bound in init(), so
+        // revealing it would expose dead controls.
+        const p = document.createElement("p");
+        p.className = "stepper-fallback";
+        p.textContent = "Visualiseringen kunne ikke lastes.";
+        stage.replaceChildren(p);
+      });
 
     function init(def: StepperDef) {
       stage!.style.height = cssH + "px";
@@ -417,9 +459,17 @@ const { src, codeId, title, caption, height = 300 } = Astro.props;
       if (!def.defaultData) shuffleBtn?.setAttribute("hidden", "");
 
       function setPlaying(p: boolean) {
+        // An empty trace has nothing to loop over (startLoop returns at once):
+        // refuse play so the button can't stick in a "pause" state.
+        if (p && !frames.length) return;
         // Pressing play at the end replays from the start.
         if (p && idx >= frames.length - 1) idx = 0;
         playing = p;
+        // Autoplay would announce the polite desc every ~520ms tick — silence
+        // it while playing. Manual steps and the final resting frame still
+        // announce: startLoop pauses BEFORE its last paint, so polite is
+        // already restored when that frame's text lands.
+        descEl?.setAttribute("aria-live", p ? "off" : "polite");
         if (playBtn) {
           playBtn.classList.toggle("is-playing", p);
           playBtn.setAttribute("aria-pressed", String(p));
@@ -432,15 +482,33 @@ const { src, codeId, title, caption, height = 300 } = Astro.props;
         if (p) {
           paint();
           startLoop();
+        } else {
+          // Pausing mid-trace must resync the scrubber's valuetext: paint()
+          // skips it while playing (same tick-spam gating as the desc line)
+          // and pausing itself doesn't repaint, so a focused scrubber would
+          // keep announcing the frame from before playback started.
+          syncScrubValuetext();
         }
+      }
+      /** The scrubber's spoken value for the current frame (see paint). */
+      function syncScrubValuetext() {
+        if (!scrub || !frames.length) return;
+        const frame = frames[clampIndex(idx, frames.length)];
+        const desc = def.label ? def.label(frame) : normalizeFrame(frame).desc;
+        scrub.setAttribute(
+          "aria-valuetext",
+          desc || `Steg ${idx + 1} av ${frames.length}`,
+        );
       }
       function startLoop() {
         if (!frames.length) return;
         timer = window.setInterval(() => {
           const t = tickPlay(idx, frames.length);
           idx = t.index;
-          paint();
+          // Pause before the final paint (not after), so that paint runs with
+          // the live region polite again and the resting frame is announced.
           if (t.atEnd) setPlaying(false);
+          paint();
         }, intervalFor(speed));
       }
 
@@ -471,6 +539,7 @@ const { src, codeId, title, caption, height = 300 } = Astro.props;
             index: idx,
             total: frames.length,
             getSize,
+            signal,
           });
         } catch (e) {
           console.error(e);
@@ -482,10 +551,10 @@ const { src, codeId, title, caption, height = 300 } = Astro.props;
         if (scrub) {
           scrub.value = String(idx);
           setRangePct(scrub);
-          scrub.setAttribute(
-            "aria-valuetext",
-            desc || `Steg ${idx + 1} av ${frames.length}`,
-          );
+          // Same gating as the desc line: a focused scrubber would otherwise
+          // announce every autoplay tick's valuetext. setPlaying(false)
+          // resyncs it on pause.
+          if (!playing) syncScrubValuetext();
         }
         if (code) {
           code.setActiveLines(n.lines);
@@ -546,18 +615,30 @@ const { src, codeId, title, caption, height = 300 } = Astro.props;
         "keydown",
         (e) => {
           if (e.metaKey || e.ctrlKey || e.altKey) return;
+          const target = e.target as HTMLElement;
           switch (e.key) {
             case "ArrowRight":
+              // The size slider keeps its native horizontal arrows (a value
+              // change); stepping the trace instead would freeze the slider
+              // for keyboard users.
+              if (target === sizeEl) return;
               e.preventDefault();
               e.stopPropagation();
               go(stepIndex(idx, frames.length, +1));
               break;
             case "ArrowLeft":
+              if (target === sizeEl) return;
               e.preventDefault();
               e.stopPropagation();
               go(stepIndex(idx, frames.length, -1));
               break;
             case " ":
+              // Space on any focused button other than play keeps its native
+              // activation ("Neste steg" should step, not toggle play). The
+              // play button falls through: preventDefault suppresses its
+              // native click, so this toggle is the single action.
+              if (target instanceof HTMLButtonElement && target !== playBtn)
+                return;
               e.preventDefault();
               setPlaying(!playing);
               break;

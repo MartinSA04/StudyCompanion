@@ -33,6 +33,12 @@ const alignOf = (i: number) => `text-align:${align[i] ?? "left"}`;
 <figure class="data-table">
   <div class="data-table-scroll">
     <table>
+      {
+        /* A real <caption> child (not a <figcaption> sibling), so the table
+          carries an accessible name in a screen reader's table-navigation
+          mode; caption-side keeps it visually below the rows. */
+      }
+      {caption && <caption set:html={renderMathString(caption)} />}
       <thead>
         <tr>
           {
@@ -67,7 +73,6 @@ const alignOf = (i: number) => `text-align:${align[i] ?? "left"}`;
       </tbody>
     </table>
   </div>
-  {caption && <figcaption set:html={renderMathString(caption)} />}
 </figure>
 
 <style>
@@ -122,8 +127,10 @@ const alignOf = (i: number) => `text-align:${align[i] ?? "left"}`;
   tbody tr:hover td {
     background: var(--card-hover);
   }
-  figcaption {
-    margin-top: var(--space-2);
+  caption {
+    caption-side: bottom;
+    text-align: left;
+    padding: var(--space-2) var(--space-4);
     font-size: var(--text-xs);
     color: var(--muted);
   }

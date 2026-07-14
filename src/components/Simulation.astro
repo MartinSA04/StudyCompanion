@@ -26,14 +26,23 @@
  * `api` = {
  *   controls, getSize: () => ({ w, h }), onResize: (cb) => void,
  *   codeBlock: (id?) => { setActiveLine, setActiveLines, clear } | null,
+ *   signal,   // page-lifecycle AbortSignal
  *   // host="canvas": canvas, ctx     host="dom": stage (an element)
  * }.
  *
  * `codeBlock(id)` (ROADMAP 3.8) returns a controller for a course <CodeBlock>
  * (matched by its `id`, or the first one when omitted), so a sim can step the
  * highlighted line(s) in lockstep with what it paints. Returns null if none.
+ *
+ * `signal` aborts when the page is swapped out (view transitions): an
+ * animating sim must stop its rAF loop / timers on it (or bind listeners with
+ * `{ signal }`), or the loop keeps painting a detached canvas after every
+ * navigation.
  */
+import fs from "node:fs";
+import path from "node:path";
 import PanelHeader from "./PanelHeader.astro";
+import { assertOneOf } from "../lib/assertProp.ts";
 
 interface Props {
   /** Path to the course-provided ES module, e.g. "/sims/thin-lens.js". */
@@ -46,6 +55,28 @@ interface Props {
   host?: "canvas" | "dom";
 }
 const { src, title, caption, height = 300, host = "canvas" } = Astro.props;
+// A typo'd host would silently fall into the canvas branch and hand the module
+// the wrong api — fail the build with the component/prop named instead.
+assertOneOf(host, ["canvas", "dom"], "Simulation", "host");
+
+// Build-time guard: a root-relative src must resolve to a real file under the
+// consuming project's public/ — a typo otherwise ships a green build with a
+// permanently dead widget (the runtime import just 404s). process.cwd() is the
+// project root in both `astro dev` and `astro build`, and public/ is Astro's
+// default publicDir; a project on a custom publicDir has no public/ here and
+// skips the check. Absolute URLs (CDN-hosted modules) are left to the network.
+if (src.startsWith("/") && !src.startsWith("//")) {
+  const file = path.join(process.cwd(), "public", src);
+  if (
+    fs.existsSync(path.join(process.cwd(), "public")) &&
+    !fs.existsSync(file)
+  ) {
+    throw new Error(
+      `study-companion: <Simulation src="${src}"> does not resolve to a file — ` +
+        `expected ${file}. Check the path against the course repo's public/.`,
+    );
+  }
+}
 ---
 
 <figure
@@ -100,7 +131,10 @@ const { src, title, caption, height = 300, host = "canvas" } = Astro.props;
     border: 1px solid var(--border);
     border-radius: var(--radius-sm);
   }
-  .sim-fallback {
+  /* :global twin: the module-load failure line is injected at runtime, so it
+     never carries this component's scope attribute. */
+  .sim-fallback,
+  .sim-stage :global(.sim-fallback) {
     padding: var(--space-4);
     color: var(--muted);
     font-size: var(--text-sm);
@@ -207,6 +241,9 @@ const { src, title, caption, height = 300, host = "canvas" } = Astro.props;
     getSize: () => { w: number; h: number };
     onResize: (cb: () => void) => void;
     codeBlock: (id?: string) => CodeBlockController | null;
+    /** Page-lifecycle signal — aborts on the next view-transition swap. The
+     * module ties its own rAF loop/timers to it (see the contract above). */
+    signal: AbortSignal;
   }
   interface CanvasApi extends BaseApi {
     canvas: HTMLCanvasElement;
@@ -242,20 +279,44 @@ const { src, title, caption, height = 300, host = "canvas" } = Astro.props;
     const src = fig.dataset.simSrc!;
     importCourseModule<SimModule>(src)
       .then((mod) => {
-        (mod.default ?? mod.init)?.(api);
-        // Upgrade the range sliders the course module just injected to the shared
-        // .sc-range look, and keep each one's accent fill in sync (WebKit needs
-        // --pct). The listener is bound with the page signal so it drops on swap.
-        api.controls
-          .querySelectorAll<HTMLInputElement>('input[type="range"]')
-          .forEach((el) => {
-            el.classList.add("sc-range");
-            setRangePct(el);
-            el.addEventListener("input", () => setRangePct(el), { signal });
-          });
+        // The lazy import can resolve after the page that mounted this sim was
+        // swapped out — don't boot the module into a detached stage (it would
+        // start a rAF loop nothing ever stops).
+        if (signal.aborted) return;
+        try {
+          (mod.default ?? mod.init)?.(api);
+          // Upgrade the range sliders the course module just injected to the
+          // shared .sc-range look, and keep each one's accent fill in sync
+          // (WebKit needs --pct). Bound with the page signal, drops on swap.
+          api.controls
+            .querySelectorAll<HTMLInputElement>('input[type="range"]')
+            .forEach((el) => {
+              el.classList.add("sc-range");
+              setRangePct(el);
+              el.addEventListener("input", () => setRangePct(el), { signal });
+            });
+        } catch (err) {
+          // The module LOADED but crashed in init(): a course-code bug, not a
+          // missing file. Log and leave whatever it already painted — routing
+          // this into the .catch below would wipe the stage and show a false
+          // "could not be loaded" message.
+          console.error(
+            `study-companion: simulation ${src} threw during init`,
+            err,
+          );
+        }
       })
       .catch((err) => {
         console.error(`study-companion: failed to load simulation ${src}`, err);
+        // A 404/throwing module must fail visibly, not sit as a permanently
+        // blank framed stage under a title.
+        const stage = fig.querySelector<HTMLElement>(".sim-stage");
+        if (stage) {
+          const p = document.createElement("p");
+          p.className = "sim-fallback";
+          p.textContent = "Simuleringen kunne ikke lastes.";
+          stage.replaceChildren(p);
+        }
       });
   };
 
@@ -283,6 +344,7 @@ const { src, title, caption, height = 300, host = "canvas" } = Astro.props;
           getSize: () => ({ w: stage.clientWidth || fig.clientWidth, h: cssH }),
           onResize,
           codeBlock: makeCodeBlockController,
+          signal,
         },
         signal,
       );
@@ -296,8 +358,10 @@ const { src, title, caption, height = 300, host = "canvas" } = Astro.props;
     if (!ctx) return;
 
     // DPR-aware sizing; coordinates handed to the course module are CSS px.
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    // DPR is read per call — it changes with browser zoom and monitor moves,
+    // and a mount-time capture would leave the canvas blurry after either.
     const size = () => {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
       const w = canvas.clientWidth || fig.clientWidth;
       canvas.width = Math.round(w * dpr);
       canvas.height = Math.round(cssH * dpr);
@@ -320,14 +384,15 @@ const { src, title, caption, height = 300, host = "canvas" } = Astro.props;
         getSize: () => ({ w: canvas.clientWidth || fig.clientWidth, h: cssH }),
         onResize,
         codeBlock: makeCodeBlockController,
+        signal,
       },
       signal,
     );
   };
 
   // Mount on each page-load; tear the observer + resize/theme listeners down on
-  // the next swap. (A course sim's own RAF/timers are its responsibility — the
-  // framework can only dispose the hooks it owns.)
+  // the next swap. (A course sim's own RAF/timers are still its responsibility —
+  // the api's `signal` tells it when to stop.)
   onPage((signal) => {
     lazyMountAll(
       document.querySelectorAll<HTMLElement>("[data-sim]"),

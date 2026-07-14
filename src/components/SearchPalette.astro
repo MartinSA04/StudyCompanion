@@ -57,7 +57,13 @@ import Icon from "./Icon.astro";
       >Esc</button
     >
   </form>
-  <div class="search-results" aria-live="polite"></div>
+  <div class="search-results"></div>
+  {
+    /* NOT the results container: making that tree live would re-announce the
+      full innerHTML on every debounced keystroke. render() writes a concise
+      count ("N treff" / "Ingen treff") here instead. */
+  }
+  <p class="search-status sr-only" role="status"></p>
 </dialog>
 
 <style>
@@ -278,9 +284,14 @@ import Icon from "./Icon.astro";
   // The pagefind bundle loads once and is cached across navigations (module
   // scope survives view-transition swaps), so search stays instant after nav.
   let pagefind: Pagefind | null = null;
-  let loadFailed = false;
+  // Only dev latches a failure: there the index simply doesn't exist (it's
+  // emitted in astro:build:done), so retrying would just repeat the 404. A
+  // production failure is treated as transient (flaky network mid-session) and
+  // the import is retried on the next open()/search instead of poisoning the
+  // whole session.
+  let devMissing = false;
   const loadPagefind = async (): Promise<Pagefind | null> => {
-    if (pagefind || loadFailed) return pagefind;
+    if (pagefind || devMissing) return pagefind;
     try {
       // Runtime import of the static bundle. The specifier is a variable so
       // Rollup can't statically resolve it at build time (the index is only
@@ -291,7 +302,7 @@ import Icon from "./Icon.astro";
       await mod.options?.({ excerptLength: 24 });
       pagefind = mod;
     } catch {
-      loadFailed = true;
+      if (import.meta.env.DEV) devMissing = true;
     }
     return pagefind;
   };
@@ -304,7 +315,8 @@ import Icon from "./Icon.astro";
     const dialog = document.querySelector<HTMLDialogElement>(".search-dialog");
     const input = document.querySelector<HTMLInputElement>(".search-input");
     const results = document.querySelector<HTMLDivElement>(".search-results");
-    if (!trigger || !dialog || !input || !results) return;
+    const status = document.querySelector<HTMLElement>(".search-status");
+    if (!trigger || !dialog || !input || !results || !status) return;
 
     // Shown in the empty panel so an opened palette isn't a blank void. The tip
     // line is where "/" gets its one piece of on-screen documentation.
@@ -337,8 +349,11 @@ import Icon from "./Icon.astro";
       input.select();
       const pf = await loadPagefind();
       if (!pf && !results.childElementCount) {
-        results.innerHTML =
-          '<p class="search-empty">Søk er tilgjengelig i det bygde nettstedet (ikke i dev-modus).</p>';
+        // Two different truths: dev has no index at all; production just
+        // failed a fetch (and will retry on the next open).
+        results.innerHTML = import.meta.env.DEV
+          ? '<p class="search-empty">Søk er tilgjengelig i det bygde nettstedet (ikke i dev-modus).</p>'
+          : '<p class="search-empty">Søket kunne ikke lastes. Prøv igjen.</p>';
       } else if (pf && !input.value.trim()) {
         results.innerHTML = HINT;
       }
@@ -402,6 +417,8 @@ import Icon from "./Icon.astro";
     );
 
     const render = (groups: ResultGroup[], totalPages: number, q: string) => {
+      const hits = groups.reduce((n, g) => n + g.items.length, 0);
+      status.textContent = hits ? `${hits} treff` : "Ingen treff";
       if (!groups.length) {
         // A dead end with a next step, not just a verdict.
         results.innerHTML =
@@ -484,6 +501,7 @@ import Icon from "./Icon.astro";
         const q = input.value.trim();
         if (!q) {
           results.innerHTML = HINT;
+          status.textContent = "";
           return;
         }
         debounce = setTimeout(() => void runSearch(q), 160);

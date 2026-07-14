@@ -6,6 +6,7 @@
  * not a coloured spine.
  */
 import Admonition from "./Admonition.astro";
+import { assertOneOf } from "../lib/assertProp.ts";
 
 interface Props {
   type?: "note" | "tip" | "warning";
@@ -19,6 +20,8 @@ const defaults: Record<NonNullable<Props["type"]>, string> = {
   warning: "Advarsel",
 };
 const icons = { note: "info", tip: "star", warning: "alert-triangle" } as const;
+// MDX isn't type-checked: a typo'd type would otherwise render a blank kicker.
+assertOneOf(type, Object.keys(defaults), "Callout", "type");
 ---
 
 <Admonition tone={type} icon={icons[type]} title={title ?? defaults[type]}>

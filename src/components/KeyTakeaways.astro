@@ -22,17 +22,20 @@ const { title = "Hovedpunkter" } = Astro.props;
   .takeaways-list {
     --check: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'><path d='M20 6 9 17l-5-5'/></svg>");
   }
-  .takeaways-list :global(ul) {
+  /* Direct children only: the checklist treatment belongs to the top-level
+     <ul> — a nested sub-list keeps its prose bullets instead of a second
+     check, and an accidental <ol> isn't half-styled. */
+  .takeaways-list > :global(ul) {
     margin-bottom: 0;
     padding-left: 0;
     list-style: none;
   }
-  .takeaways-list :global(li) {
+  .takeaways-list > :global(ul) > :global(li) {
     position: relative;
     margin-block: 0.35em;
     padding-left: 1.7em;
   }
-  .takeaways-list :global(li)::before {
+  .takeaways-list > :global(ul) > :global(li)::before {
     content: "";
     position: absolute;
     inset-inline-start: 0;

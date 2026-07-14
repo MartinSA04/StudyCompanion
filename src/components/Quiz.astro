@@ -14,6 +14,15 @@ interface Props {
 const { question, options, answer, explanation } = Astro.props;
 import { renderMathString } from "../lib/katex.ts";
 import Icon from "./Icon.astro";
+
+// Build-time guard: an out-of-range/fractional answer would ship a quiz no
+// choice can ever grade "riktig" — fail the build naming the question instead.
+if (!Number.isInteger(answer) || answer < 0 || answer >= options.length) {
+  throw new Error(
+    `study-companion: <Quiz question="${question}"> has answer=${answer}, ` +
+      `which is not an index into its ${options.length} options (0–${options.length - 1}).`,
+  );
+}
 ---
 
 <form class="quiz sc-panel" data-answer={answer}>

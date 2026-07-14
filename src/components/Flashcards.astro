@@ -1,15 +1,18 @@
 ---
 import type { Flashcards } from "../schema.ts";
 import { renderMathString } from "../lib/katex.ts";
+import { fcId } from "../lib/fcId.ts";
 import Icon from "./Icon.astro";
 
 /**
  * Flashcard deck (vanilla island) with a flip animation and a binary rating:
  * "Kan" marks a card known (it surfaces later), "Øv" marks it not known (it
  * surfaces sooner). Ratings persist in localStorage under
- * `sc:flashcards:<code>`; load() migrates the legacy 0/1/2 mastery scheme.
- * Card text may contain $inline$ / $$display$$ math, rendered to KaTeX at
- * build time.
+ * `sc:flashcards:<code>` as a versioned envelope keyed by each card's content
+ * id (fcId of the front text), so deck edits can't shift ratings onto the
+ * wrong cards; load() migrates legacy positional records (and their 0/1/2
+ * mastery scheme) once. Card text may contain $inline$ / $$display$$ math,
+ * rendered to KaTeX at build time.
  */
 interface Props {
   cards: Flashcards["cards"];
@@ -29,6 +32,7 @@ const rendered = cards.map((c) => ({
   front: renderMathString(c.front),
   back: renderMathString(c.back),
   section: c.section ?? "",
+  id: fcId(c.front),
 }));
 const sections = [...new Set(rendered.map((c) => c.section).filter(Boolean))];
 const hasSections = sections.length > 0;
@@ -106,6 +110,7 @@ const hasSections = sections.length > 0;
           class="fc-card sc-lift"
           data-fc-card
           data-index={i}
+          data-fc-id={card.id}
           data-section={card.section}
           hidden={i !== 0}
         >
@@ -144,6 +149,13 @@ const hasSections = sections.length > 0;
       </p>
       <p class="fc-empty-hint" data-fc-empty-hint></p>
     </div>
+    {
+      /* Announces the visible face's plain text on every flip/card-change.
+        The flip only swaps aria-hidden between the two faces — focus stays on
+        the same button, so without this a screen reader never hears the
+        revealed answer (WCAG 4.1.2). */
+    }
+    <p class="sr-only" data-fc-live aria-live="polite"></p>
   </div>
 
   <div class="fc-controls">
@@ -459,7 +471,9 @@ const hasSections = sections.length > 0;
 
 <script>
   import { onPage } from "../lib/pageLifecycle.ts";
-  type Levels = Record<number, number>;
+  // Keyed by each card's content id (data-fc-id), not its position — see the
+  // component doc comment.
+  type Levels = Record<string, number>;
   // Re-wire the deck per page-load; the document keydown is bound with the page
   // signal so it drops on the next swap instead of stacking.
   onPage((signal) => {
@@ -500,34 +514,101 @@ const hasSections = sections.length > 0;
     const focusCard = () =>
       cards.find((c) => !c.hidden)?.focus({ preventScroll: true });
 
-    const load = (): Levels => {
-      try {
-        const raw = JSON.parse(localStorage.getItem(key) || "{}") as Levels;
-        // A stored 2 can only come from the legacy 0/1/2 mastery scheme (the
-        // binary model writes 0/1), so it marks the whole record legacy:
-        // 2 (mastered) → known, 1 (seen once) → not known — collapsing
-        // downward, never fabricating mastery. A record without a 2 is
-        // indistinguishable from binary data and must load as-is, or a
-        // reload would wipe the new model's own known-marks (1s).
-        if (Object.values(raw).some((v) => v >= 2)) {
-          const migrated: Levels = {};
-          for (const [i, v] of Object.entries(raw)) {
-            migrated[Number(i)] = v >= 2 ? 1 : 0;
-          }
-          return migrated;
-        }
-        return raw;
-      } catch {
-        return {};
-      }
-    };
-    const save = (l: Levels) => {
-      try {
-        localStorage.setItem(key, JSON.stringify(l));
-      } catch {}
+    // Plain text of a face's card text, for the live announcement. KaTeX
+    // output carries both MathML (what a screen reader gets) and an
+    // aria-hidden visual tree plus the raw LaTeX <annotation>; keep only the
+    // MathML text so math reads as symbols, not doubled markup (same
+    // stripping as Quiz's optionText).
+    const liveEl = deck.querySelector<HTMLElement>("[data-fc-live]")!;
+    const announce = (c: HTMLButtonElement) => {
+      const face = c.querySelector<HTMLElement>(
+        c.dataset.flipped === "true"
+          ? ".fc-back .fc-text"
+          : ".fc-front .fc-text",
+      );
+      if (!face) return;
+      const clone = face.cloneNode(true) as HTMLElement;
+      clone
+        .querySelectorAll(".katex-html, annotation, .sr-only")
+        .forEach((n) => n.remove());
+      liveEl.textContent = clone.textContent?.replace(/\s+/g, " ").trim() ?? "";
     };
 
-    let levels = load();
+    const idsInDeck = new Set(cards.map((c) => c.dataset.fcId!));
+    // Ratings persist as a versioned envelope { v: 2, data: { <id>: 0|1 } }.
+    const ENVELOPE_V = 2;
+    const save = (l: Levels) => {
+      try {
+        localStorage.setItem(key, JSON.stringify({ v: ENVELOPE_V, data: l }));
+      } catch {}
+    };
+    // `dirty` marks a record that should be rewritten once: legacy positional,
+    // corrupt, or holding entries for cards no longer in the deck.
+    const load = (): { levels: Levels; dirty: boolean } => {
+      let raw: string | null = null;
+      try {
+        raw = localStorage.getItem(key);
+      } catch {
+        return { levels: {}, dirty: false };
+      }
+      if (!raw) return { levels: {}, dirty: false };
+      let parsed: unknown;
+      try {
+        parsed = JSON.parse(raw);
+      } catch {
+        parsed = null;
+      }
+      // A scalar/array/null (however it got stored) must reset, not leave
+      // every later rating throwing on a non-object.
+      if (
+        parsed === null ||
+        typeof parsed !== "object" ||
+        Array.isArray(parsed)
+      )
+        return { levels: {}, dirty: true };
+      const obj = parsed as Record<string, unknown>;
+      let data: Record<string, unknown>;
+      let dirty = false;
+      if (
+        obj.v === ENVELOPE_V &&
+        typeof obj.data === "object" &&
+        obj.data !== null &&
+        !Array.isArray(obj.data)
+      ) {
+        data = obj.data as Record<string, unknown>;
+      } else {
+        // Legacy positional record: keys are card indices. A stored 2 can only
+        // come from the older 0/1/2 mastery scheme (the binary model writes
+        // 0/1), so it marks the whole record legacy: 2 (mastered) → known,
+        // 1 (seen once) → not known — collapsing downward, never fabricating
+        // mastery. In-range indices map to the id of the card at that
+        // position; out-of-range keys are dropped.
+        const hasMastery = Object.values(obj).some(
+          (v) => typeof v === "number" && v >= 2,
+        );
+        data = {};
+        for (const [k, v] of Object.entries(obj)) {
+          const i = Number(k);
+          if (!Number.isInteger(i) || i < 0 || i >= cards.length) continue;
+          if (typeof v !== "number") continue;
+          data[cards[i].dataset.fcId!] = hasMastery ? (v >= 2 ? 1 : 0) : v;
+        }
+        dirty = true;
+      }
+      // Prune ids no rendered card carries (deck edits), so the known counter
+      // can never exceed the deck ("27 / 20 kan").
+      const levels: Levels = {};
+      for (const [id, v] of Object.entries(data)) {
+        if (idsInDeck.has(id) && typeof v === "number") levels[id] = v;
+        else dirty = true;
+      }
+      return { levels, dirty };
+    };
+
+    const loaded = load();
+    let levels = loaded.levels;
+    // One-time rewrite to the current envelope, so migration/pruning sticks.
+    if (loaded.dirty) save(levels);
     let queue: number[] = [];
     let pos = 0;
     const filter = { section: "", onlyUnknown: false };
@@ -535,6 +616,15 @@ const hasSections = sections.length > 0;
     // no friction on the honest path, and a slip is still recoverable).
     let undoStash: Levels | null = null;
     let undoTimer: ReturnType<typeof setTimeout> | undefined;
+    // The undo window outlives any single handler — clear it on the page swap
+    // so it can't fire into a replaced deck (same shape as ThemeToggle).
+    signal.addEventListener("abort", () => clearTimeout(undoTimer), {
+      once: true,
+    });
+
+    // The queue holds positional indices (stable within one render); the
+    // stored level is looked up through the card's content id.
+    const levelOf = (i: number) => levels[cards[i].dataset.fcId!] ?? 0;
 
     const buildQueue = () => {
       let indices = [...Array(total).keys()];
@@ -544,18 +634,18 @@ const hasSections = sections.length > 0;
         );
       }
       if (filter.onlyUnknown) {
-        indices = indices.filter((i) => (levels[i] ?? 0) < 1);
+        indices = indices.filter((i) => levelOf(i) < 1);
       }
       // Not-known first, then original order — a stable study order. "Bland"
       // reshuffles the built queue in place (below), on demand.
-      indices.sort((a, b) => (levels[a] ?? 0) - (levels[b] ?? 0) || a - b);
+      indices.sort((a, b) => levelOf(a) - levelOf(b) || a - b);
       queue = indices;
     };
 
     // Reflect each card's stored known state on the card (drives the badge).
     const paintBadges = () => {
       cards.forEach((c) => {
-        c.dataset.level = String(levels[Number(c.dataset.index)] ?? 0);
+        c.dataset.level = String(levels[c.dataset.fcId!] ?? 0);
       });
     };
 
@@ -568,6 +658,9 @@ const hasSections = sections.length > 0;
       paintBadges();
     };
 
+    // Suppress the live announcement on the initial paint: page load isn't a
+    // card change, and announcing the first card would talk over the page.
+    let firstPaint = true;
     const show = () => {
       const idx = queue[pos];
       const isEmpty = idx === undefined;
@@ -586,6 +679,11 @@ const hasSections = sections.length > 0;
       if (refocus && !isEmpty) {
         focusCard();
       }
+      if (!firstPaint && !isEmpty) {
+        const cur = cards.find((c) => !c.hidden);
+        if (cur) announce(cur);
+      }
+      firstPaint = false;
       posOut.textContent = isEmpty ? "0" : String(pos + 1);
       if (totalOut) totalOut.textContent = String(queue.length);
       if (isEmpty) {
@@ -598,7 +696,7 @@ const hasSections = sections.length > 0;
         const allKnown =
           filter.onlyUnknown &&
           scope.length > 0 &&
-          scope.every((c) => (levels[Number(c.dataset.index)] ?? 0) >= 1);
+          scope.every((c) => (levels[c.dataset.fcId!] ?? 0) >= 1);
         emptyBox.dataset.complete = String(allKnown);
         if (allKnown) {
           emptyTitle.textContent = `Alle ${scope.length} kort er markert som kan.`;
@@ -625,7 +723,7 @@ const hasSections = sections.length > 0;
     const rate = (known: boolean) => {
       const idx = queue[pos];
       if (idx === undefined) return;
-      levels[idx] = known ? 1 : 0;
+      levels[cards[idx].dataset.fcId!] = known ? 1 : 0;
       save(levels);
       renderProgress();
       advance(1);
@@ -636,6 +734,7 @@ const hasSections = sections.length > 0;
       c.addEventListener("click", () => {
         c.dataset.flipped = c.dataset.flipped === "true" ? "false" : "true";
         syncFaces(c);
+        announce(c);
       }),
     );
 
@@ -775,6 +874,7 @@ const hasSections = sections.length > 0;
           cur.dataset.flipped =
             cur.dataset.flipped === "true" ? "false" : "true";
           syncFaces(cur);
+          announce(cur);
           focusCard();
         } else if (e.key === "ArrowLeft") {
           e.preventDefault();

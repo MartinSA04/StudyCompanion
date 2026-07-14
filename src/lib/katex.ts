@@ -2,12 +2,14 @@ import katex from "katex";
 
 /**
  * Render `$inline$` and `$$display$$` math inside an otherwise-plain author
- * string to server-side KaTeX HTML, leaving the surrounding text as-is.
+ * string to server-side KaTeX HTML.
  *
  * Used by widgets whose text arrives as component props (Quiz, Flashcards),
- * where MDX/remark-math can't reach. Author strings are trusted content, so
- * non-math text is passed through verbatim — simple inline HTML like
- * `<em>…</em>` is allowed, mirroring how this content was authored before.
+ * where MDX/remark-math can't reach. Non-math segments are HTML-escaped —
+ * a bare `<`, `>` or `&` ("O(n) where n<m") must render as text, not silently
+ * swallow everything after it — except the documented "simple inline HTML"
+ * affordance: attribute-less <b> <i> <em> <strong> <sub> <sup> <code> <br>
+ * (and their closers) pass through, mirroring how this content was authored.
  */
 export function renderMathString(text: string): string {
   return text
@@ -29,9 +31,22 @@ export function renderMathString(text: string): string {
           }),
         );
       }
-      return part;
+      return escapeKeepingInlineTags(part);
     })
     .join("");
+}
+
+/**
+ * Escape `&`, `<`, `>` in a non-math segment, then un-escape exactly the
+ * whitelisted simple-inline-HTML tag tokens. Escape-then-restore (rather than
+ * parse) keeps every malformed or unlisted tag as visible text.
+ */
+function escapeKeepingInlineTags(part: string): string {
+  return part
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/&lt;(\/?)(b|i|em|strong|sub|sup|code|br)&gt;/g, "<$1$2>");
 }
 
 /**
@@ -44,8 +59,13 @@ export function renderMathString(text: string): string {
  * same via a rehype plugin in the integration.
  */
 export function ignoreInSearch(html: string): string {
+  // KaTeX currently emits `<span class="katex-mathml">`, but match the span
+  // through a regex tolerant of extra attributes / attribute order, so a KaTeX
+  // upgrade degrades to noisier excerpts at worst — never to silently skipping
+  // the tagging. First occurrence only: each renderToString output carries a
+  // single mathml layer.
   return html.replace(
-    '<span class="katex-mathml">',
-    '<span class="katex-mathml" data-pagefind-ignore>',
+    /<span\s+([^>]*\bclass="[^"]*\bkatex-mathml\b[^"]*"[^>]*)>/,
+    "<span data-pagefind-ignore $1>",
   );
 }

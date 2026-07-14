@@ -2,6 +2,7 @@
 import Icon from "./Icon.astro";
 import { renderMathString } from "../lib/katex.ts";
 import { slugify } from "../lib/slug.ts";
+import { assertOneOf } from "../lib/assertProp.ts";
 
 /**
  * A named, boxed result — a law, theorem, definition or principle ("Snells lov",
@@ -24,6 +25,9 @@ const LABELS = {
   definition: "Definisjon",
   principle: "Prinsipp",
 } as const;
+// MDX isn't type-checked: a typo'd kind would otherwise ship a blank badge
+// with aria-label={undefined}.
+assertOneOf(kind, Object.keys(LABELS), "Statement", "kind");
 
 const anchor = id ?? slugify(name);
 ---
