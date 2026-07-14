@@ -17,7 +17,7 @@ import { mkdir, writeFile, rm } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 
 const CSS_URL =
-  "https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Spectral:ital,wght@0,300;0,400;0,500;0,600;1,400;1,600&family=IBM+Plex+Mono:wght@400;500;600&display=swap";
+  "https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Spectral:ital,wght@0,400;0,500;0,600;1,400;1,600&family=IBM+Plex+Mono:wght@400;500;600&display=swap";
 
 // A modern browser UA makes Google serve woff2 (not ttf) with subset comments.
 const UA =
@@ -113,18 +113,23 @@ const FALLBACK_FACES = `
 }
 `;
 
-const css = await (
-  await fetch(CSS_URL, { headers: { "User-Agent": UA } })
-).text();
+// A non-2xx here (rate-limit, outage, blocked UA) still returns a body — an
+// error page — that parses to zero @font-face blocks; guard so we never treat
+// that as "the fonts are gone" and wipe the committed set (see the abort below).
+const cssRes = await fetch(CSS_URL, { headers: { "User-Agent": UA } });
+if (!cssRes.ok) {
+  throw new Error(
+    `Google Fonts CSS fetch failed: ${cssRes.status} ${cssRes.statusText} (${CSS_URL})`,
+  );
+}
+const css = await cssRes.text();
 
 // Each @font-face is preceded by a `/* subset */` comment. Capture both.
 const blockRe = /\/\*\s*([\w-]+)\s*\*\/\s*(@font-face\s*\{[^}]*\})/g;
 
-await rm(outDir, { recursive: true, force: true });
-await mkdir(outDir, { recursive: true });
-
-// Parse every block before downloading anything, so a (family, style, subset)
-// group can be inspected as a whole (see the collapse step below).
+// Parse every block BEFORE touching the committed fonts, so a (family, style,
+// subset) group can be inspected as a whole (see the collapse step below) AND
+// so a bad response aborts with the vendored files still on disk.
 const blocks = [];
 for (const [, subset, face] of css.matchAll(blockRe)) {
   const family = /font-family:\s*'([^']+)'/.exec(face)?.[1] ?? "font";
@@ -137,6 +142,19 @@ for (const [, subset, face] of css.matchAll(blockRe)) {
   if (!url || !unicodeRange) continue;
   blocks.push({ family, style, weight, subset, url, unicodeRange });
 }
+
+// The three families across all Google ranges yield dozens of blocks; anything
+// this low means the response was truncated or not the CSS we expected, so bail
+// with the committed fonts untouched rather than regenerating a broken set.
+if (blocks.length < 20) {
+  throw new Error(
+    `Parsed only ${blocks.length} @font-face block(s) from Google — expected dozens; ` +
+      "aborting without touching the committed fonts.",
+  );
+}
+
+await rm(outDir, { recursive: true, force: true });
+await mkdir(outDir, { recursive: true });
 
 // A variable font (Fraunces) serves every requested weight from the SAME file
 // per subset — Google's css2 endpoint still emits one @font-face per weight
@@ -193,11 +211,13 @@ for (const b of blocks) {
     while ([...seen.values()].includes(file)) {
       file = `${slug(b.family)}-${namedWeight}-${b.style === "italic" ? "italic-" : ""}${b.subset}-${++n}.woff2`;
     }
-    const bytes = Buffer.from(
-      await (
-        await fetch(b.url, { headers: { "User-Agent": UA } })
-      ).arrayBuffer(),
-    );
+    const fontRes = await fetch(b.url, { headers: { "User-Agent": UA } });
+    if (!fontRes.ok) {
+      throw new Error(
+        `woff2 fetch failed: ${fontRes.status} ${fontRes.statusText} (${b.url})`,
+      );
+    }
+    const bytes = Buffer.from(await fontRes.arrayBuffer());
     await writeFile(outDir + file, bytes);
     seen.set(b.url, file);
     console.log(`  ${file}  (${(bytes.length / 1024).toFixed(1)} kB)`);
