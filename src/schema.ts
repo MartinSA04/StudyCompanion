@@ -2,16 +2,16 @@ import { z } from "zod";
 
 /**
  * Bump this on any BREAKING schema change and document the migration in
- * MIGRATIONS.md. The injected page (src/pages/index.astro) compares a course's
+ * MIGRATIONS.md. loadCourse (src/lib/loadCourse.ts) compares a course's
  * `schemaVersion` against this number and fails the build on a mismatch, so a
  * version skew surfaces as a clear error instead of a mysterious break.
  *
  * SemVer mapping (see CLAUDE.md): breaking schema change => MAJOR release.
  */
-export const SCHEMA_VERSION = 2;
+export const SCHEMA_VERSION = 3;
 
 /** A single exam paper / past-exam reference (rendered by <ExamList>). */
-const examPaperSchema = z.object({
+const examPaperSchema = z.strictObject({
   label: z.string(),
   /** May be an absolute URL or a path into the course's public/ folder. */
   url: z.string().optional(),
@@ -20,7 +20,7 @@ const examPaperSchema = z.object({
 });
 
 /** A reference-sheet formula entry (rendered by <FormulaSheet>). */
-const formulaEntrySchema = z.object({
+const formulaEntrySchema = z.strictObject({
   tex: z.string(),
   label: z.string().optional(),
   /** Free-text grouping, e.g. a section title. */
@@ -37,7 +37,7 @@ const formulaEntrySchema = z.object({
 });
 
 /** A glossary term + definition (rendered by <Glossary>, linked by <Term>). */
-const glossaryEntrySchema = z.object({
+const glossaryEntrySchema = z.strictObject({
   term: z.string(),
   /** May contain `$inline$` math and simple inline HTML. */
   definition: z.string(),
@@ -45,8 +45,17 @@ const glossaryEntrySchema = z.object({
   section: z.string().optional(),
 });
 
-export const courseSchema = z.object({
-  schemaVersion: z.number().default(SCHEMA_VERSION),
+// strictObject everywhere (v3): an unknown or typo'd key fails the build naming
+// the key, instead of being silently ignored and "not working".
+export const courseSchema = z.strictObject({
+  /**
+   * The schema version this course's content was written against. DELIBERATELY
+   * no default: defaulting to the framework's own SCHEMA_VERSION would make the
+   * version-skew guard in loadCourse vacuous — a course that omitted the field
+   * would always "match", and a real skew would surface as a mysterious break
+   * instead of the guard's clear migrate/bump-the-pin error.
+   */
+  schemaVersion: z.int().positive(),
   code: z.string(), //  "TFY4195"
   title: z.string(), //  "Optikk"
   subtitle: z.string().optional(),
@@ -64,7 +73,7 @@ export const courseSchema = z.object({
 
   /** Upcoming-exam metadata shown in the course header / sidebar. */
   exam: z
-    .object({
+    .strictObject({
       date: z.coerce.date().optional(),
       durationMinutes: z.number().optional(),
       format: z.string().optional(),
@@ -99,7 +108,7 @@ export const courseSchema = z.object({
    * list. Use when you hand-pick the most relevant papers but more exist.
    */
   examArchive: z
-    .object({
+    .strictObject({
       url: z.url(),
       label: z.string().default("Hele eksamensarkivet"),
     })
@@ -126,7 +135,9 @@ export const courseSchema = z.object({
    */
   institution: z.string().optional(),
 
-  links: z.array(z.object({ label: z.string(), url: z.url() })).default([]),
+  links: z
+    .array(z.strictObject({ label: z.string(), url: z.url() }))
+    .default([]),
 
   /**
    * Optional SEO / social-card metadata. Additive: omit the object and every
@@ -135,7 +146,7 @@ export const courseSchema = z.object({
    * need `site` in astro.config.mjs (see ROADMAP 4.1).
    */
   seo: z
-    .object({
+    .strictObject({
       /**
        * X / Twitter handle (with or without a leading "@") for
        * `twitter:site` / `twitter:creator` on the social card.
@@ -150,7 +161,7 @@ export const courseSchema = z.object({
    * provides the endpoint here.
    */
   analytics: z
-    .object({
+    .strictObject({
       /**
        * GoatCounter count endpoint, e.g. "https://mycode.goatcounter.com/count"
        * — must include the /count path (taken verbatim, no derivation). When
@@ -172,7 +183,7 @@ export const courseSchema = z.object({
   repoBranch: z.string().default("main"),
 
   features: z
-    .object({
+    .strictObject({
       progress: z.boolean().default(true),
       search: z.boolean().default(true),
       flashcards: z.boolean().default(false),
@@ -184,7 +195,7 @@ export const courseSchema = z.object({
 
   /** UI string overrides for localizing the chrome. */
   ui: z
-    .object({
+    .strictObject({
       progressLabel: z.string().default("Fremgang"),
       searchLabel: z.string().default("Søk"),
       resetLabel: z.string().default("Nullstill"),
@@ -210,7 +221,25 @@ export const courseSchema = z.object({
         .default(
           "Til eksamen i dette emnet deles det ikke ut noen formelsamling. Oversikten under er en studieressurs: på eksamen må alt kunnes uten hjelpemidler.",
         ),
+      /** Placeholder for the Formelsamling search field. */
+      sheetSearchPlaceholder: z.string().default("Søk i formler og symboler …"),
+      /** Accessible name (aria-label) for the Formelsamling search field. */
+      sheetSearchLabel: z.string().default("Søk i formler"),
+      /** Filter chip: only formulas that ARE on the exam sheet. */
+      onSheetLabel: z.string().default("På formelarket"),
+      /** Filter chip + per-row badge: off-sheet formulas that must be memorized. */
+      memorizeLabel: z.string().default("Må pugges"),
+      /** Empty state when no formula matches the sheet search. */
+      sheetEmptyLabel: z.string().default("Ingen formler matcher søket."),
       glossaryLabel: z.string().default("Begreper"),
+      /** Placeholder for the Begreper search field. */
+      glossarySearchPlaceholder: z.string().default("Søk i begreper …"),
+      /** Accessible name (aria-label) for the Begreper search field. */
+      glossarySearchLabel: z.string().default("Søk i begreper"),
+      /** Empty state when no glossary term matches the search. */
+      glossaryEmptyLabel: z.string().default("Ingen begreper matcher søket."),
+      /** Heading for section-less terms when the glossary is otherwise grouped. */
+      glossaryOtherGroupLabel: z.string().default("Andre begreper"),
       /** Note above <ExamList> when `examArchive` is set (curated selection). */
       examArchiveNote: z
         .string()
@@ -225,7 +254,7 @@ export const courseSchema = z.object({
     .prefault({}),
 });
 
-export const sectionSchema = z.object({
+export const sectionSchema = z.strictObject({
   order: z.number(),
   /**
    * Display label shown in the sidebar, overview tile and module header.
@@ -236,7 +265,13 @@ export const sectionSchema = z.object({
   title: z.string(),
   summary: z.string().optional(),
   importance: z.enum(["core", "useful", "extra"]).default("useful"),
-  tags: z.array(z.string()).default([]),
+  /**
+   * Short kicker label shown on the module's overview tile (e.g. a week or
+   * theme marker like "Uke 3" or "Interaktivt"). It renders NOWHERE else — not
+   * in the sidebar, module header or search — so keep it a single glanceable
+   * word or two, or omit it.
+   */
+  tag: z.string().optional(),
   /**
    * Optional chapter grouping, e.g. "Del 1: Geometrisk optikk". When any section
    * sets a `part`, the sidebar and overview group modules under part headers (in
@@ -262,9 +297,9 @@ export const sectionSchema = z.object({
   draft: z.boolean().default(false),
 });
 
-export const flashcardsSchema = z.object({
+export const flashcardsSchema = z.strictObject({
   cards: z.array(
-    z.object({
+    z.strictObject({
       front: z.string(),
       back: z.string(),
       section: z.string().optional(),

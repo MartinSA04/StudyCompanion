@@ -7,7 +7,7 @@
 # need). See ../AUTHORING.md for the full guide.
 # ─────────────────────────────────────────────────────────────────────────────
 
-schemaVersion: 2 # MUST equal the framework's SCHEMA_VERSION (the build checks it).
+schemaVersion: 3 # MUST equal the framework's SCHEMA_VERSION (the build checks it).
 
 # ── Identity (required) ──────────────────────────────────────────────────────
 code: CODE101 # Course code, e.g. "TFY4195".
@@ -138,8 +138,17 @@ features: { progress: true, search: true, flashcards: true, theme: true }
 #   formulaSheetLabel: Formelsamling
 #   officialFormulaSheetLabel: Offisiell formelsamling til eksamen
 #   noFormulaSheetNote: "Til eksamen i dette emnet deles det ikke ut noen formelsamling. Oversikten under er en studieressurs — på eksamen må alt kunnes uten hjelpemidler."
+#   sheetSearchPlaceholder: "Søk i formler og symboler …"
+#   sheetSearchLabel: Søk i formler
+#   onSheetLabel: På formelarket
+#   memorizeLabel: Må pugges
+#   sheetEmptyLabel: Ingen formler matcher søket.
 #   examArchiveNote: "Utvalget under er de mest relevante settene. Eldre eksamener finnes i det fullstendige arkivet."
 #   glossaryLabel: Begreper
+#   glossarySearchPlaceholder: "Søk i begreper …"
+#   glossarySearchLabel: Søk i begreper
+#   glossaryEmptyLabel: Ingen begreper matcher søket.
+#   glossaryOtherGroupLabel: Andre begreper
 #   courseLabel: Emneside
 #   tocLabel: Innhold
 #   editPageLabel: Rediger denne siden

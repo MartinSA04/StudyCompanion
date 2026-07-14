@@ -9,23 +9,24 @@ import type { Importance } from "./importance.ts";
  * derived from content — no per-course wiring.
  */
 
-export type NavKind = "section" | "formulas" | "flashcards" | "exams";
-
+/**
+ * One module (section) row in the sidebar nav. Tool rows are built separately
+ * in the layout from `ToolFlags`, so every NavItem is a section.
+ */
 export interface NavItem {
   slug: string;
-  /** Display number (sections) or glyph (tools). */
+  /** Display number, e.g. "04", or an explicit `num` override like "RT". */
   num: string;
   /** Full title (module header). */
   title: string;
   /** Condensed title for the sidebar. */
   shortTitle: string;
-  kind: NavKind;
-  /** Only set for sections — drives the read/done checkbox + progress. */
-  order?: number;
-  /** Optional chapter grouping (sections only); see `partGroups`. */
+  /** Drives the read/done checkbox + progress. */
+  order: number;
+  /** Optional chapter grouping; see `partGroups`. */
   part?: string;
-  /** Pensum tier (sections only) — drives the importance signal. */
-  importance?: Importance;
+  /** Pensum tier — drives the importance signal. */
+  importance: Importance;
 }
 
 /** `01-foton` / `02_geo1` → `foton` / `geo1`. Falls back to the raw id. */
@@ -96,7 +97,6 @@ export function sectionNav(sections: CollectionEntry<"sections">[]): NavItem[] {
     num: nums.get(s.id) ?? String(s.data.order).padStart(2, "0"),
     title: s.data.title,
     shortTitle: shortTitle(s.data.title),
-    kind: "section" as const,
     order: s.data.order,
     part: s.data.part,
     importance: s.data.importance,

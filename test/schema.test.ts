@@ -1,9 +1,19 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { courseSchema, sectionSchema } from "../src/schema.ts";
+import {
+  courseSchema,
+  sectionSchema,
+  flashcardsSchema,
+  SCHEMA_VERSION,
+} from "../src/schema.ts";
 
 /** Minimal valid course (only the no-default required fields). */
-const base = { code: "TST101", title: "Test", term: "V2026" };
+const base = {
+  schemaVersion: SCHEMA_VERSION,
+  code: "TST101",
+  title: "Test",
+  term: "V2026",
+};
 
 test("analytics.goatcounter endpoint is parsed when set", () => {
   const parsed = courseSchema.parse({
@@ -41,6 +51,83 @@ test("seo.twitter + institution are optional and parsed when set", () => {
   const bare = courseSchema.parse(base);
   assert.equal(bare.institution, undefined);
   assert.equal(bare.seo, undefined);
+});
+
+test("schemaVersion is required (no default) — omitting it fails the build", () => {
+  const { schemaVersion, ...noVersion } = base;
+  void schemaVersion;
+  const result = courseSchema.safeParse(noVersion);
+  assert.equal(result.success, false);
+});
+
+test("schemaVersion must be a positive int (0, negative, float rejected)", () => {
+  for (const bad of [0, -1, 2.5, "3"]) {
+    const r = courseSchema.safeParse({ ...base, schemaVersion: bad });
+    assert.equal(r.success, false, `schemaVersion ${bad} should be rejected`);
+  }
+  assert.ok(courseSchema.safeParse({ ...base, schemaVersion: 3 }).success);
+});
+
+test("a typo'd / unknown course key fails the build (strictObject)", () => {
+  const result = courseSchema.safeParse({ ...base, titel: "typo" });
+  assert.equal(result.success, false);
+});
+
+test("an unknown key on a nested strict object is rejected", () => {
+  const result = courseSchema.safeParse({
+    ...base,
+    features: { progres: true },
+  });
+  assert.equal(result.success, false);
+});
+
+test("section takes a scalar `tag`, not a `tags` array (v3 migration)", () => {
+  const ok = sectionSchema.parse({ order: 1, title: "M", tag: "Uke 3" });
+  assert.equal(ok.tag, "Uke 3");
+  // The old plural `tags: [...]` key is gone — passing it now fails.
+  const legacy = sectionSchema.safeParse({
+    order: 1,
+    title: "M",
+    tags: ["Uke 3"],
+  });
+  assert.equal(legacy.success, false);
+});
+
+test("section importance defaults to useful and enforces its enum", () => {
+  assert.equal(
+    sectionSchema.parse({ order: 1, title: "M" }).importance,
+    "useful",
+  );
+  assert.equal(
+    sectionSchema.safeParse({ order: 1, title: "M", importance: "vital" })
+      .success,
+    false,
+  );
+});
+
+test("flashcards cards require front + back; unknown card keys rejected", () => {
+  const ok = flashcardsSchema.parse({
+    cards: [{ front: "Q", back: "A" }],
+  });
+  assert.equal(ok.cards[0].tags.length, 0);
+  const bad = flashcardsSchema.safeParse({
+    cards: [{ front: "Q", back: "A", frnot: "x" }],
+  });
+  assert.equal(bad.success, false);
+});
+
+test("ui string overrides default to the current Norwegian chrome", () => {
+  const parsed = courseSchema.parse(base);
+  assert.equal(parsed.ui.formulaSheetLabel, "Formelsamling");
+  assert.equal(parsed.ui.glossaryLabel, "Begreper");
+  assert.equal(parsed.ui.sheetEmptyLabel, "Ingen formler matcher søket.");
+  // Overriding one key leaves the rest at their defaults (prefault).
+  const over = courseSchema.parse({
+    ...base,
+    ui: { formulaSheetLabel: "Sheet" },
+  });
+  assert.equal(over.ui.formulaSheetLabel, "Sheet");
+  assert.equal(over.ui.glossaryLabel, "Begreper");
 });
 
 test("section draft/noindex default to false and coerce when set", () => {

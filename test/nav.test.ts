@@ -107,7 +107,11 @@ test("toolFlags reflects course data + flashcard count", () => {
 });
 
 test("partGroups: no parts → one null-part group holding every item", () => {
-  const items = [{ slug: "a" }, { slug: "b" }, { slug: "c" }];
+  const items: { slug: string; part?: string }[] = [
+    { slug: "a" },
+    { slug: "b" },
+    { slug: "c" },
+  ];
   const groups = partGroups(items);
   assert.equal(groups.length, 1);
   assert.equal(groups[0].part, null);
