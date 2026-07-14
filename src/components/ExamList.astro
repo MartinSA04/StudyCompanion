@@ -1,5 +1,6 @@
 ---
 import type { ExamPaper } from "../schema.ts";
+import { formatDate } from "../lib/dates.ts";
 import Icon from "./Icon.astro";
 
 /**
@@ -14,7 +15,6 @@ interface Props {
 }
 const { exams, language = "nb", archive } = Astro.props;
 
-const fmt = new Intl.DateTimeFormat(language, { dateStyle: "medium" });
 const sorted = [...exams].sort((a, b) => {
   const ta = a.date ? a.date.getTime() : 0;
   const tb = b.date ? b.date.getTime() : 0;
@@ -28,7 +28,11 @@ const sorted = [...exams].sort((a, b) => {
       <li class="exam-row">
         <div class="exam-main">
           <span class="exam-label">{e.label}</span>
-          {e.date && <span class="exam-date">{fmt.format(e.date)}</span>}
+          {e.date && (
+            <span class="exam-date">
+              {formatDate(e.date, language, "medium")}
+            </span>
+          )}
         </div>
         <div class="exam-links">
           {e.url && (

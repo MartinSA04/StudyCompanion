@@ -1,5 +1,5 @@
 ---
-import { getCollection, render } from "astro:content";
+import { render } from "astro:content";
 import type { CollectionEntry } from "astro:content";
 import CourseLayout from "../layouts/CourseLayout.astro";
 import FormulaSheet from "../components/FormulaSheet.astro";
@@ -25,7 +25,6 @@ import {
   sectionNav,
   sectionNumbers,
   sectionSlug,
-  toolFlags,
   TOOL_SLUGS,
 } from "../lib/nav.ts";
 
@@ -40,11 +39,7 @@ type Props =
   | { kind: "formulas" | "glossary" | "flashcards" | "exams" };
 
 export async function getStaticPaths() {
-  const { course, sections } = await loadCourse();
-  const flashcards = course.features.flashcards
-    ? ((await getCollection("flashcards"))[0]?.data.cards ?? [])
-    : [];
-  const tools = toolFlags(course, flashcards.length);
+  const { sections, tools } = await loadCourse();
   const nums = sectionNumbers(sections);
 
   const neighbor = (s?: CollectionEntry<"sections">): Neighbor =>
@@ -90,12 +85,8 @@ const props = Astro.props as Props;
 const active = Astro.params.slug;
 
 // Shared chrome data (cheap — collections are cached during the build).
-const { course, sections } = await loadCourse();
-const flashcards = course.features.flashcards
-  ? ((await getCollection("flashcards"))[0]?.data.cards ?? [])
-  : [];
+const { course, sections, flashcards, tools } = await loadCourse();
 const nav = sectionNav(sections);
-const tools = toolFlags(course, flashcards.length);
 const nums = sectionNumbers(sections);
 
 let pageTitle = course.title;
@@ -124,9 +115,9 @@ if (props.kind === "section") {
   }
   head = {
     // Deliberately minimal: folio number + title + the one importance signal.
-    // The section's `part` and tags already orient the reader through the
-    // sidebar and overview, so they stay out of the reading header rather than
-    // repeating chrome the reader can already see.
+    // The section's `part` and its overview-tile `tag` kicker already orient
+    // the reader through the sidebar and overview, so they stay out of the
+    // reading header rather than repeating chrome the reader can already see.
     index: nums.get(props.entry.id) ?? String(d.order).padStart(2, "0"),
     title: d.title,
     importance: d.importance,
@@ -271,7 +262,7 @@ const seo = {
             <button
               class="done-btn sc-btn sc-press"
               type="button"
-              data-done-order={head.order}
+              data-done-slug={active}
             >
               <span class="done-check" aria-hidden="true">
                 <Icon name="check" size={15} />
@@ -363,6 +354,13 @@ const seo = {
           formulas={course.formulas}
           examFormulaSheet={course.exam?.formulaSheet ?? true}
           noFormulaSheetNote={course.ui.noFormulaSheetNote}
+          ui={{
+            searchPlaceholder: course.ui.sheetSearchPlaceholder,
+            searchLabel: course.ui.sheetSearchLabel,
+            onSheet: course.ui.onSheetLabel,
+            memorize: course.ui.memorizeLabel,
+            empty: course.ui.sheetEmptyLabel,
+          }}
         />
       </>
     )
@@ -374,7 +372,15 @@ const seo = {
         <header class="tool-head">
           <h1>{course.ui.glossaryLabel}</h1>
         </header>
-        <Glossary glossary={course.glossary} />
+        <Glossary
+          glossary={course.glossary}
+          ui={{
+            searchPlaceholder: course.ui.glossarySearchPlaceholder,
+            searchLabel: course.ui.glossarySearchLabel,
+            empty: course.ui.glossaryEmptyLabel,
+            otherGroup: course.ui.glossaryOtherGroupLabel,
+          }}
+        />
       </>
     )
   }

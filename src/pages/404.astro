@@ -1,20 +1,15 @@
 ---
-import { getCollection } from "astro:content";
 import CourseLayout from "../layouts/CourseLayout.astro";
 import Icon from "../components/Icon.astro";
 import { loadCourse } from "../lib/loadCourse.ts";
-import { sectionNav, toolFlags } from "../lib/nav.ts";
+import { sectionNav } from "../lib/nav.ts";
 
 // Branded 404 (4.12). The integration injects only `/` and `/[slug]`, so a bad
 // URL would otherwise hit Astro's unstyled default — off-brand and a soft-404
 // SEO smell. This renders the normal shell (topbar search, sidebar nav) so a
 // mistyped link is a soft landing back into the guide, not a dead end.
-const { course, sections } = await loadCourse();
-const flashcards = course.features.flashcards
-  ? ((await getCollection("flashcards"))[0]?.data.cards ?? [])
-  : [];
+const { course, sections, tools } = await loadCourse();
 const nav = sectionNav(sections);
-const tools = toolFlags(course, flashcards.length);
 
 const seo = { description: "Siden finnes ikke.", noindex: true };
 ---
@@ -79,7 +74,7 @@ const seo = { description: "Siden finnes ikke.", noindex: true };
   .nf-code {
     font-family: var(--font-mono);
     font-size: clamp(3rem, 12vw, 6rem);
-    font-weight: 700;
+    font-weight: var(--weight-semibold);
     line-height: 1;
     color: var(--accent-ink);
     margin: 0;

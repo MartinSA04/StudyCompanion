@@ -1,7 +1,6 @@
 import type { APIContext } from "astro";
-import { getCollection } from "astro:content";
 import { loadCourse } from "../lib/loadCourse.ts";
-import { toolFlags, sectionSlug, TOOL_SLUGS } from "../lib/nav.ts";
+import { sectionSlug, TOOL_SLUGS } from "../lib/nav.ts";
 
 // Prerendered to a static /sitemap.xml at build (4.5). Hand-rolled rather than
 // pulling in @astrojs/sitemap: it keeps the near-zero-dependency stance and
@@ -27,11 +26,7 @@ export async function GET(context: APIContext): Promise<Response> {
     );
   }
 
-  const { course, sections } = await loadCourse();
-  const flashcards = course.features.flashcards
-    ? ((await getCollection("flashcards"))[0]?.data.cards ?? [])
-    : [];
-  const tools = toolFlags(course, flashcards.length);
+  const { sections, tools } = await loadCourse();
 
   const urls: { loc: string; lastmod?: string }[] = [
     { loc: new URL("/", site).href },

@@ -12,8 +12,21 @@ import Icon from "./Icon.astro";
  */
 interface Props {
   glossary: GlossaryEntry[];
+  /** Localizable chrome strings; each falls back to the Norwegian default. */
+  ui?: {
+    searchPlaceholder?: string;
+    searchLabel?: string;
+    empty?: string;
+    otherGroup?: string;
+  };
 }
-const { glossary } = Astro.props;
+const { glossary, ui } = Astro.props;
+const labels = {
+  searchPlaceholder: ui?.searchPlaceholder ?? "Søk i begreper …",
+  searchLabel: ui?.searchLabel ?? "Søk i begreper",
+  empty: ui?.empty ?? "Ingen begreper matcher søket.",
+  otherGroup: ui?.otherGroup ?? "Andre begreper",
+};
 
 // Group by section, preserving first-seen order of both groups and entries.
 // Entries without a `section` are collected separately: when the glossary is
@@ -42,7 +55,7 @@ const groups: { section: string; items: GlossaryEntry[] }[] =
     ? [{ section: "", items: unsectioned }]
     : unsectioned.length === 0
       ? sectioned
-      : [...sectioned, { section: "Andre begreper", items: unsectioned }];
+      : [...sectioned, { section: labels.otherGroup, items: unsectioned }];
 
 // A lowercased haystack for client-side search: term plus the plain-text
 // definition (math and inline markup stripped).
@@ -60,8 +73,8 @@ const haystack = (e: GlossaryEntry) =>
     <input
       type="search"
       class="gloss-search-input"
-      placeholder="Søk i begreper …"
-      aria-label="Søk i begreper"
+      placeholder={labels.searchPlaceholder}
+      aria-label={labels.searchLabel}
       autocomplete="off"
     />
   </div>
@@ -104,7 +117,7 @@ const haystack = (e: GlossaryEntry) =>
       </section>
     ))
   }
-  <p class="gloss-empty" hidden>Ingen begreper matcher søket.</p>
+  <p class="gloss-empty" hidden>{labels.empty}</p>
 </div>
 <!-- Polite match-count feedback for screen readers: the filter is visual-only
      otherwise (rows just get [hidden]). Mirrors the role=status pattern used by
@@ -261,6 +274,9 @@ const haystack = (e: GlossaryEntry) =>
     );
     const empty = document.querySelector<HTMLElement>(".gloss-empty");
     const status = document.querySelector<HTMLElement>("[data-gloss-status]");
+    // Reuse the localized empty-state copy for the screen-reader announcement,
+    // so the two never drift apart under a course's `ui` override.
+    const emptyLabel = empty?.textContent ?? "Ingen begreper matcher søket.";
 
     const apply = (term: string) => {
       let visibleCount = 0;
@@ -282,7 +298,7 @@ const haystack = (e: GlossaryEntry) =>
         status.textContent = !term
           ? ""
           : visibleCount === 0
-            ? "Ingen begreper matcher søket."
+            ? emptyLabel
             : `${visibleCount} treff`;
       }
     };

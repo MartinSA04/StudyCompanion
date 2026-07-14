@@ -22,12 +22,28 @@ interface Props {
   examFormulaSheet?: boolean;
   /** Notice text shown when `examFormulaSheet` is false. */
   noFormulaSheetNote?: string;
+  /** Localizable chrome strings; each falls back to the Norwegian default. */
+  ui?: {
+    searchPlaceholder?: string;
+    searchLabel?: string;
+    onSheet?: string;
+    memorize?: string;
+    empty?: string;
+  };
 }
 const {
   formulas,
   examFormulaSheet = true,
   noFormulaSheetNote = "",
+  ui,
 } = Astro.props;
+const labels = {
+  searchPlaceholder: ui?.searchPlaceholder ?? "Søk i formler og symboler …",
+  searchLabel: ui?.searchLabel ?? "Søk i formler",
+  onSheet: ui?.onSheet ?? "På formelarket",
+  memorize: ui?.memorize ?? "Må pugges",
+  empty: ui?.empty ?? "Ingen formler matcher søket.",
+};
 
 // Group by section, preserving first-seen order of both groups and entries.
 const groups: { section: string; items: FormulaEntry[] }[] = [];
@@ -86,8 +102,8 @@ const hasMemorize = examFormulaSheet && formulas.some((f) => f.memorize);
     <input
       type="search"
       class="fs-search-input"
-      placeholder="Søk i formler og symboler …"
-      aria-label="Søk i formler"
+      placeholder={labels.searchPlaceholder}
+      aria-label={labels.searchLabel}
       autocomplete="off"
     />
   </div>
@@ -108,7 +124,7 @@ const hasMemorize = examFormulaSheet && formulas.some((f) => f.memorize);
           data-filter="sheet"
           aria-pressed="false"
         >
-          På formelarket
+          {labels.onSheet}
         </button>
         <button
           type="button"
@@ -116,7 +132,7 @@ const hasMemorize = examFormulaSheet && formulas.some((f) => f.memorize);
           data-filter="memorize"
           aria-pressed="false"
         >
-          Må pugges
+          {labels.memorize}
         </button>
       </div>
     )
@@ -164,7 +180,7 @@ const hasMemorize = examFormulaSheet && formulas.some((f) => f.memorize);
       </section>
     ))
   }
-  <p class="fs-empty" hidden>Ingen formler matcher søket.</p>
+  <p class="fs-empty" hidden>{labels.empty}</p>
 </div>
 
 <style>

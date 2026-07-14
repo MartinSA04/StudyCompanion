@@ -1,7 +1,7 @@
 import type { AstroIntegration } from "astro";
-import { fileURLToPath, pathToFileURL } from "node:url";
+import { fileURLToPath } from "node:url";
 import { join } from "node:path";
-import { readFileSync, existsSync, readdirSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { writeFile, readdir, stat, unlink } from "node:fs/promises";
 import { parse as parseYaml } from "yaml";
 import mdx from "@astrojs/mdx";
@@ -46,41 +46,29 @@ import { faviconSvg, maskIconSvg, GROUND } from "./lib/favicon.ts";
 const PACKAGE_ROOT = fileURLToPath(new URL("../", import.meta.url));
 
 /**
- * Locate the `sharp` module without declaring it as a dependency. sharp ships
- * transitively with Astro's image service, so it's already on disk in any
- * course build — we just have to find it:
- *   - bare `import("sharp")` works under npm/yarn (hoisted as Astro's dep);
- *   - under pnpm it sits at `node_modules/.pnpm/sharp@<ver>/node_modules/sharp`
- *     (a *sibling*, not hoisted), so probe the store under the consumer root and
- *     this package's root.
- * Returns an importable specifier (a bare name or a file:// URL), or null.
+ * Dynamic import that Vite can never rewrite into a call on its SSR module
+ * runner — which is already closed by the time `astro:build:done` hooks run,
+ * otherwise failing with "Vite module runner has been closed". The runner only
+ * intercepts the import when this package is consumed as a packed node_modules
+ * dependency; a symlinked `link:` dep happens to dodge it. The Function body's
+ * `import()` resolves through Node's native loader, outside the compiled
+ * graph, so the imported module's own types never attach — hence the caller
+ * casts. Build-time (node) only; the client-side twin with a dev/prod split
+ * lives in lib/simRuntime.ts.
  */
-function locateSharp(roots: string[]): string | null {
-  for (const root of roots) {
-    const direct = join(root, "node_modules", "sharp");
-    if (existsSync(direct)) {
-      return pathToFileURL(join(direct, "lib", "index.js")).href;
-    }
-    const store = join(root, "node_modules", ".pnpm");
-    try {
-      const hit = readdirSync(store).find((d) => /^sharp@/.test(d));
-      if (hit) {
-        const p = join(store, hit, "node_modules", "sharp", "lib", "index.js");
-        if (existsSync(p)) return pathToFileURL(p).href;
-      }
-    } catch {
-      /* no .pnpm store here — try the next root */
-    }
-  }
-  return null;
-}
+const nativeImport = new Function("specifier", "return import(specifier)") as (
+  s: string,
+) => Promise<any>;
 
 /**
  * Generate the per-course raster app icons + Safari pinned-tab mask into the
- * static output at build (4.9). Mirrors the Pagefind pattern below: the mask SVG
- * needs nothing, and the PNGs use a GUARDED dynamic `import("sharp")` — sharp
- * ships transitively with Astro's image service, so we lean on it rather than
- * declaring a new dependency, and degrade (warn + skip) if it's somehow absent.
+ * static output at build (4.9). The mask SVG needs nothing; the PNGs load
+ * `sharp` — declared as this package's own optionalDependency, matching
+ * Astro's supported range, so it resolves by NAME under every package manager
+ * (including pnpm's unhoisted store) — through the same guarded dynamic
+ * import as Pagefind below. A missing or failing sharp FAILS the build: the
+ * prerendered manifest + apple-touch-icon/og:image tags already reference
+ * these PNGs, so skipping would ship 404 icons and a broken install contract.
  * The icons are accent-tinted from the course's own `accent`/`accentDark`.
  *
  *   /apple-touch-icon.png   180×180 (iOS home screen; opaque)
@@ -124,17 +112,7 @@ async function generateAppIcons(
   const markAccent = accentDark ?? accent;
 
   try {
-    // `new Function` import for the same reason as Pagefind below — keep Vite's
-    // SSR module runner from rewriting it (it's already closed in build:done).
-    const nativeImport = new Function(
-      "specifier",
-      "return import(specifier)",
-      // sharp is not a declared dependency (resolved at runtime, see locateSharp),
-      // so there are no types for it here — `any` is deliberate.
-    ) as (s: string) => Promise<any>;
-    const sharpSpecifier =
-      locateSharp([fileURLToPath(root), PACKAGE_ROOT]) ?? "sharp";
-    const sharpMod = await nativeImport(sharpSpecifier);
+    const sharpMod = await nativeImport("sharp");
     const sharp = sharpMod.default ?? sharpMod;
 
     // Render the mark at a generous fixed size, then resize down per target.
@@ -158,10 +136,14 @@ async function generateAppIcons(
       "Generated app icons (apple-touch-icon, icon-192/512, maskable)",
     );
   } catch (err) {
-    logger.warn(
-      `Skipped raster app icons (${
+    // Hard failure, never warn-and-skip: the manifest.webmanifest and the
+    // apple-touch-icon/og:image tags are already prerendered pointing at these
+    // PNGs (the manifest can't self-correct — it renders before build:done),
+    // so a skip ships 404 icons and Chrome refuses the PWA install.
+    throw new Error(
+      `study-companion: could not generate the app icons — sharp failed to load or run (${
         err instanceof Error ? err.message : String(err)
-      }) — the SVG favicon still applies; the iOS home-screen icon falls back.`,
+      }). The emitted manifest and icon tags already reference these PNGs, so the site must not ship without them. sharp is an optionalDependency of study-companion; if your package manager skipped it (--no-optional, or an unsupported platform), reinstall with optional dependencies enabled.`,
     );
   }
 }
@@ -210,10 +192,12 @@ export interface StudyCompanionOptions {
  * The study-companion Astro integration.
  *
  * Course repos add this to `astro.config.mjs` and get, with zero further
- * configuration: MDX + KaTeX math wired into the markdown pipeline, the single
- * `/` page route injected straight from this package, and a Pagefind index
- * built over the static output. All design/schema/page wiring lives here so the
- * course repo stays thin and upgrade-safe.
+ * configuration: MDX + KaTeX math wired into the markdown pipeline, six page
+ * routes injected straight from this package — `/` (overview), `/[slug]`
+ * (modules + reference tools), `/sitemap.xml`, `/robots.txt`,
+ * `/manifest.webmanifest` and `/404` — and a Pagefind index built over the
+ * static output. All design/schema/page wiring lives here so the course repo
+ * stays thin and upgrade-safe.
  */
 export default function studyCompanion(
   options: StudyCompanionOptions = {},
@@ -229,11 +213,31 @@ export default function studyCompanion(
     hooks: {
       "astro:config:setup": ({ config, updateConfig, injectRoute }) => {
         projectRoot = config.root;
+        // The framework emits root-absolute URLs everywhere (nav hrefs,
+        // manifest icons, canonical/og/sitemap entries) and nothing consults
+        // import.meta.env.BASE_URL, so a subpath deploy would build green and
+        // 404 on every link. Fail fast instead of shipping a broken site.
+        if (config.base !== "/") {
+          throw new Error(
+            "study-companion requires deployment at a domain/subdomain root — " +
+              'set base "/" (the default) or deploy to a custom (sub)domain ' +
+              "instead of a subpath.",
+          );
+        }
         // 1. Toolchain: MDX + server-rendered KaTeX math. The math plugins are
         //    set under `markdown`; @astrojs/mdx extends the markdown config by
         //    default, so they apply to both .md and .mdx with no client cost.
         updateConfig({
           integrations: [mdx()],
+          build: {
+            // Every emitted URL — canonical, og:url, sitemap <loc>, internal
+            // hrefs — is deliberately slash-less (see trimTrailingSlash in
+            // lib/seo.ts). The default "directory" output serves /slug/ and
+            // 301s the slash-less form (a canonical-to-redirect conflict on
+            // GH Pages), so emit /slug.html, which static hosts serve at
+            // exactly /slug.
+            format: "file",
+          },
           markdown: {
             remarkPlugins: [remarkMath],
             rehypePlugins: [
@@ -325,20 +329,12 @@ export default function studyCompanion(
 
         if (!buildPagefind) return;
         try {
-          // Dynamic import: pagefind spawns a native binary, so we only load it
-          // when actually building an index (and never during `astro dev`).
-          // Build the import via `new Function` so Vite never rewrites it into a
-          // call on its SSR module runner — which is already closed by the time
-          // astro:build:done runs, otherwise failing with "Vite module runner
-          // has been closed". The runner only intercepts the import when this
-          // package is consumed as a packed node_modules dependency; a symlinked
-          // `link:` dep happens to dodge it. The Function body's `import()`
-          // resolves through Node's native loader.
-          const nativeImport = new Function(
-            "specifier",
-            "return import(specifier)",
-          ) as (s: string) => Promise<typeof import("pagefind")>;
-          const pagefind = await nativeImport("pagefind");
+          // Dynamic import via nativeImport: pagefind spawns a native binary,
+          // so we only load it when actually building an index (and never
+          // during `astro dev`).
+          const pagefind = (await nativeImport(
+            "pagefind",
+          )) as typeof import("pagefind");
           const { index } = await pagefind.createIndex();
           if (!index) throw new Error("Pagefind failed to create an index.");
           await index.addDirectory({ path: outDir });

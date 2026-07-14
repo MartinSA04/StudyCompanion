@@ -1,11 +1,11 @@
 ---
-import { getCollection } from "astro:content";
 import CourseLayout from "../layouts/CourseLayout.astro";
 import Icon from "../components/Icon.astro";
 import ImportanceTag from "../components/ImportanceTag.astro";
 import { loadCourse } from "../lib/loadCourse.ts";
 import { validateXrefs } from "../lib/xref.ts";
-import { formatExamCountdown } from "../lib/countdown.ts";
+import { daysUntil, formatExamCountdown } from "../lib/countdown.ts";
+import { formatDate } from "../lib/dates.ts";
 import { absoluteUrl, truncateDescription } from "../lib/seo.ts";
 import { courseLd } from "../lib/jsonLd.ts";
 import { readFileSync } from "node:fs";
@@ -13,11 +13,10 @@ import {
   sectionNav,
   sectionNumbers,
   sectionSlug,
-  toolFlags,
   partGroups,
 } from "../lib/nav.ts";
 
-const { course, sections } = await loadCourse();
+const { course, sections, flashcards, tools } = await loadCourse();
 
 // 2.9 — Build-time cross-reference validation. The `/` route is always built,
 // so validating here scans the whole course once and FAILS the build on a dead
@@ -55,33 +54,29 @@ const { course, sections } = await loadCourse();
   }
 }
 
-const flashcards = course.features.flashcards
-  ? ((await getCollection("flashcards"))[0]?.data.cards ?? [])
-  : [];
-
 const nav = sectionNav(sections);
-const tools = toolFlags(course, flashcards.length);
 const nums = sectionNumbers(sections);
 
 // Module tiles, derived from section frontmatter.
 const tiles = sections.map((s) => ({
   slug: sectionSlug(s.id),
-  order: s.data.order,
   num: nums.get(s.id) ?? String(s.data.order).padStart(2, "0"),
   title: s.data.title,
   part: s.data.part,
   importance: s.data.importance,
-  week: s.data.tags[0] ?? "",
+  week: s.data.tag ?? "",
 }));
 
 // Group tiles into parts (single null-part group when no section sets one).
 const tileGroups = partGroups(tiles);
 
-const dateFmt = new Intl.DateTimeFormat(course.language, { dateStyle: "long" });
-const examDate = course.exam?.date ? dateFmt.format(course.exam.date) : null;
-const daysToExam = course.exam?.date
-  ? Math.ceil((course.exam.date.getTime() - Date.now()) / 86_400_000)
+const examDate = course.exam?.date
+  ? formatDate(course.exam.date, course.language)
   : null;
+// Build-time snapshot; the page script re-derives the countdown against the
+// viewer's clock (data-exam-countdown below carries the date for it).
+const daysToExam = course.exam?.date ? daysUntil(course.exam.date) : null;
+const examIso = course.exam?.date?.toISOString();
 const hasExamCard =
   examDate || course.exam?.format || course.exam?.aids || daysToExam != null;
 
@@ -171,7 +166,12 @@ const jsonLd = [
           <p>
             <strong>Dato:</strong> {examDate}
             {daysToExam != null && daysToExam >= 0 && (
-              <span> — {formatExamCountdown(daysToExam)}</span>
+              <span data-exam-countdown={examIso} data-countdown-hide-past>
+                {" — "}
+                <span data-countdown-text>
+                  {formatExamCountdown(daysToExam)}
+                </span>
+              </span>
             )}
           </p>
         )}
@@ -198,7 +198,7 @@ const jsonLd = [
             <a
               class="module-tile sc-press sc-tile sc-lift"
               href={`/${t.slug}`}
-              data-tile-order={t.order}
+              data-tile-slug={t.slug}
             >
               <div class="tile-num">{t.num}</div>
               <div class="tile-title">{t.title}</div>
@@ -225,44 +225,82 @@ const jsonLd = [
   }
 </CourseLayout>
 
-<script is:inline data-astro-rerun>
-  // data-astro-rerun: re-paint the tile/continue state each time the overview is
-  // (re-)loaded via a view transition. Idempotent — it only reads + sets classes.
-  (function () {
-    var key = document.body.dataset.progressKey;
-    if (!key) return;
-    var done;
-    try {
-      done = new Set(JSON.parse(localStorage.getItem(key) || "[]").map(Number));
-    } catch (e) {
-      done = new Set();
-    }
-    if (!done.size) return;
+<script>
+  import { onPage } from "../lib/pageLifecycle.ts";
+  import { normalizeProgress } from "../lib/progress.ts";
+  import { refreshExamCountdowns } from "../lib/examCountdown.ts";
 
-    var tiles = Array.from(document.querySelectorAll("[data-tile-order]"));
-    tiles.forEach(function (t) {
-      var on = done.has(Number(t.dataset.tileOrder));
-      if (on) t.classList.add("done");
+  // Overview paint: tile done-marks, the hero "N av M fullført" row and the
+  // continue link. The count is the INTERSECTION of stored progress with the
+  // rendered tiles — normalizeProgress prunes stale entries and migrates the
+  // legacy order-number records (mapped through the sidebar nav links), so
+  // stale state can never show "12 av 10". Idempotent; re-run per page-load
+  // via onPage, and no-op on any document without tiles.
+  const paint = (doc: Document) => {
+    const key = doc.body.dataset.progressKey;
+    const tiles = [
+      ...doc.querySelectorAll<HTMLAnchorElement>("[data-tile-slug]"),
+    ];
+    if (!key || !tiles.length) return;
+    let raw: unknown = null;
+    try {
+      raw = JSON.parse(localStorage.getItem(key) ?? "null");
+    } catch {}
+    const nav = [...doc.querySelectorAll<HTMLElement>("[data-nav-slug]")].map(
+      (a) => ({
+        slug: a.dataset.navSlug!,
+        order: Number(a.dataset.navOrder),
+      }),
+    );
+    const { slugs: done, dirty } = normalizeProgress(raw, nav);
+    if (dirty) {
+      try {
+        localStorage.setItem(key, JSON.stringify([...done]));
+      } catch {}
+    }
+
+    let count = 0;
+    tiles.forEach((t) => {
+      const on = done.has(t.dataset.tileSlug!);
+      if (on) count++;
+      t.classList.toggle("done", on);
       // Keep the sr-only text companion (see the aria-hidden check icon
       // beside it) in lockstep with the visual .done class.
-      var sr = t.querySelector("[data-done-sr]");
+      const sr = t.querySelector("[data-done-sr]");
       if (sr) sr.textContent = on ? ", fullført" : "";
     });
+    if (!count) return; // nothing done → the hero progress row stays hidden
 
-    var row = document.querySelector("[data-hero-progress-row]");
+    const row = doc.querySelector<HTMLElement>("[data-hero-progress-row]");
     if (row) {
-      var doneEl = row.querySelector("[data-progress-done]");
-      if (doneEl) doneEl.textContent = String(done.size);
+      const doneEl = row.querySelector("[data-progress-done]");
+      if (doneEl) doneEl.textContent = String(count);
       row.hidden = false;
     }
 
-    var continueLink = document.querySelector("[data-hero-continue]");
-    var firstUndone = tiles.find(function (t) {
-      return !t.classList.contains("done");
-    });
-    if (continueLink && firstUndone) {
-      continueLink.href = firstUndone.href;
-      continueLink.hidden = false;
+    // First not-yet-done tile in document order. With everything rendered
+    // marked done (or only stale/pruned state left) there is nowhere to
+    // continue to, so the pill hides rather than pointing at a dead target.
+    const continueLink = doc.querySelector<HTMLAnchorElement>(
+      "[data-hero-continue]",
+    );
+    const firstUndone = tiles.find((t) => !t.classList.contains("done"));
+    if (continueLink) {
+      if (firstUndone) continueLink.href = firstUndone.href;
+      continueLink.hidden = !firstUndone;
     }
-  })();
+  };
+
+  onPage(() => {
+    paint(document);
+    // The exam card's "om N dager" is a build-time snapshot; recompute it
+    // against the viewer's clock (see lib/examCountdown.ts).
+    refreshExamCountdowns();
+  });
+  // Pre-paint the INCOMING overview during a view-transition swap so tiles
+  // never flash unmarked for a frame — the same reasoning as CourseLayout's
+  // progress paint. No-op for any other destination (no tiles).
+  document.addEventListener("astro:before-swap", (e) => {
+    paint((e as Event & { newDocument: Document }).newDocument);
+  });
 </script>

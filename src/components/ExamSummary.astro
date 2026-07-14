@@ -1,15 +1,22 @@
 ---
 import type { Course } from "../schema.ts";
-import { formatExamCountdown } from "../lib/countdown.ts";
+import {
+  daysUntil,
+  formatExamCountdown,
+  EXAM_PAST_LABEL,
+} from "../lib/countdown.ts";
+import { formatDate } from "../lib/dates.ts";
 
 /**
- * A summary of the UPCOMING exam — date + build-time countdown, duration,
- * format and permitted aids — shown atop the Eksamen tool page so a student
- * lands on the facts of the exam they're sitting before the past-paper list.
+ * A summary of the UPCOMING exam — date + countdown, duration, format and
+ * permitted aids — shown atop the Eksamen tool page so a student lands on the
+ * facts of the exam they're sitting before the past-paper list.
  *
  * Pure presentation of the existing `course.exam` data (no schema change);
  * renders only the fields that are present, and nothing at all if `exam`
- * carries none of them.
+ * carries none of them. The countdown pill SSRs a build-time snapshot and the
+ * script below re-derives it against the viewer's clock, so a site built a
+ * week early still says "i dag" on exam morning.
  */
 interface Props {
   exam: NonNullable<Course["exam"]>;
@@ -17,18 +24,15 @@ interface Props {
 }
 const { exam, language = "nb" } = Astro.props;
 
-const dateFmt = new Intl.DateTimeFormat(language, { dateStyle: "full" });
-const examDate = exam.date ? dateFmt.format(exam.date) : null;
-const daysToExam = exam.date
-  ? Math.ceil((exam.date.getTime() - Date.now()) / 86_400_000)
-  : null;
+const examDate = exam.date ? formatDate(exam.date, language, "full") : null;
+const daysToExam = exam.date ? daysUntil(exam.date) : null;
 
 // Norwegian chrome countdown, matching the overview exam card's wording.
 const countdown =
   daysToExam == null
     ? null
     : daysToExam < 0
-      ? "avholdt"
+      ? EXAM_PAST_LABEL
       : formatExamCountdown(daysToExam);
 
 const durationStr = (() => {
@@ -58,7 +62,11 @@ const hasContent = Boolean(examDate) || facts.length > 0;
           <span class="exam-when-label sc-kicker">Eksamensdato</span>
           <span class="exam-when-date">{examDate}</span>
           {countdown && (
-            <span class="exam-when-count" data-past={daysToExam! < 0}>
+            <span
+              class="exam-when-count"
+              data-past={daysToExam! < 0}
+              data-exam-countdown={exam.date!.toISOString()}
+            >
               {countdown}
             </span>
           )}
@@ -153,3 +161,12 @@ const hasContent = Boolean(examDate) || facts.length > 0;
     line-height: var(--leading-snug);
   }
 </style>
+
+<script>
+  import { onPage } from "../lib/pageLifecycle.ts";
+  import { refreshExamCountdowns } from "../lib/examCountdown.ts";
+  // The pill's phrase (and its data-past muted state) is a build-time
+  // snapshot; recompute per (re)load against the viewer's clock so the pill
+  // flips to "i dag"/"avholdt" on the right morning (lib/examCountdown.ts).
+  onPage(() => refreshExamCountdowns());
+</script>

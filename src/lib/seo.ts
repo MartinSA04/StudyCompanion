@@ -52,8 +52,11 @@ export function stripInline(text: string): string {
 /**
  * Strip a trailing slash (except on the site root "/") so the canonical /
  * og:url / sitemap / JSON-LD URLs all agree on one form for a page — the
- * slug-derived URLs have no trailing slash, so the canonical (from Astro.url,
- * which carries one under the default directory build) is normalised to match.
+ * slug-derived URLs have no trailing slash, so the canonical (from Astro.url)
+ * is normalised to match. The integration pairs this with
+ * `build.format: "file"` (src/index.ts), which makes static hosts actually
+ * SERVE /slug at the slash-less form instead of 301ing it to /slug/; this trim
+ * remains the backstop for any Astro.url that still carries a slash.
  */
 export function trimTrailingSlash(path: string): string {
   return path.length > 1 ? path.replace(/\/+$/, "") : path;

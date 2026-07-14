@@ -9,9 +9,10 @@ import { contrastText, accentOnBg, accentInk } from "../lib/color.ts";
 import { THEME_COLOR_LIGHT, THEME_COLOR_DARK } from "../lib/themeColor.ts";
 import { faviconDataUri } from "../lib/favicon.ts";
 import { ogLocale, trimTrailingSlash, warnMissingSiteOnce } from "../lib/seo.ts";
+import { formatDate } from "../lib/dates.ts";
+import { progressKey as progressKeyFor } from "../lib/progress.ts";
 import { serializeLd } from "../lib/jsonLd.ts";
 import { ClientRouter } from "astro:transitions";
-import "katex/dist/katex.min.css";
 import "../styles/fonts.css";
 import "../styles/tokens.css";
 import "../styles/base.css";
@@ -30,6 +31,13 @@ import bodyFont from "../styles/fonts/spectral-400-latin.woff2";
 // ~48KB of preload for faces it never paints.
 import katexMainFont from "katex/dist/fonts/KaTeX_Main-Regular.woff2?url";
 import katexMathItalicFont from "katex/dist/fonts/KaTeX_Math-Italic.woff2?url";
+// KaTeX's stylesheet as an emitted-URL asset instead of a bundled global
+// import: only pages that pass the same `hasMath` gate as the preloads link
+// it, keeping its ~29KB out of every prose-only page's always-loaded CSS.
+// NOTE (build check): the ?url pipeline must still rewrite the url(fonts/…)
+// references inside the emitted CSS to the hashed font assets — verify on a
+// built math page before release.
+import katexCss from "katex/dist/katex.min.css?url";
 
 interface Props {
   course: Course;
@@ -186,11 +194,7 @@ function checkAccentFallback(accent: string) {
 // Module nav grouped into parts (single null-part group when no section sets one).
 const moduleGroups = partGroups(nav);
 
-const updatedStr = updated
-  ? new Intl.DateTimeFormat(course.language, { dateStyle: "long" }).format(
-      updated,
-    )
-  : null;
+const updatedStr = updated ? formatDate(updated, course.language) : null;
 
 // Per-theme brand accent. The course sets `accent` (light) and optionally
 // `accentDark`; the framework uses exactly those (no auto-lightening) and
@@ -229,7 +233,9 @@ checkAccentContrast(accentDark, onAccentDark, "dark");
 if (course.accentDark == null) checkAccentFallback(accentLight);
 
 const themeKey = `sc:theme:${course.code}`;
-const progressKey = `sc:progress:${course.code}`;
+// Single-sourced from lib/progress so the key template and the scripts that
+// read it can never disagree on the shape.
+const progressKey = progressKeyFor(course.code);
 const title = pageTitle
   ? `${pageTitle} · ${course.code}`
   : `${course.code} · ${course.title}`;
@@ -291,19 +297,16 @@ const hasTools = toolNav.some((t) => t.show);
     {seo?.noindex && <meta name="robots" content="noindex" />}
     {canonicalUrl && <link rel="canonical" href={canonicalUrl} />}
 
-    {/* Browser-chrome + native-control theming (4.7). Grounds are verbatim from
-        tokens.css; `format-detection` stops iOS auto-linking decimals/ranges
-        (e.g. 1.5, 240) in a physics/maths guide as tap-to-call numbers. */}
-    <meta
-      name="theme-color"
-      media="(prefers-color-scheme: light)"
-      content={THEME_COLOR_LIGHT}
-    />
-    <meta
-      name="theme-color"
-      media="(prefers-color-scheme: dark)"
-      content={THEME_COLOR_DARK}
-    />
+    {/* Browser-chrome + native-control theming (4.7). ONE un-mediaed meta,
+        owned by the theme scripts: dark rendering only ever comes from script
+        setting data-theme (tokens.css has no prefers-color-scheme fallback),
+        so a media-keyed dark meta would paint dark chrome on a light page for
+        a no-JS dark-OS reader, and could never track the persisted ThemeToggle
+        choice. The no-flash init recolours it pre-paint; `sc:themechange`
+        keeps it tracking later flips. Ground verbatim from tokens.css;
+        `format-detection` stops iOS auto-linking decimals/ranges (e.g. 1.5,
+        240) in a physics/maths guide as tap-to-call numbers. */}
+    <meta name="theme-color" content={THEME_COLOR_LIGHT} />
     <meta name="color-scheme" content="light dark" />
     <meta name="format-detection" content="telephone=no" />
 
@@ -369,6 +372,9 @@ const hasTools = toolNav.some((t) => t.show);
     {
       hasMath && (
         <>
+          {/* KaTeX CSS rides the same gate as its font preloads: a page that
+              paints no math (overview, exam, most 404s) never fetches it. */}
+          <link rel="stylesheet" href={katexCss} />
           <link
             rel="preload"
             as="font"
@@ -388,7 +394,14 @@ const hasTools = toolNav.some((t) => t.show);
     }
     {
       features.theme && (
-        <script is:inline define:vars={{ themeKey }}>
+        <script
+          is:inline
+          define:vars={{
+            themeKey,
+            themeColorLight: THEME_COLOR_LIGHT,
+            themeColorDark: THEME_COLOR_DARK,
+          }}
+        >
           // No-flash: set the theme before first paint, and — crucially — set it
           // on the INCOMING document during a view-transition swap. The fetched
           // static document has no data-theme (it's client-set), so swapping it in
@@ -406,10 +419,25 @@ const hasTools = toolNav.some((t) => t.show);
                 return false;
               }
             }
+            // Browser chrome (<meta name="theme-color">) follows the EFFECTIVE
+            // theme — the data-theme the scripts applied, which a persisted
+            // ThemeToggle choice can hold against the OS preference — so it is
+            // painted from the applied attribute, never recomputed from the OS.
+            function paintChrome(root) {
+              const dark = root.getAttribute("data-theme") === "dark";
+              const doc = root.ownerDocument || document;
+              const meta = doc.querySelector('meta[name="theme-color"]');
+              if (meta)
+                meta.setAttribute(
+                  "content",
+                  dark ? themeColorDark : themeColorLight,
+                );
+            }
             function applyTheme(root) {
               root = root || document.documentElement;
               if (isDark()) root.setAttribute("data-theme", "dark");
               else root.removeAttribute("data-theme");
+              paintChrome(root);
             }
             applyTheme();
             document.addEventListener("astro:before-swap", function (e) {
@@ -422,9 +450,16 @@ const hasTools = toolNav.some((t) => t.show);
             // for a reader who never picked a theme explicitly — an explicit
             // localStorage choice always wins and this listener leaves it alone.
             // Guarded so a view-transition swap re-embedding this same inline
-            // script never registers the listener twice.
+            // script never registers the listeners twice.
             if (!window.__scOsThemeBound) {
               window.__scOsThemeBound = true;
+              // An explicit toggle flip (ThemeToggle dispatches after applying
+              // data-theme + persisting) re-paints the chrome meta too. Reads
+              // the applied attribute, so it also stays right in private mode
+              // where the persist step silently fails.
+              document.addEventListener("sc:themechange", function () {
+                paintChrome(document.documentElement);
+              });
               matchMedia("(prefers-color-scheme: dark)").addEventListener(
                 "change",
                 function () {
@@ -588,6 +623,7 @@ const hasTools = toolNav.some((t) => t.show);
                 <a
                   class={`nav-link sc-press sc-lift${active === item.slug ? " active" : ""}`}
                   href={`/${item.slug}`}
+                  data-nav-slug={item.slug}
                   data-nav-order={item.order}
                   aria-current={active === item.slug ? "page" : undefined}>
                   <span class="nav-num">{item.num}</span>
@@ -682,21 +718,45 @@ const hasTools = toolNav.some((t) => t.show);
       </main>
     </div>
 
-    <script is:inline define:vars={{ progressKey, total: nav.length }}>
+    {/* Page-shell behavior (progress, menu, copy buttons, key nav). A bundled
+        module — NOT is:inline — so the ~11KB ships once as a cached asset
+        instead of being duplicated verbatim into every emitted page; the
+        course-specific inputs ride the <body> data attributes instead of
+        define:vars. */}
+    <script>
+      import { normalizeProgress } from "../lib/progress.ts";
+
       // ---- Reading progress (per course, localStorage) ----
-      // Stored as an array of section `order` numbers, matching lib/progress.ts.
-      const readProg = () => {
+      // Stored as an array of section slugs, matching lib/progress.ts. The key
+      // and section total are read off <body> per call rather than captured:
+      // the astro:before-swap paint below targets the INCOMING document. Every
+      // read runs through normalizeProgress, so a legacy order-number record
+      // migrates (mapped order→slug via the nav links' data-nav-order) and a
+      // stale entry prunes the first time any page paints — then the record is
+      // rewritten once so the migration sticks.
+      const writeProg = (doc: Document, slugs: Set<string>) => {
+        const key = doc.body.dataset.progressKey;
+        if (!key) return;
         try {
-          const a = JSON.parse(localStorage.getItem(progressKey) || "[]");
-          return Array.isArray(a) ? a.map(Number) : [];
-        } catch {
-          return [];
-        }
-      };
-      const writeProg = (arr) => {
-        try {
-          localStorage.setItem(progressKey, JSON.stringify(arr));
+          localStorage.setItem(key, JSON.stringify([...slugs]));
         } catch {}
+      };
+      const readProg = (doc: Document): Set<string> => {
+        const key = doc.body.dataset.progressKey;
+        if (!key) return new Set();
+        let raw: unknown = null;
+        try {
+          raw = JSON.parse(localStorage.getItem(key) ?? "null");
+        } catch {}
+        const nav = [
+          ...doc.querySelectorAll<HTMLElement>("[data-nav-slug]"),
+        ].map((a) => ({
+          slug: a.dataset.navSlug!,
+          order: Number(a.dataset.navOrder),
+        }));
+        const { slugs, dirty } = normalizeProgress(raw, nav);
+        if (dirty) writeProg(doc, slugs);
+        return slugs;
       };
 
       // ---- Mobile menu open/close ----
@@ -704,10 +764,10 @@ const hasTools = toolNav.some((t) => t.show);
       // handler further down can reuse the same trap/scroll-lock logic;
       // elements are queried fresh each call since a view-transition swap
       // replaces the sidebar/topbar DOM.
-      function toggleMenu(open) {
+      function toggleMenu(open?: boolean) {
         const sidebar = document.getElementById("sidebar");
         if (!sidebar) return;
-        const menuBtn = document.querySelector(".menu-toggle");
+        const menuBtn = document.querySelector<HTMLElement>(".menu-toggle");
         const scrim = document.querySelector("[data-scrim]");
         const next = open ?? !sidebar.classList.contains("open");
         sidebar.classList.toggle("open", next);
@@ -752,24 +812,24 @@ const hasTools = toolNav.some((t) => t.show);
         }
       }
 
-      function paintProgress(doc) {
+      function paintProgress(doc?: Document) {
         doc = doc || document;
-        const fill = doc.querySelector("[data-progress-fill]");
+        const fill = doc.querySelector<HTMLElement>("[data-progress-fill]");
         const text = doc.querySelector("[data-progress-text]");
         const bar = fill ? fill.closest(".progressbar") : null;
-        const navLinks = [...doc.querySelectorAll("[data-nav-order]")];
-        const set = new Set(readProg());
+        const navLinks = [...doc.querySelectorAll<HTMLElement>("[data-nav-slug]")];
+        const total = Number(doc.body.dataset.sectionTotal ?? 0);
+        const set = readProg(doc);
+        let count = 0;
         navLinks.forEach((a) => {
-          const on = set.has(Number(a.dataset.navOrder));
+          const on = set.has(a.dataset.navSlug!);
+          if (on) count++;
           a.classList.toggle("done", on);
           // Keep the sr-only text companion (see the aria-hidden check icon
           // beside it) in lockstep with the visual .done class.
           const sr = a.querySelector("[data-done-sr]");
           if (sr) sr.textContent = on ? ", fullført" : "";
         });
-        const count = navLinks.filter((a) =>
-          set.has(Number(a.dataset.navOrder)),
-        ).length;
         const pct = total ? Math.round((count / total) * 100) : 0;
         if (fill) fill.style.transform = `scaleX(${pct / 100})`;
         if (bar) bar.setAttribute("aria-valuenow", String(pct));
@@ -777,11 +837,11 @@ const hasTools = toolNav.some((t) => t.show);
       }
 
       // The current page may carry a "mark done" button (set in [slug].astro).
-      function paintDoneBtn(doc) {
+      function paintDoneBtn(doc?: Document) {
         doc = doc || document;
-        const doneBtn = doc.querySelector("[data-done-order]");
+        const doneBtn = doc.querySelector<HTMLElement>("[data-done-slug]");
         if (!doneBtn) return;
-        const on = new Set(readProg()).has(Number(doneBtn.dataset.doneOrder));
+        const on = readProg(doc).has(doneBtn.dataset.doneSlug!);
         doneBtn.classList.toggle("done", on);
         // The check (an SVG) shows via the .done class; only swap the label text.
         const label = doneBtn.querySelector("[data-done-label]");
@@ -796,25 +856,24 @@ const hasTools = toolNav.some((t) => t.show);
         paintDoneBtn();
         focusDeepLinkTarget();
 
-        const doneBtn = document.querySelector("[data-done-order]");
+        const doneBtn = document.querySelector<HTMLElement>("[data-done-slug]");
         if (doneBtn && !doneBtn.dataset.scBound) {
           doneBtn.dataset.scBound = "1";
           doneBtn.addEventListener("click", () => {
-            const order = Number(doneBtn.dataset.doneOrder);
-            const arr = readProg();
-            const i = arr.indexOf(order);
-            if (i >= 0) arr.splice(i, 1);
-            else arr.push(order);
-            writeProg(arr);
+            const slug = doneBtn.dataset.doneSlug!;
+            const set = readProg(document);
+            if (set.has(slug)) set.delete(slug);
+            else set.add(slug);
+            writeProg(document, set);
             paintDoneBtn();
             paintProgress();
           });
         }
 
         // ---- Mobile menu ----
-        const menuBtn = document.querySelector(".menu-toggle");
+        const menuBtn = document.querySelector<HTMLElement>(".menu-toggle");
         const sidebar = document.getElementById("sidebar");
-        const scrim = document.querySelector("[data-scrim]");
+        const scrim = document.querySelector<HTMLElement>("[data-scrim]");
         if (menuBtn && !menuBtn.dataset.scBound) {
           menuBtn.dataset.scBound = "1";
           menuBtn.addEventListener("click", () => toggleMenu());
@@ -823,19 +882,25 @@ const hasTools = toolNav.some((t) => t.show);
           scrim.dataset.scBound = "1";
           scrim.addEventListener("click", () => toggleMenu(false));
         }
-        const closeBtn = sidebar?.querySelector(".sidebar-close");
+        const closeBtn = sidebar?.querySelector<HTMLElement>(".sidebar-close");
         if (closeBtn && !closeBtn.dataset.scBound) {
           closeBtn.dataset.scBound = "1";
           closeBtn.addEventListener("click", () => toggleMenu(false));
         }
 
         // ---- Copy buttons on code blocks (icon button cloned from template) ----
-        const copyTpl = document.getElementById("code-copy-tpl");
+        const copyTpl = document.getElementById(
+          "code-copy-tpl",
+        ) as HTMLTemplateElement | null;
         if (copyTpl) {
-          document.querySelectorAll(".content pre").forEach((pre) => {
+          document
+            .querySelectorAll<HTMLPreElement>(".content pre")
+            .forEach((pre) => {
             if (pre.querySelector(".code-copy")) return;
-            const btn = copyTpl.content.firstElementChild.cloneNode(true);
-            let copyTimer;
+            const btn = copyTpl.content.firstElementChild!.cloneNode(
+              true,
+            ) as HTMLButtonElement;
+            let copyTimer: ReturnType<typeof setTimeout> | undefined;
             btn.addEventListener("click", async () => {
               const code = pre.querySelector("code");
               try {
@@ -885,7 +950,8 @@ const hasTools = toolNav.some((t) => t.show);
           active instanceof HTMLSelectElement ||
           active?.getAttribute("contenteditable") === "true";
         if (typing) return;
-        if (document.querySelector(".search-dialog")?.open) return;
+        if (document.querySelector<HTMLDialogElement>(".search-dialog")?.open)
+          return;
         if (e.key === "ArrowLeft") {
           const link = document.querySelector("[data-page-prev]");
           if (link instanceof HTMLAnchorElement) { e.preventDefault(); link.click(); }
@@ -900,13 +966,17 @@ const hasTools = toolNav.some((t) => t.show);
       // and expand every <details> so collapsed solutions/derivations/answers
       // print, then restore the on-screen state afterwards. (CSS alone can't
       // reveal closed-<details> content.)
-      let printOpened = [];
+      let printOpened: HTMLDetailsElement[] = [];
       let printWasDark = false;
       addEventListener("beforeprint", () => {
         printWasDark =
           document.documentElement.getAttribute("data-theme") === "dark";
         if (printWasDark) document.documentElement.removeAttribute("data-theme");
-        printOpened = [...document.querySelectorAll("details:not([open])")];
+        printOpened = [
+          ...document.querySelectorAll<HTMLDetailsElement>(
+            "details:not([open])",
+          ),
+        ];
         printOpened.forEach((d) => (d.open = true));
       });
       addEventListener("afterprint", () => {
@@ -922,9 +992,10 @@ const hasTools = toolNav.some((t) => t.show);
       // Paint progress + the done button onto the INCOMING document before the
       // swap, so navigating between modules never flashes the default (unmarked)
       // state for a frame — same reasoning as the theme apply above.
-      document.addEventListener("astro:before-swap", function (e) {
-        paintProgress(e.newDocument);
-        paintDoneBtn(e.newDocument);
+      document.addEventListener("astro:before-swap", (e) => {
+        const doc = (e as Event & { newDocument: Document }).newDocument;
+        paintProgress(doc);
+        paintDoneBtn(doc);
       });
     </script>
   </body>
