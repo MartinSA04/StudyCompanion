@@ -36,7 +36,24 @@ export default defineConfig({
   use: {
     baseURL: `http://localhost:${process.env.SC_DEMO_PORT ?? 4321}`,
   },
-  projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
+  // Desktop runs every spec except the mobile one; a dedicated `mobile` project
+  // runs only mobile.spec.ts under a phone profile (narrow viewport + touch), so
+  // the desktop kitchen-sink shots aren't re-rendered at phone size and the
+  // mobile-only layout states (collapsed sidebar, stacked Compare, inline
+  // Sidenote) get their own baselines. testMatch/testIgnore keep the two from
+  // overlapping.
+  projects: [
+    {
+      name: "chromium",
+      use: { ...devices["Desktop Chrome"] },
+      testIgnore: "**/mobile.spec.ts",
+    },
+    {
+      name: "mobile",
+      use: { ...devices["Pixel 5"] },
+      testMatch: "**/mobile.spec.ts",
+    },
+  ],
   // One `build && preview` per site so a fresh checkout (or CI) needs no manual
   // build step first. cwd is the repo root so pnpm scripts find their configs.
   //

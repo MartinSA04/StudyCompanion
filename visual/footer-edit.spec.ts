@@ -6,9 +6,7 @@ import { test, expect } from "@playwright/test";
  * would take the hover underline, sit inside the focus ring and hit area, and
  * leak into the link's accessible name.
  */
-test("footer edit-link separator is not part of the link", async ({
-  page,
-}) => {
+test("footer edit-link separator is not part of the link", async ({ page }) => {
   await page.goto("/oversikt");
   const link = page.locator(".footer-edit");
   await expect(link).toBeVisible();

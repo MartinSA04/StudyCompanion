@@ -20,9 +20,10 @@ test.describe("flashcards keyboard after mouse clicks", () => {
     await expect(pos).toHaveText("2");
 
     await page.keyboard.press("Space");
-    await expect(
-      deck.locator("[data-fc-card]:not([hidden])"),
-    ).toHaveAttribute("data-flipped", "true");
+    await expect(deck.locator("[data-fc-card]:not([hidden])")).toHaveAttribute(
+      "data-flipped",
+      "true",
+    );
     await expect(pos).toHaveText("2");
   });
 
@@ -34,9 +35,10 @@ test.describe("flashcards keyboard after mouse clicks", () => {
 
     await deck.locator("[data-fc-shuffle]").click();
     await page.keyboard.press("Space");
-    await expect(
-      deck.locator("[data-fc-card]:not([hidden])"),
-    ).toHaveAttribute("data-flipped", "true");
+    await expect(deck.locator("[data-fc-card]:not([hidden])")).toHaveAttribute(
+      "data-flipped",
+      "true",
+    );
   });
 
   test("deck keys hand the keyboard highlight to the card, not <main>", async ({
