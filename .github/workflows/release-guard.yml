@@ -1,0 +1,26 @@
+name: Release guard
+
+# A vX.Y.Z tag must match package.json's version, or the framework pin bumped
+# into consumer repos would point at a mislabelled release.
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+jobs:
+  assert-version:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Tag must equal package.json version
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          pkg="$(node -p "require('./package.json').version")"
+          if [ "$tag" != "$pkg" ]; then
+            echo "Tag v$tag does not match package.json version $pkg" >&2
+            exit 1
+          fi
+          echo "Tag v$tag matches package.json version $pkg"

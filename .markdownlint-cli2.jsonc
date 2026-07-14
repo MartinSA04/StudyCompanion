@@ -11,9 +11,21 @@
     "MD060": false,
     // Duplicate headings are fine under different parents (e.g. repeated "P1 — …").
     "MD024": { "siblings_only": true },
+    // The default front-matter title regex allows leading whitespace, so a
+    // nested YAML key like DESIGN.md's `typography.title:` false-positives as
+    // a document title and flags the real H1 as a duplicate. Disable front
+    // matter title detection; every doc carries a body-level `#` heading.
+    "MD025": { "front_matter_title": "" },
   },
-  // Only the docs — never node_modules, build output, or the generated cache.
+  // Only the docs — never node_modules, build output, generated caches
+  // (`.pnpm-store`), or agent-workflow scratch artifacts (`.superpowers`).
   // `.mdx` is intentionally excluded: it is JSX-bearing, not CommonMark.
   "globs": ["**/*.md"],
-  "ignores": ["**/node_modules/**", "dist/**", ".astro/**"],
+  "ignores": [
+    "**/node_modules/**",
+    "dist/**",
+    ".astro/**",
+    ".pnpm-store/**",
+    ".superpowers/**",
+  ],
 }

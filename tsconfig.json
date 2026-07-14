@@ -7,6 +7,16 @@
     "noEmit": true,
     "jsx": "preserve"
   },
-  "include": [".astro/types.d.ts", "src/**/*", "env.d.ts", "*.ts", "*.mjs"],
+  "include": [
+    ".astro/types.d.ts",
+    "src/**/*",
+    "test/**/*",
+    "scripts/**/*",
+    "hub/**/*",
+    "visual/**/*",
+    "env.d.ts",
+    "*.ts",
+    "*.mjs"
+  ],
   "exclude": ["node_modules", "dist", "demo", "content"]
 }

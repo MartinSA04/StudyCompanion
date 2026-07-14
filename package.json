@@ -27,8 +27,8 @@
     "src"
   ],
   "scripts": {
-    "dev": "node scripts/ensure-self-link.mjs && astro dev",
-    "build": "node scripts/ensure-self-link.mjs && astro build",
+    "dev": "astro dev",
+    "build": "astro build",
     "preview": "astro preview",
     "hub:dev": "astro dev --config astro.config.hub.mjs",
     "hub:build": "astro build --config astro.config.hub.mjs",
@@ -37,8 +37,8 @@
     "test:visual": "playwright test -c visual/playwright.config.ts",
     "test:visual:update": "playwright test -c visual/playwright.config.ts --update-snapshots",
     "typecheck": "astro sync && tsc --noEmit",
-    "lint": "prettier --check \"src/**/*.{ts,astro}\" \"*.{ts,js,json,md}\"",
-    "lint:fix": "prettier --write \"src/**/*.{ts,astro}\" \"*.{ts,js,json,md}\"",
+    "lint": "prettier --check \"{src,hub,visual,test,scripts}/**/*.{ts,astro,mjs}\" \"*.{ts,js,mjs,json,md}\"",
+    "lint:fix": "prettier --write \"{src,hub,visual,test,scripts}/**/*.{ts,astro,mjs}\" \"*.{ts,js,mjs,json,md}\"",
     "lint:md": "markdownlint-cli2 \"**/*.md\""
   },
   "peerDependencies": {
@@ -53,6 +53,9 @@
     "yaml": "^2.9.0",
     "zod": "^4.4.3"
   },
+  "optionalDependencies": {
+    "sharp": "^0.34.0"
+  },
   "devDependencies": {
     "@playwright/test": "^1.50.0",
     "@types/node": "^22.10.0",
@@ -60,6 +63,7 @@
     "markdownlint-cli2": "^0.22.1",
     "prettier": "^3.8.3",
     "prettier-plugin-astro": "^0.14.1",
+    "study-companion": "link:.",
     "typescript": "^6.0.3"
   }
 }

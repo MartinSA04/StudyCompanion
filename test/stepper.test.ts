@@ -61,7 +61,9 @@ test("normalizeFrame stringifies vars (vars or variables) as [key, string] pairs
     ["j", "4"],
   ]);
   // falls back to `variables`
-  assert.deepEqual(normalizeFrame({ variables: { n: 10 } }).vars, [["n", "10"]]);
+  assert.deepEqual(normalizeFrame({ variables: { n: 10 } }).vars, [
+    ["n", "10"],
+  ]);
   // arrays/objects are JSON-stringified
   assert.deepEqual(normalizeFrame({ vars: { path: [1, 2] } }).vars, [
     ["path", "[1,2]"],

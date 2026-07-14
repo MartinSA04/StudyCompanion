@@ -7,6 +7,11 @@ on:
 # SEO / PWA / perf guard (ROADMAP 4.13). DESIGN targets Lighthouse ≥95 but
 # nothing enforced it; the §4 metadata can silently regress. Complements the
 # visual-regression workflow (2.6, which guards pixels, not metadata / CWV).
+# The resource-summary byte budgets in the lighthouserc files are generous
+# error thresholds; tighten them once the KaTeX-CSS and inline-script diets land.
+permissions:
+  contents: read
+
 jobs:
   lighthouse:
     runs-on: ubuntu-latest
@@ -17,15 +22,19 @@ jobs:
         with:
           node-version: 22
           cache: pnpm
-      - run: pnpm install --no-frozen-lockfile
+      - run: pnpm install --frozen-lockfile
       - run: pnpm build
+      - run: pnpm hub:build
       # `pnpm dlx` fetches the CI-only tool ephemerally — no project dependency,
-      # keeping the near-zero-dependency stance. Asserts the budgets in
-      # lighthouserc.json against the static demo build.
-      - run: pnpm dlx @lhci/cli@^0.15 autorun --config=lighthouserc.json
+      # keeping the near-zero-dependency stance. Asserts the budgets in the
+      # lighthouserc files against the static demo build and the hub build.
+      - run: pnpm dlx @lhci/cli@0.15.1 autorun --config=lighthouserc.json
+      - run: pnpm dlx @lhci/cli@0.15.1 autorun --config=lighthouserc.hub.json
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
         with:
           name: lighthouse-report
-          path: lhci-report/
+          path: |
+            lhci-report/
+            lhci-report-hub/
           retention-days: 14

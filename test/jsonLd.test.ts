@@ -65,8 +65,9 @@ test("learningResourceLd includes dateModified + isPartOf when given", () => {
   });
   assert.equal(ld["@type"], "LearningResource");
   assert.equal(ld.dateModified, "2026-05-01");
-  assert.equal(ld.isPartOf["@type"], "Course");
-  assert.equal(ld.isPartOf.url, "https://x/");
+  const isPartOf = ld.isPartOf as { "@type": string; url: string };
+  assert.equal(isPartOf["@type"], "Course");
+  assert.equal(isPartOf.url, "https://x/");
 });
 
 test("serializeLd escapes < so inline HTML can't break out of the script", () => {

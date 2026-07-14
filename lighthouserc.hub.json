@@ -1,12 +1,8 @@
 {
   "ci": {
     "collect": {
-      "staticDistDir": "./dist",
-      "url": [
-        "http://localhost/index.html",
-        "http://localhost/simulering/index.html",
-        "http://localhost/formelsamling/index.html"
-      ],
+      "staticDistDir": "./dist-hub",
+      "url": ["http://localhost/index.html"],
       "numberOfRuns": 1,
       "settings": { "preset": "desktop" }
     },
@@ -32,7 +28,7 @@
     },
     "upload": {
       "target": "filesystem",
-      "outputDir": "./lhci-report"
+      "outputDir": "./lhci-report-hub"
     }
   }
 }

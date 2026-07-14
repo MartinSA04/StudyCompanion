@@ -98,8 +98,7 @@ test("widget mentions inside code spans/fences are ignored", () => {
     sections: [
       {
         label: "guide",
-        body:
-          'Bruk `<Term name="ghost" />` for å lenke.\n\n```mdx\n<FormulaRef id="ghost" />\n<Statement name="Snells lov" />\n```\n',
+        body: 'Bruk `<Term name="ghost" />` for å lenke.\n\n```mdx\n<FormulaRef id="ghost" />\n<Statement name="Snells lov" />\n```\n',
       },
     ],
   });
