@@ -1,11 +1,12 @@
 import { test, expect } from "@playwright/test";
 
 /**
- * Full-page snapshots of the course hub (kurs.martinsundal.no) in both
- * themes. The hub previews on its own port — the second webServer entry —
- * so use.baseURL (the demo) does not apply here.
+ * Full-page snapshots of the course hub (kurs.martinsundal.no) in both themes.
+ * The hub previews on its own port — the second webServer entry, whose actual
+ * port `wait.stdout` captured into SC_HUB_PORT — so use.baseURL (the demo) does
+ * not apply here; navigate its absolute URL.
  */
-const HUB = "http://localhost:4322/";
+const HUB = `http://localhost:${process.env.SC_HUB_PORT ?? 4322}/`;
 const THEMES = ["light", "dark"] as const;
 
 for (const theme of THEMES) {

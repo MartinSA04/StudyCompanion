@@ -28,25 +28,41 @@ export default defineConfig({
   expect: {
     toHaveScreenshot: { maxDiffPixelRatio: 0.01, animations: "disabled" },
   },
+  // Ports are discovered at runtime (see webServer): each `astro preview` binds a
+  // free port and prints it, and Playwright's `wait.stdout` capture exports it as
+  // SC_DEMO_PORT / SC_HUB_PORT. Workers re-load this config after the servers are
+  // up, so this baseURL resolves to the demo's actual port; the fallback is only
+  // for the brief main-process load before capture (which never navigates).
   use: {
-    baseURL: "http://localhost:4321",
+    baseURL: `http://localhost:${process.env.SC_DEMO_PORT ?? 4321}`,
   },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
-  // One command per site so a fresh checkout (or CI) needs no manual build
-  // step first. cwd is the repo root so pnpm scripts find their configs.
+  // One `build && preview` per site so a fresh checkout (or CI) needs no manual
+  // build step first. cwd is the repo root so pnpm scripts find their configs.
+  //
+  // No fixed port/url on purpose. `astro preview` picks a free port (drifting off
+  // its default when something — a dev server on 4321, a stray preview — already
+  // holds it) and prints "http://localhost:<port>/"; `wait.stdout`'s named capture
+  // group stores that port in the environment (SC_DEMO_PORT / SC_HUB_PORT) for the
+  // tests to read. Because there is no port/url to probe, Playwright can't reuse
+  // an ambient server — it always starts its own fresh production build and follows
+  // it to whatever port it lands on. So the suite is hermetic: it never collides
+  // with, nor screenshots, whatever else happens to be running.
   webServer: [
     {
-      command: "pnpm build && pnpm preview --port 4321",
+      name: "demo",
+      command: "pnpm build && pnpm preview",
       cwd: repoRoot,
-      url: "http://localhost:4321",
-      reuseExistingServer: !process.env.CI,
+      stdout: "pipe",
+      wait: { stdout: /http:\/\/localhost:(?<sc_demo_port>\d+)/ },
       timeout: 120_000,
     },
     {
+      name: "hub",
       command: "pnpm hub:build && pnpm hub:preview --port 4322",
       cwd: repoRoot,
-      url: "http://localhost:4322",
-      reuseExistingServer: !process.env.CI,
+      stdout: "pipe",
+      wait: { stdout: /http:\/\/localhost:(?<sc_hub_port>\d+)/ },
       timeout: 120_000,
     },
   ],
