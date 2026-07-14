@@ -126,3 +126,16 @@ export function onThemeChange(cb: () => void, signal?: AbortSignal): void {
     signal ? { signal } : undefined,
   );
 }
+
+/**
+ * Paint the accent progress fill on a `.sc-range` slider (primitives.css). WebKit
+ * has no native progress pseudo-element, so the fill width rides a `--pct` (0–100%)
+ * custom property that the mounting island refreshes whenever the value changes;
+ * Firefox uses ::-moz-range-progress and ignores it. No-op on a null element.
+ */
+export function setRangePct(el: HTMLInputElement | null): void {
+  if (!el) return;
+  const min = Number(el.min) || 0;
+  const span = (Number(el.max) || 0) - min || 1;
+  el.style.setProperty("--pct", `${((Number(el.value) - min) / span) * 100}%`);
+}

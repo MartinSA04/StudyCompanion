@@ -133,8 +133,9 @@ const { src, title, caption, height = 300, host = "canvas" } = Astro.props;
     color: var(--accent-ink);
     font-weight: var(--weight-medium);
   }
+  /* Course-injected range sliders are upgraded to the shared .sc-range primitive
+     at mount (see the script); only their width stays local here. */
   .sim-controls :global(input[type="range"]) {
-    accent-color: var(--accent);
     width: 160px;
   }
   .sim-controls :global(.sim-readout) {
@@ -196,6 +197,7 @@ const { src, title, caption, height = 300, host = "canvas" } = Astro.props;
     importCourseModule,
     lazyMountAll,
     onThemeChange,
+    setRangePct,
     type CodeBlockController,
   } from "../lib/simRuntime";
   import { onPage } from "../lib/pageLifecycle.ts";
@@ -236,10 +238,22 @@ const { src, title, caption, height = 300, host = "canvas" } = Astro.props;
     );
   };
 
-  const load = (fig: HTMLElement, api: SimApi) => {
+  const load = (fig: HTMLElement, api: SimApi, signal: AbortSignal) => {
     const src = fig.dataset.simSrc!;
     importCourseModule<SimModule>(src)
-      .then((mod) => (mod.default ?? mod.init)?.(api))
+      .then((mod) => {
+        (mod.default ?? mod.init)?.(api);
+        // Upgrade the range sliders the course module just injected to the shared
+        // .sc-range look, and keep each one's accent fill in sync (WebKit needs
+        // --pct). The listener is bound with the page signal so it drops on swap.
+        api.controls
+          .querySelectorAll<HTMLInputElement>('input[type="range"]')
+          .forEach((el) => {
+            el.classList.add("sc-range");
+            setRangePct(el);
+            el.addEventListener("input", () => setRangePct(el), { signal });
+          });
+      })
       .catch((err) => {
         console.error(`study-companion: failed to load simulation ${src}`, err);
       });
@@ -261,13 +275,17 @@ const { src, title, caption, height = 300, host = "canvas" } = Astro.props;
       stage.style.height = cssH + "px";
       onWindowResize(() => resizeCb?.(), signal);
       onThemeChange(() => resizeCb?.(), signal);
-      load(fig, {
-        stage,
-        controls,
-        getSize: () => ({ w: stage.clientWidth || fig.clientWidth, h: cssH }),
-        onResize,
-        codeBlock: makeCodeBlockController,
-      });
+      load(
+        fig,
+        {
+          stage,
+          controls,
+          getSize: () => ({ w: stage.clientWidth || fig.clientWidth, h: cssH }),
+          onResize,
+          codeBlock: makeCodeBlockController,
+        },
+        signal,
+      );
       return;
     }
 
@@ -293,14 +311,18 @@ const { src, title, caption, height = 300, host = "canvas" } = Astro.props;
     }, signal);
     onThemeChange(() => resizeCb?.(), signal);
 
-    load(fig, {
-      canvas,
-      ctx,
-      controls,
-      getSize: () => ({ w: canvas.clientWidth || fig.clientWidth, h: cssH }),
-      onResize,
-      codeBlock: makeCodeBlockController,
-    });
+    load(
+      fig,
+      {
+        canvas,
+        ctx,
+        controls,
+        getSize: () => ({ w: canvas.clientWidth || fig.clientWidth, h: cssH }),
+        onResize,
+        codeBlock: makeCodeBlockController,
+      },
+      signal,
+    );
   };
 
   // Mount on each page-load; tear the observer + resize/theme listeners down on

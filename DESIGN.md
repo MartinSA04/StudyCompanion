@@ -292,6 +292,11 @@ Feel: restrained at rest, tactile on touch.
   step off their ground (quiz options recess to --card-nested; search fields
   are .sc-field on the page ground), mono or body text per context. The quiz
   radio ring keeps the one sanctioned --border-strong form glyph.
+- **Range sliders (.sc-range):** the native OS range is app-chrome, so every
+  framework slider wears one primitive — a thin inset --card-nested groove, an
+  accent progress fill (WebKit via a JS-driven --pct, Firefox via
+  ::-moz-range-progress), and a slim accent playhead ringed in paper. Used by the
+  Stepper seek + size controls and the Simulation parameter sliders.
 - **Focus:** 2px accent outline, offset 2px, radius-sm.
 - **Error / correct:** literal Flexoki red/green -low fills with -high text
   (--wrong/--wrong-bg, --tip/--answer-bg).

@@ -254,6 +254,65 @@ details[open] > summary .sc-chev {
   color: var(--accent-ink);
 }
 
+/* --- Range slider (seek + value sliders) ---
+   The native OS range is app-chrome on this paper surface, so every framework
+   range wears this instead: a thin inset paper-nested groove, an accent PROGRESS
+   fill, and a slim accent playhead ringed in paper. WebKit has no native progress
+   pseudo-element, so the fill width rides a --pct (0–100%) custom property that the
+   mounting island keeps in sync (setRangePct in simRuntime.ts drives both the
+   stepper's seek/size sliders and the simulation parameter sliders); Firefox fills
+   ::-moz-range-progress natively and ignores --pct. Callers own width/flex
+   (layout) and may override --track-h. */
+.sc-range {
+  --track-h: 6px;
+  appearance: none;
+  -webkit-appearance: none;
+  height: 15px;
+  background: transparent;
+  cursor: pointer;
+}
+.sc-range::-webkit-slider-runnable-track {
+  height: var(--track-h);
+  border-radius: var(--radius-pill);
+  background:
+    linear-gradient(var(--accent), var(--accent)) 0 / var(--pct, 0%) 100%
+      no-repeat,
+    var(--card-nested);
+}
+.sc-range::-webkit-slider-thumb {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 5px;
+  height: 15px;
+  margin-top: calc((var(--track-h) - 15px) / 2);
+  border-radius: var(--radius-pill);
+  background: var(--accent);
+  box-shadow: 0 0 0 2px var(--bg-elevated);
+}
+.sc-range::-moz-range-track {
+  height: var(--track-h);
+  border-radius: var(--radius-pill);
+  background: var(--card-nested);
+}
+.sc-range::-moz-range-progress {
+  height: var(--track-h);
+  border-radius: var(--radius-pill);
+  background: var(--accent);
+}
+.sc-range::-moz-range-thumb {
+  width: 5px;
+  height: 15px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--accent);
+  box-shadow: 0 0 0 2px var(--bg-elevated);
+}
+.sc-range:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+  border-radius: var(--radius-pill);
+}
+
 /* --- Keycap (⌘K hint, Esc button) ---
    Frame + type only; padding stays the caller's (a tight inline hint vs a
    clickable button), and a clickable keycap adds its own hover. */

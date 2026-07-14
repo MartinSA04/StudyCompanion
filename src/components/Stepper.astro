@@ -63,7 +63,7 @@ const { src, codeId, title, caption, height = 300 } = Astro.props;
     <div class="stepper-controls">
       <div class="stepper-transport">
         <button
-          class="stepper-btn sc-press"
+          class="stepper-btn sc-icon-btn sc-press"
           data-act="back"
           type="button"
           aria-label="Forrige steg"
@@ -81,7 +81,7 @@ const { src, codeId, title, caption, height = 300 } = Astro.props;
           <span class="ic-pause"><Icon name="pause" size={18} /></span>
         </button>
         <button
-          class="stepper-btn sc-press"
+          class="stepper-btn sc-icon-btn sc-press"
           data-act="forward"
           type="button"
           aria-label="Neste steg"
@@ -90,7 +90,7 @@ const { src, codeId, title, caption, height = 300 } = Astro.props;
       </div>
 
       <input
-        class="stepper-scrub"
+        class="stepper-scrub sc-range"
         data-scrub
         type="range"
         min="0"
@@ -102,14 +102,14 @@ const { src, codeId, title, caption, height = 300 } = Astro.props;
 
       <div class="stepper-extra">
         <button
-          class="stepper-ghost stepper-speed sc-press"
+          class="sc-pill stepper-speed sc-press"
           data-act="speed"
           type="button"
           aria-label="Avspillingsfart"
           title="Avspillingsfart">1×</button
         >
         <button
-          class="stepper-ghost sc-press"
+          class="stepper-btn sc-icon-btn sc-press"
           data-act="shuffle"
           type="button"
           aria-label="Stokk om"
@@ -117,7 +117,12 @@ const { src, codeId, title, caption, height = 300 } = Astro.props;
         >
         <label class="stepper-size" data-size-ctrl title="Antall elementer">
           <span class="stepper-size-n" data-size-n>n</span>
-          <input data-size type="range" aria-label="Størrelse" />
+          <input
+            data-size
+            class="sc-range"
+            type="range"
+            aria-label="Størrelse"
+          />
         </label>
       </div>
     </div>
@@ -168,6 +173,9 @@ const { src, codeId, title, caption, height = 300 } = Astro.props;
 
   /* One control bar: primary transport, a seek scrubber, count, quiet extras. */
   .stepper-controls {
+    /* Paper controls hosted on this panel step to the nested fill (the play
+       toggle uses it), matching the Simulation controls. */
+    --control-fill: var(--card-nested);
     display: flex;
     align-items: center;
     gap: var(--space-3);
@@ -179,41 +187,47 @@ const { src, codeId, title, caption, height = 300 } = Astro.props;
     align-items: center;
     gap: var(--space-2);
   }
+  /* Transport (back/forward) + shuffle are navigational icon controls: they wear
+     the shared .sc-icon-btn marginalia recipe (bare glyph → ink-wash + accent-ink
+     hover), exactly like the topbar and copy buttons. This class only carries the
+     row's 38px control-height contract so every button lines up. */
   .stepper-btn {
+    width: var(--control-h);
+    height: var(--control-h);
+    cursor: pointer;
+  }
+  /* Play/pause is a TOGGLE → by the Paper/Marginalia Rule it keeps a borderless
+     PAPER fill (not a saturated block, which was the loudest accent mass on the
+     page); the accent-ink triangle marks it primary against the bare-glyph arrows,
+     and an accent-weak wash marks the active "playing" state — the same active
+     precedent as the Simulation buttons / quiz options. */
+  .stepper-play {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: var(--control-h);
-    height: var(--control-h);
     border: 0;
     border-radius: var(--radius-sm);
-    background: transparent;
-    color: var(--muted);
-    cursor: pointer;
+    background: var(--control-fill, var(--bg-elevated));
+    color: var(--accent-ink);
     transition:
-      background var(--dur-fast) var(--ease),
+      background-color var(--dur-fast) var(--ease),
       color var(--dur-fast) var(--ease),
       transform var(--dur-fast) var(--ease);
   }
-  .stepper-btn:hover {
-    background: var(--card-hover);
-    color: var(--fg);
-  }
-  .stepper-play {
-    width: 2.5rem;
-    height: 2.5rem;
-    background: var(--accent);
-    color: var(--accent-contrast);
-  }
+  /* --card-hover equals the resting nested fill here, so hover is an ink wash over
+     it (same construction as the quiz options / sim buttons). */
   .stepper-play:hover {
-    background: var(--accent);
-    color: var(--accent-contrast);
-    filter: saturate(1.15) brightness(1.05);
+    background: color-mix(in srgb, var(--fg) 6%, var(--card-nested));
   }
-  /* Icons sit as block svgs in flex buttons so they center (an inline svg
-     leaves baseline descender space → the glyph rides high). */
-  .stepper-btn :global(svg),
-  .stepper-ghost :global(svg) {
+  .stepper-play.is-playing {
+    background: var(--accent-weak);
+  }
+  .stepper-play.is-playing:hover {
+    background: color-mix(in srgb, var(--accent) 20%, transparent);
+  }
+  /* Icons sit as block svgs so they center (an inline svg leaves baseline
+     descender space → the glyph rides high). */
+  .stepper-controls :global(svg) {
     display: block;
   }
   .ic-play,
@@ -235,11 +249,12 @@ const { src, codeId, title, caption, height = 300 } = Astro.props;
     display: inline-flex;
   }
 
+  /* Seek + size sliders wear the shared .sc-range primitive; only their layout
+     footprint stays local. The scrub grows to fill the row; the size slider keeps
+     its compact 4.5rem width (below, with .stepper-size). */
   .stepper-scrub {
     flex: 1 1 8rem;
     min-width: 6rem;
-    accent-color: var(--accent);
-    cursor: pointer;
   }
   .stepper-count {
     font-family: var(--font-mono);
@@ -254,30 +269,16 @@ const { src, codeId, title, caption, height = 300 } = Astro.props;
     align-items: center;
     gap: var(--space-1);
   }
-  .stepper-ghost {
-    display: inline-flex;
-    align-items: center;
+  /* Speed is a labelled instant-action control → the labelled marginalia recipe
+     (.sc-pill: bare mono text, ink-wash + accent-ink hover). Sized to the 38px row
+     contract and kept at the count's xs mono so the extras read as one set. */
+  .stepper-speed {
     justify-content: center;
     min-width: var(--control-h);
     height: var(--control-h);
     padding: 0 var(--space-2);
-    border: 0;
-    border-radius: var(--radius-sm);
-    background: transparent;
-    color: var(--muted);
-    font-family: var(--font-mono);
     font-size: var(--text-xs);
     cursor: pointer;
-    transition:
-      background var(--dur-fast) var(--ease),
-      color var(--dur-fast) var(--ease),
-      transform var(--dur-fast) var(--ease);
-  }
-  .stepper-ghost:hover {
-    background: var(--card-hover);
-    color: var(--accent-ink);
-  }
-  .stepper-speed {
     font-variant-numeric: tabular-nums;
   }
   .stepper-size {
@@ -294,8 +295,6 @@ const { src, codeId, title, caption, height = 300 } = Astro.props;
   }
   .stepper-size input[type="range"] {
     width: 4.5rem;
-    accent-color: var(--accent);
-    cursor: pointer;
   }
 
   .stepper-caption {
@@ -322,6 +321,7 @@ const { src, codeId, title, caption, height = 300 } = Astro.props;
     lazyMountAll,
     makeCodeBlockController,
     onThemeChange,
+    setRangePct,
   } from "../lib/simRuntime";
   import { onPage } from "../lib/pageLifecycle.ts";
   import {
@@ -411,6 +411,7 @@ const { src, codeId, title, caption, height = 300 } = Astro.props;
         sizeEl.min = String(def.sizeRange.min);
         sizeEl.max = String(def.sizeRange.max);
         sizeEl.value = String(size);
+        setRangePct(sizeEl);
         if (sizeN) sizeN.textContent = String(size);
       } else sizeWrap?.setAttribute("hidden", "");
       if (!def.defaultData) shuffleBtn?.setAttribute("hidden", "");
@@ -480,6 +481,7 @@ const { src, codeId, title, caption, height = 300 } = Astro.props;
         if (countEl) countEl.textContent = `${idx + 1} / ${frames.length}`;
         if (scrub) {
           scrub.value = String(idx);
+          setRangePct(scrub);
           scrub.setAttribute(
             "aria-valuetext",
             desc || `Steg ${idx + 1} av ${frames.length}`,
@@ -531,6 +533,7 @@ const { src, codeId, title, caption, height = 300 } = Astro.props;
         "input",
         () => {
           size = Number(sizeEl.value);
+          setRangePct(sizeEl);
           if (sizeN) sizeN.textContent = String(size);
           regen();
         },
