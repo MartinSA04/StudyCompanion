@@ -728,6 +728,14 @@ const hasSections = sections.length > 0;
     const rate = (known: boolean) => {
       const idx = queue[pos];
       if (idx === undefined) return;
+      // Read-modify-write, like the reading-progress path: re-read the stored
+      // envelope (load() re-validates a missing/corrupt one the same way), apply
+      // only this card's change, and persist the merge — so a second open tab
+      // can't clobber the other's ratings by rewriting the whole key from a
+      // load-time snapshot. Adopting the merged state also converges this tab's
+      // view on ratings other tabs made, without rebuilding the queue under the
+      // card in view (advance() moves off it next anyway).
+      levels = load().levels;
       levels[cards[idx].dataset.fcId!] = known ? 1 : 0;
       save(levels);
       renderProgress();
