@@ -43,7 +43,7 @@ export default function init({ ctx, controls, getSize, onResize }) {
     const ox = pad;
     const oy = h - pad;
 
-    ctx.strokeStyle = cssVar("--accent", "#2f6df6");
+    ctx.strokeStyle = cssVar("--accent", "#205ea6");
     ctx.lineWidth = 2.5;
     ctx.beginPath();
     ctx.moveTo(ox, oy);

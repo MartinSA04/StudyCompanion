@@ -60,8 +60,29 @@ function stripCode(body: string): string {
 export function validateXrefs(input: XrefInput): XrefReport {
   const errors: string[] = [];
 
-  // Defined anchors from course.yaml.
-  const glossarySlugs = new Set(input.glossaryTerms.map(slugify));
+  // Defined glossary anchors from course.yaml. <Glossary> emits id={slugify(term)}
+  // per row and <Term> deep-links to "#slug", so each headword must slug to a
+  // unique, non-empty anchor (slugify("λ") === "" — nothing to link to).
+  const glossarySlugs = new Set<string>();
+  const glossaryBySlug = new Map<string, string>();
+  for (const term of input.glossaryTerms) {
+    const slug = slugify(term);
+    if (slug === "") {
+      errors.push(
+        `Glossary term "${term}" slugs to an empty anchor — <Glossary> can give its row no "#id" and no <Term name="${term}"> could resolve to it; give it an ASCII-bearing headword.`,
+      );
+      continue;
+    }
+    const prior = glossaryBySlug.get(slug);
+    if (prior) {
+      errors.push(
+        `Duplicate glossary anchor "#${slug}" (from "${prior}" and "${term}") — terms must slug to a unique id so <Term> resolves to one row.`,
+      );
+    } else {
+      glossaryBySlug.set(slug, term);
+    }
+    glossarySlugs.add(slug);
+  }
 
   // course.formulas[].id must be unique (a <FormulaRef> deep-links to "#id").
   const formulaIds = new Set<string>();

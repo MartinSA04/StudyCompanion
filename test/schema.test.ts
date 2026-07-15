@@ -68,6 +68,22 @@ test("schemaVersion must be a positive int (0, negative, float rejected)", () =>
   assert.ok(courseSchema.safeParse({ ...base, schemaVersion: 3 }).success);
 });
 
+test("a formula id must be a fragment-safe token (letters/digits/-/_ only)", () => {
+  const ok = courseSchema.parse({
+    ...base,
+    formulas: [{ tex: "n_1\\sin\\theta_1", id: "snells-lov_1" }],
+  });
+  assert.equal(ok.formulas[0].id, "snells-lov_1");
+  // Spaces, punctuation and non-ASCII would break the DOM id / "#fragment".
+  for (const bad of ["snells lov", "θ", "id#1", "a.b", ""]) {
+    const r = courseSchema.safeParse({
+      ...base,
+      formulas: [{ tex: "x", id: bad }],
+    });
+    assert.equal(r.success, false, `formula id "${bad}" should be rejected`);
+  }
+});
+
 test("a typo'd / unknown course key fails the build (strictObject)", () => {
   const result = courseSchema.safeParse({ ...base, titel: "typo" });
   assert.equal(result.success, false);

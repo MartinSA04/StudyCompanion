@@ -33,7 +33,13 @@ const formulaEntrySchema = z.strictObject({
    * Stable anchor id for deep-linking from prose via `<FormulaRef id>`. When set,
    * the formula's row in the sheet becomes a `#id` target. Must be unique.
    */
-  id: z.string().optional(),
+  id: z
+    .string()
+    .regex(
+      /^[A-Za-z0-9_-]+$/,
+      'A formula id is emitted verbatim as a DOM id and a <FormulaRef> "#fragment", so it must be ASCII letters, digits, "-" or "_" (e.g. "snells" or "thin-lens") — no spaces, punctuation or math.',
+    )
+    .optional(),
 });
 
 /** A glossary term + definition (rendered by <Glossary>, linked by <Term>). */
@@ -62,7 +68,7 @@ export const courseSchema = z.strictObject({
   term: z.string(), //  "V2026"
   language: z.enum(["nb", "nn", "en"]).default("nb"),
   /** Brand accent for LIGHT mode (any CSS color). */
-  accent: z.string().default("#2f6df6"),
+  accent: z.string().default("#205ea6"),
   /**
    * Brand accent for DARK mode. Defaults to `accent`. Set a lighter/brighter
    * shade so accent text, links and labels stay legible on dark surfaces — the

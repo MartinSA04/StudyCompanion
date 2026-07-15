@@ -93,7 +93,7 @@ async function generateAppIcons(
 
   // Read just the accent(s) from course.yaml — a shallow read (defaults to the
   // schema default) so icon generation never depends on full schema parsing.
-  let accent = "#2f6df6"; // courseSchema's accent default
+  let accent = "#205ea6"; // courseSchema's accent default
   let accentDark: string | undefined;
   try {
     const yamlText = readFileSync(

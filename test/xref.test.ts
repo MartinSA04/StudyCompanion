@@ -31,6 +31,30 @@ test("a <Term> with no matching glossary entry is an error", () => {
   assert.match(errors[0], /#diffraksjon/);
 });
 
+test("a glossary term that slugs to an empty anchor is an error", () => {
+  // slugify("λ") === "" — <Glossary> can give the row no "#id" to link to.
+  const { errors } = validateXrefs({
+    glossaryTerms: ["λ"],
+    formulaIds: [],
+    sections: [],
+  });
+  assert.equal(errors.length, 1);
+  assert.match(errors[0], /λ/);
+});
+
+test("two glossary terms that slug to the same anchor are an error", () => {
+  // Both fold to "fermi-niva" → an ambiguous "#id" for <Term>.
+  const { errors } = validateXrefs({
+    glossaryTerms: ["Fermi-nivå", "Fermi nivå"],
+    formulaIds: [],
+    sections: [],
+  });
+  assert.equal(errors.length, 1);
+  assert.match(errors[0], /Fermi-nivå/);
+  assert.match(errors[0], /Fermi nivå/);
+  assert.match(errors[0], /#fermi-niva/);
+});
+
 test("a <FormulaRef> with no matching id is an error", () => {
   const { errors } = validateXrefs({
     glossaryTerms: [],

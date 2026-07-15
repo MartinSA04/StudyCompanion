@@ -53,7 +53,7 @@ test("accentOnBg returns a WCAG ratio, or null on bad input", () => {
   assert.equal(accentOnBg("#000000", "#ffffff"), 21);
   assert.equal(accentOnBg("#ffffff", "#ffffff"), 1);
   // A real accent on white should clear the 3:1 large-text bar.
-  const r = accentOnBg("#2f6df6", "#ffffff");
+  const r = accentOnBg("#205ea6", "#ffffff");
   assert.ok(r != null && r > 3);
   assert.equal(accentOnBg("not-a-color", "#ffffff"), null);
   assert.equal(accentOnBg("#fff", "also-bad"), null);
