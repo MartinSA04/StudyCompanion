@@ -44,3 +44,23 @@ test("MIGRATIONS.md has an entry for every version up to the current one", () =>
     );
   }
 });
+
+// The tag-push guard cannot check the lockfile: pnpm resolves the
+// `github:…#vX.Y.Z` pin against the REMOTE, so `pnpm install --lockfile-only`
+// in the template only succeeds once the tag is pushed. The lockfile sync
+// therefore trails the tag by one commit, so this deliberately FAILS on the
+// release commit itself and stays red until the post-tag-push sync lands —
+// that transient red is the enforcement that the sync actually happened.
+test("course-template lockfile specifier matches its study-companion pin", () => {
+  const pin = JSON.parse(
+    readFileSync(root + "course-template/package.json", "utf8"),
+  ).dependencies["study-companion"];
+  const lock = readFileSync(root + "course-template/pnpm-lock.yaml", "utf8");
+  const m = /^ {6}study-companion:\n {8}specifier: (.+)$/m.exec(lock);
+  assert.ok(m, "could not find study-companion specifier in pnpm-lock.yaml");
+  assert.equal(
+    m![1],
+    pin,
+    `lockfile specifier ${m![1]} does not match package.json pin ${pin}`,
+  );
+});

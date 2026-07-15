@@ -24,3 +24,11 @@ jobs:
             exit 1
           fi
           echo "Tag v$tag matches package.json version $pkg"
+      - name: course-template must pin this tag
+        run: |
+          pin="$(node -p "require('./course-template/package.json').dependencies['study-companion']")"
+          if [ "${pin##*#}" != "$GITHUB_REF_NAME" ]; then
+            echo "course-template pins $pin, not $GITHUB_REF_NAME" >&2
+            exit 1
+          fi
+          echo "course-template pins $GITHUB_REF_NAME"

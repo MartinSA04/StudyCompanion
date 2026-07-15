@@ -1,0 +1,20 @@
+# Git-tag consumers pin `github:…#vX.Y.Z`, which resolves to a git-archive
+# tarball of the whole tree — npm's `files: ["src"]` does not apply on that
+# channel. Trim the archive to what a consuming build needs: src/, package.json,
+# and the repo's own toolchain config. Everything below is dev/demo/CI-only and
+# is never referenced from src/ or an install script (there is no
+# prepare/postinstall; the brand fonts are committed under src/styles/).
+visual/ export-ignore
+test/ export-ignore
+demo/ export-ignore
+content/ export-ignore
+hub/ export-ignore
+course-template/ export-ignore
+inspo/ export-ignore
+docs/ export-ignore
+.github/ export-ignore
+test-results/ export-ignore
+lighthouserc.json export-ignore
+lighthouserc.hub.json export-ignore
+astro.config.hub.mjs export-ignore
+study.code-workspace export-ignore
