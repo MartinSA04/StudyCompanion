@@ -1,6 +1,6 @@
 {
   "name": "study-companion",
-  "version": "3.1.0",
+  "version": "3.1.1",
   "description": "A versioned, data-driven Astro integration + component library for interactive course study guides.",
   "type": "module",
   "license": "MIT",
