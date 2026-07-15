@@ -38,3 +38,8 @@ jobs:
       - run: pnpm typecheck
       - run: pnpm lint
       - run: pnpm lint:md
+      # The demo integration build — the only gate on build-time contracts
+      # (validateXrefs, loadCourse skew checks, page rendering, sharp icon
+      # generation, Pagefind indexing, demo MDX). sharp and Pagefind need no
+      # extra setup on the ubuntu runner (see lighthouse.yml, same build).
+      - run: pnpm build
