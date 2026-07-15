@@ -3,6 +3,12 @@ name: CI
 on:
   pull_request:
   push:
+    # Branches only. A vX.Y.Z tag points at the release commit, which is
+    # deliberately one commit behind the course-template lockfile sync (the
+    # sync can only be generated once the tag is on the remote — see
+    # test/release.test.ts), so the suite is red at every tag ref by
+    # construction. Tag pushes are release-guard's job.
+    branches: ["**"]
 
 permissions:
   contents: read
