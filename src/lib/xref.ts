@@ -128,6 +128,15 @@ export function validateXrefs(input: XrefInput): XrefReport {
       const explicit = attr(tag, "id");
       const name = attr(tag, "name");
       const anchor = explicit ?? (name != null ? slugify(name) : null);
+      // A named result with no explicit id whose name slugs to nothing (e.g.
+      // name="$\nabla \times E$" — slugify strips math) would render id="" /
+      // href="#". Mirror the glossary empty-anchor rule rather than skip silently.
+      if (anchor === "" && explicit == null && name != null) {
+        errors.push(
+          `${label}: <Statement name="${name}"> slugs to an empty anchor — the boxed result gets no "#id" and no deep-link could resolve to it; give it an ASCII-bearing name or an explicit id.`,
+        );
+        continue;
+      }
       if (!anchor) continue;
       const prior = statementAnchors.get(anchor);
       if (prior) {

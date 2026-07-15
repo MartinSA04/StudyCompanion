@@ -103,6 +103,38 @@ test("an explicit id collides with a name-derived anchor", () => {
   assert.match(errors[0], /#ohm/);
 });
 
+test("a <Statement> whose name slugs to an empty anchor is an error", () => {
+  // slugify strips math → id="" / href="#"; mirror the glossary empty-anchor rule.
+  const { errors } = validateXrefs({
+    glossaryTerms: [],
+    formulaIds: [],
+    sections: [
+      {
+        label: "03-maxwell",
+        body: '<Statement name="$\\nabla \\times E = -\\partial_t B$" />',
+      },
+    ],
+  });
+  assert.equal(errors.length, 1);
+  assert.match(errors[0], /03-maxwell/);
+  assert.match(errors[0], /empty anchor/);
+  assert.match(errors[0], /\\nabla/);
+});
+
+test("an explicit id rescues a name that slugs to an empty anchor", () => {
+  const { errors } = validateXrefs({
+    glossaryTerms: [],
+    formulaIds: [],
+    sections: [
+      {
+        label: "03-maxwell",
+        body: '<Statement id="faraday" name="$\\nabla \\times E = -\\partial_t B$" />',
+      },
+    ],
+  });
+  assert.deepEqual(errors, []);
+});
+
 test("distinct explicit ids avoid a false duplicate for identical names", () => {
   const { errors } = validateXrefs({
     glossaryTerms: [],
