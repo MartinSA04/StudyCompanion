@@ -227,67 +227,20 @@ const jsonLd = [
 
 <script>
   import { onPage } from "../lib/pageLifecycle.ts";
-  import { readProgress } from "../lib/progress.ts";
+  import { paintOverview } from "../lib/progress.ts";
   import { refreshExamCountdowns } from "../lib/examCountdown.ts";
 
-  // Overview paint: tile done-marks, the hero "N av M fullført" row and the
-  // continue link. The count is the INTERSECTION of stored progress with the
-  // rendered tiles — normalizeProgress prunes stale entries and migrates the
-  // legacy order-number records (mapped through the sidebar nav links), so
-  // stale state can never show "12 av 10". Idempotent; re-run per page-load
-  // via onPage, and no-op on any document without tiles.
-  const paint = (doc: Document) => {
-    const key = doc.body.dataset.progressKey;
-    const tiles = [
-      ...doc.querySelectorAll<HTMLAnchorElement>("[data-tile-slug]"),
-    ];
-    if (!key || !tiles.length) return;
-    // Read + migrate + prune + dirty-writeback all live in lib/progress.ts,
-    // shared with the layout's sidebar/progress-bar paint.
-    const done = readProgress(doc);
-
-    let count = 0;
-    tiles.forEach((t) => {
-      const on = done.has(t.dataset.tileSlug!);
-      if (on) count++;
-      t.classList.toggle("done", on);
-      // Keep the sr-only text companion (see the aria-hidden check icon
-      // beside it) in lockstep with the visual .done class.
-      const sr = t.querySelector("[data-done-sr]");
-      if (sr) sr.textContent = on ? ", fullført" : "";
-    });
-    if (!count) return; // nothing done → the hero progress row stays hidden
-
-    const row = doc.querySelector<HTMLElement>("[data-hero-progress-row]");
-    if (row) {
-      const doneEl = row.querySelector("[data-progress-done]");
-      if (doneEl) doneEl.textContent = String(count);
-      row.hidden = false;
-    }
-
-    // First not-yet-done tile in document order. With everything rendered
-    // marked done (or only stale/pruned state left) there is nowhere to
-    // continue to, so the pill hides rather than pointing at a dead target.
-    const continueLink = doc.querySelector<HTMLAnchorElement>(
-      "[data-hero-continue]",
-    );
-    const firstUndone = tiles.find((t) => !t.classList.contains("done"));
-    if (continueLink) {
-      if (firstUndone) continueLink.href = firstUndone.href;
-      continueLink.hidden = !firstUndone;
-    }
-  };
-
   onPage(() => {
-    paint(document);
+    // Tile done-marks, the hero "N av M fullført" row and the continue link;
+    // see lib/progress.ts for the paint/intersection contract.
+    paintOverview(document);
     // The exam card's "om N dager" is a build-time snapshot; recompute it
     // against the viewer's clock (see lib/examCountdown.ts).
     refreshExamCountdowns();
   });
-  // Pre-paint the INCOMING overview during a view-transition swap so tiles
-  // never flash unmarked for a frame — the same reasoning as CourseLayout's
-  // progress paint. No-op for any other destination (no tiles).
-  document.addEventListener("astro:before-swap", (e) => {
-    paint((e as Event & { newDocument: Document }).newDocument);
-  });
+  // The incoming-overview pre-paint (so tiles never flash unmarked for a frame
+  // during a view-transition swap) lives in CourseLayout's before-swap handler
+  // instead: this page's script isn't loaded until the overview has rendered
+  // once, so it can't cover the first module→overview swap of a session that
+  // started elsewhere. The layout script — shipped on every page — can.
 </script>

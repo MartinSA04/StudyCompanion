@@ -744,7 +744,11 @@ const hasTools = toolNav.some((t) => t.show);
         course-specific inputs ride the <body> data attributes instead of
         define:vars. */}
     <script>
-      import { readProgress, writeProgress } from "../lib/progress.ts";
+      import {
+        paintOverview,
+        readProgress,
+        writeProgress,
+      } from "../lib/progress.ts";
 
       // ---- Reading progress (per course, localStorage) ----
       // Stored as an array of section slugs, keyed off <body data-progress-key>
@@ -984,11 +988,17 @@ const hasTools = toolNav.some((t) => t.show);
       document.addEventListener("astro:page-load", setupPage);
       // Paint progress + the done button onto the INCOMING document before the
       // swap, so navigating between modules never flashes the default (unmarked)
-      // state for a frame — same reasoning as the theme apply above.
+      // state for a frame — same reasoning as the theme apply above. The
+      // overview pre-paint lives here (not in index.astro, which also paints it
+      // on page-load) because that route's own script isn't loaded until the
+      // overview has rendered once, so it can't cover the first
+      // module→overview swap of a session that started elsewhere; the layout
+      // script ships on every page.
       document.addEventListener("astro:before-swap", (e) => {
         const doc = (e as Event & { newDocument: Document }).newDocument;
         paintProgress(doc);
         paintDoneBtn(doc);
+        paintOverview(doc);
       });
     </script>
   </body>

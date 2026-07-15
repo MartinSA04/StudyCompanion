@@ -88,3 +88,50 @@ export function readProgress(doc: Document): Set<string> {
   if (dirty) writeProgress(doc, slugs);
   return slugs;
 }
+
+/**
+ * Paint a document's overview surface from the stored done-set: tile
+ * done-marks (with their sr-only text companions), the hero "N av M fullført"
+ * row and the continue pill. The count is the INTERSECTION of stored progress
+ * with the rendered tiles — `readProgress` prunes/migrates stale state — so it
+ * can never show "12 av 10". Idempotent and a no-op on any document without
+ * tiles, which lets the overview's own page-load paint and the layout's
+ * `astro:before-swap` pre-paint (targeting the INCOMING document) share it.
+ * Browser-only.
+ */
+export function paintOverview(doc: Document): void {
+  const tiles = [
+    ...doc.querySelectorAll<HTMLAnchorElement>("[data-tile-slug]"),
+  ];
+  if (!doc.body.dataset.progressKey || !tiles.length) return;
+  const done = readProgress(doc);
+  let count = 0;
+  tiles.forEach((t) => {
+    const on = done.has(t.dataset.tileSlug!);
+    if (on) count++;
+    t.classList.toggle("done", on);
+    // Keep the sr-only text companion (see the aria-hidden check icon beside
+    // it) in lockstep with the visual .done class.
+    const sr = t.querySelector("[data-done-sr]");
+    if (sr) sr.textContent = on ? ", fullført" : "";
+  });
+  if (!count) return; // nothing done → the hero progress row stays hidden
+
+  const row = doc.querySelector<HTMLElement>("[data-hero-progress-row]");
+  if (row) {
+    const doneEl = row.querySelector("[data-progress-done]");
+    if (doneEl) doneEl.textContent = String(count);
+    row.hidden = false;
+  }
+
+  // First not-yet-done tile in document order, or hide the pill when there is
+  // nowhere left to continue to (all done, or only stale/pruned state).
+  const continueLink = doc.querySelector<HTMLAnchorElement>(
+    "[data-hero-continue]",
+  );
+  const firstUndone = tiles.find((t) => !t.classList.contains("done"));
+  if (continueLink) {
+    if (firstUndone) continueLink.href = firstUndone.href;
+    continueLink.hidden = !firstUndone;
+  }
+}
