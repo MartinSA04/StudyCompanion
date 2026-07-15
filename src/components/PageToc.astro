@@ -130,7 +130,11 @@ const show = visible.length >= threshold;
           const links = [
             ...toc.querySelectorAll<HTMLAnchorElement>(".toc-link"),
           ];
-          links.forEach((l, i) => l.classList.toggle("active", i === idx));
+          links.forEach((l, i) => {
+            l.classList.toggle("active", i === idx);
+            if (i === idx) l.setAttribute("aria-current", "location");
+            else l.removeAttribute("aria-current");
+          });
         });
       };
 

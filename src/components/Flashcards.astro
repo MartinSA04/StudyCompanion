@@ -72,6 +72,7 @@ const hasSections = sections.length > 0;
             type="button"
             class="fc-chip active sc-press sc-chip"
             data-fc-section=""
+            aria-pressed="true"
           >
             Alle
           </button>
@@ -80,6 +81,7 @@ const hasSections = sections.length > 0;
               type="button"
               class="fc-chip sc-press sc-chip"
               data-fc-section={s}
+              aria-pressed="false"
             >
               {s}
             </button>
@@ -88,8 +90,11 @@ const hasSections = sections.length > 0;
       )
     }
     <div class="fc-toggles">
-      <button type="button" class="fc-chip sc-press sc-chip" data-fc-unknown
-        >Kun ukjente</button
+      <button
+        type="button"
+        class="fc-chip sc-press sc-chip"
+        data-fc-unknown
+        aria-pressed="false">Kun ukjente</button
       >
       <button type="button" class="fc-chip sc-press sc-chip" data-fc-shuffle
         >Bland</button
@@ -795,7 +800,10 @@ const hasSections = sections.length > 0;
     sectionChips.forEach((chip) => {
       chip.addEventListener("click", () => {
         filter.section = chip.dataset.fcSection ?? "";
-        sectionChips.forEach((c) => c.classList.toggle("active", c === chip));
+        sectionChips.forEach((c) => {
+          c.classList.toggle("active", c === chip);
+          c.setAttribute("aria-pressed", c === chip ? "true" : "false");
+        });
         buildQueue();
         pos = 0;
         show();
@@ -809,6 +817,7 @@ const hasSections = sections.length > 0;
       unknownBtn.addEventListener("click", () => {
         filter.onlyUnknown = !filter.onlyUnknown;
         unknownBtn.classList.toggle("active", filter.onlyUnknown);
+        unknownBtn.setAttribute("aria-pressed", String(filter.onlyUnknown));
         buildQueue();
         pos = 0;
         show();
