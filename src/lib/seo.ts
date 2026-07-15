@@ -50,16 +50,30 @@ export function stripInline(text: string): string {
 }
 
 /**
- * Strip a trailing slash (except on the site root "/") so the canonical /
- * og:url / sitemap / JSON-LD URLs all agree on one form for a page — the
- * slug-derived URLs have no trailing slash, so the canonical (from Astro.url)
- * is normalised to match. The integration pairs this with
- * `build.format: "file"` (src/index.ts), which makes static hosts actually
- * SERVE /slug at the slash-less form instead of 301ing it to /slug/; this trim
- * remains the backstop for any Astro.url that still carries a slash.
+ * Strip a trailing slash (except on the site root "/") so a path settles on the
+ * one slash-less form the slug-derived URLs use. This is the trailing-slash
+ * backstop step of `canonicalPathname` (below), and usable on its own. The
+ * integration pairs the slash-less form with `build.format: "file"`
+ * (src/index.ts), which makes static hosts actually SERVE /slug at the
+ * slash-less form instead of 301ing it to /slug/.
  */
 export function trimTrailingSlash(path: string): string {
   return path.length > 1 ? path.replace(/\/+$/, "") : path;
+}
+
+/**
+ * Normalise the live `Astro.url.pathname` to the one slug-less form every other
+ * emitted URL is built from, so the canonical / og:url end up byte-identical to
+ * the sitemap `<loc>`, the JSON-LD `url` and the internal hrefs (all `/<slug>`).
+ * Because the integration sets `build.format: "file"` (src/index.ts), the live
+ * pathname carries a ".html" extension the slug-derived URLs never have —
+ * "/oversikt.html", and "/index.html" on the home page. Strip the extension,
+ * collapse the emitted "/index" back to the site root "/", then drop any
+ * trailing slash as the backstop for a host still serving /slug/.
+ */
+export function canonicalPathname(path: string): string {
+  const noExt = path.replace(/\.html$/, "");
+  return trimTrailingSlash(noExt === "/index" ? "/" : noExt);
 }
 
 /**

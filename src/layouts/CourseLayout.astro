@@ -8,7 +8,7 @@ import Icon from "../components/Icon.astro";
 import { contrastText, accentOnBg, accentInk } from "../lib/color.ts";
 import { THEME_COLOR_LIGHT, THEME_COLOR_DARK } from "../lib/themeColor.ts";
 import { faviconDataUri } from "../lib/favicon.ts";
-import { ogLocale, trimTrailingSlash, warnMissingSiteOnce } from "../lib/seo.ts";
+import { ogLocale, canonicalPathname, warnMissingSiteOnce } from "../lib/seo.ts";
 import { formatDate } from "../lib/dates.ts";
 import { progressKey as progressKeyFor } from "../lib/progress.ts";
 import { serializeLd } from "../lib/jsonLd.ts";
@@ -247,7 +247,7 @@ const ogTitle = pageTitle ?? course.title;
 // one DEV warning) rather than emitting unusable relative URLs.
 const site = Astro.site;
 const canonicalUrl = site
-  ? new URL(trimTrailingSlash(Astro.url.pathname), site).href
+  ? new URL(canonicalPathname(Astro.url.pathname), site).href
   : null;
 if (import.meta.env.DEV && !site) warnMissingSiteOnce();
 

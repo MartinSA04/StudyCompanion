@@ -6,6 +6,7 @@ import {
   stripInline,
   absoluteUrl,
   trimTrailingSlash,
+  canonicalPathname,
 } from "../src/lib/seo.ts";
 
 test("ogLocale maps the schema languages, defaulting to nb_NO", () => {
@@ -47,6 +48,34 @@ test("trimTrailingSlash drops a trailing slash but keeps the root", () => {
   assert.equal(trimTrailingSlash("/simulering"), "/simulering");
   assert.equal(trimTrailingSlash("/"), "/");
   assert.equal(trimTrailingSlash("/a/b/"), "/a/b");
+});
+
+test("canonicalPathname strips the build.format:file .html and maps /index to root", () => {
+  // build.format:"file" makes Astro.url.pathname carry ".html".
+  assert.equal(canonicalPathname("/oversikt.html"), "/oversikt");
+  assert.equal(canonicalPathname("/index.html"), "/");
+  // Already-clean slug-less paths pass through untouched.
+  assert.equal(canonicalPathname("/oversikt"), "/oversikt");
+  assert.equal(canonicalPathname("/"), "/");
+  // Trailing-slash backstop still applies (a host serving /slug/).
+  assert.equal(canonicalPathname("/oversikt/"), "/oversikt");
+});
+
+test("canonicalPathname agrees byte-for-byte with the slug-derived URLs", () => {
+  // The canonical/og:url (from the live pathname) and the sitemap <loc> /
+  // JSON-LD `url` / internal hrefs (built from `/<slug>` via absoluteUrl) must
+  // resolve to the identical absolute URL per page.
+  const site = "https://demo.example.com";
+  // A section served at /oversikt.html vs the slug-derived "/oversikt".
+  assert.equal(
+    absoluteUrl(canonicalPathname("/oversikt.html"), site),
+    absoluteUrl("/oversikt", site),
+  );
+  // The home page: /index.html vs the advertised "/".
+  assert.equal(
+    absoluteUrl(canonicalPathname("/index.html"), site),
+    absoluteUrl("/", site),
+  );
 });
 
 test("absoluteUrl resolves against site, or returns the path when site is unset", () => {
