@@ -1,4 +1,3 @@
-import { getCollection } from "astro:content";
 import type { CollectionEntry } from "astro:content";
 import { existsSync, readdirSync } from "node:fs";
 import { resolve } from "node:path";
@@ -24,7 +23,7 @@ export interface LoadedCourse {
  * exactly like the glob's `base` ("./content/sections" against the consumer's
  * cwd at build time); dotfiles (.gitkeep, .DS_Store) are tolerated.
  */
-function strayEntryProblems(): string[] {
+export function strayEntryProblems(): string[] {
   const dir = resolve("content/sections");
   if (!existsSync(dir)) return []; // no sections dir — the glob is empty too
   const problems: string[] = [];
@@ -53,7 +52,7 @@ function strayEntryProblems(): string[] {
  * section list so a collision involving a draft fails the production build
  * too; the content is just as broken for `astro dev`.
  */
-function sectionCollisionProblems(
+export function sectionCollisionProblems(
   sections: CollectionEntry<"sections">[],
 ): string[] {
   const problems: string[] = [];
@@ -91,6 +90,36 @@ function sectionCollisionProblems(
 }
 
 /**
+ * Compare the content's declared schemaVersion against the framework's
+ * SCHEMA_VERSION, returning a build-error message on skew (or null when they
+ * match). Split out from `loadCourse` so the version-skew invariant is unit
+ * testable without loading content.
+ *   - content NEWER than the framework  => bump the study-companion pin.
+ *   - content OLDER than the framework   => migrate content (see MIGRATIONS.md).
+ */
+export function schemaSkewProblem(
+  schemaVersion: number,
+  frameworkVersion: number = SCHEMA_VERSION,
+): string | null {
+  if (schemaVersion > frameworkVersion) {
+    return (
+      `study-companion: content schemaVersion ${schemaVersion} is NEWER than ` +
+      `framework SCHEMA_VERSION ${frameworkVersion}. Bump the study-companion ` +
+      `pin in package.json to a version that supports this schema.`
+    );
+  }
+  if (schemaVersion < frameworkVersion) {
+    return (
+      `study-companion: content schemaVersion ${schemaVersion} is OLDER than ` +
+      `framework SCHEMA_VERSION ${frameworkVersion}. Migrate content/course.yaml ` +
+      `and sections to schema v${frameworkVersion} (see MIGRATIONS.md), then set ` +
+      `schemaVersion: ${frameworkVersion}.`
+    );
+  }
+  return null;
+}
+
+/**
  * Read and validate the single course in this repo, returning the course
  * metadata, its sections sorted by `order`, the flashcard deck and the derived
  * tool-page flags. Every consumer (overview, [slug] routing, 404, sitemap,
@@ -106,6 +135,7 @@ function sectionCollisionProblems(
  * tag never hits this until it deliberately crosses a major boundary.
  */
 export async function loadCourse(): Promise<LoadedCourse> {
+  const { getCollection } = await import("astro:content");
   const courseEntries = await getCollection("course");
   const courseEntry = courseEntries[0];
   if (!courseEntry) {
@@ -114,23 +144,8 @@ export async function loadCourse(): Promise<LoadedCourse> {
     );
   }
   const course = courseEntry.data;
-  const schemaVersion = course.schemaVersion;
-
-  if (schemaVersion > SCHEMA_VERSION) {
-    throw new Error(
-      `study-companion: content schemaVersion ${schemaVersion} is NEWER than ` +
-        `framework SCHEMA_VERSION ${SCHEMA_VERSION}. Bump the study-companion ` +
-        `pin in package.json to a version that supports this schema.`,
-    );
-  }
-  if (schemaVersion < SCHEMA_VERSION) {
-    throw new Error(
-      `study-companion: content schemaVersion ${schemaVersion} is OLDER than ` +
-        `framework SCHEMA_VERSION ${SCHEMA_VERSION}. Migrate content/course.yaml ` +
-        `and sections to schema v${SCHEMA_VERSION} (see MIGRATIONS.md), then set ` +
-        `schemaVersion: ${SCHEMA_VERSION}.`,
-    );
-  }
+  const skew = schemaSkewProblem(course.schemaVersion);
+  if (skew) throw new Error(skew);
 
   const allSections = (await getCollection("sections")).sort(
     (a, b) => a.data.order - b.data.order,
