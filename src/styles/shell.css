@@ -855,6 +855,12 @@
   .nav-link {
     padding: var(--gap-3);
   }
+  /* --muted, not --faint: the drawer sits on --bg-elevated, where --faint is
+     below AA (tokens.css calibrates it against the page --bg only). */
+  .sidebar .nav-section,
+  .sidebar .nav-num {
+    color: var(--muted);
+  }
   .hero h1 {
     font-size: var(--text-2xl);
   }

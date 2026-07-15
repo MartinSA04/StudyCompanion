@@ -558,12 +558,12 @@ const hasTools = toolNav.some((t) => t.show);
           features.progress && (
             <div
               class="progresswrap"
-              aria-label={ui.progressLabel}
               title="Lagres lokalt i denne nettleseren">
-              <span class="lbl-txt">{ui.progressLabel}</span>
+              <span class="lbl-txt" id="sc-progress-label">{ui.progressLabel}</span>
               <div
                 class="progressbar"
                 role="progressbar"
+                aria-labelledby="sc-progress-label"
                 aria-valuemin="0"
                 aria-valuemax="100"
                 aria-valuenow="0">

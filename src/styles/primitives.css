@@ -267,7 +267,13 @@ details[open] > summary .sc-chev {
   --track-h: 6px;
   appearance: none;
   -webkit-appearance: none;
-  height: 15px;
+  /* The box stands 24px tall so the pointer target clears the WCAG 2.5.8 24px
+     floor — parameter sliders offer no button alternative, so the thumb is the
+     sole control. Negative block margin shrinks the MARGIN box back to the painted
+     15px, so no consumer row grows and the groove/thumb stay vertically centred
+     exactly where a 15px box put them (track height stays --track-h throughout). */
+  height: 24px;
+  margin-block: -4.5px;
   background: transparent;
   cursor: pointer;
 }
