@@ -1006,4 +1006,23 @@ summary,
     color: #555;
     word-break: break-all;
   }
+
+  /* Wide content scrolls horizontally on screen (code blocks, display math,
+     table wrappers, inline-formula spans); on paper there's no scrollbar to
+     reach the overflow, so overflow-x: auto just clips it at the page edge.
+     Let these boxes spill to their natural width instead. The scoped table/
+     formula classes outrank a bare selector, so force it. */
+  pre,
+  .katex-display,
+  .table-scroll,
+  .data-table-scroll,
+  .formula-inline {
+    overflow: visible !important;
+  }
+  /* Long code lines can't scroll on paper — wrap them so nothing runs off the
+     right edge (Shiki keeps them nowrap for the on-screen scroll). */
+  pre {
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
 }
