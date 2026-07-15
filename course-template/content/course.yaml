@@ -134,6 +134,9 @@ features: { progress: true, search: true, flashcards: true, theme: true }
 #   resetLabel: Nullstill
 #   skipToContent: Hopp til innhold
 #   flashcardsLabel: Flashcards
+#   knownLabel: Kan
+#   reviewLabel: Øv
+#   flipLabel: Snu
 #   examsLabel: Eksamen
 #   formulaSheetLabel: Formelsamling
 #   officialFormulaSheetLabel: Offisiell formelsamling til eksamen

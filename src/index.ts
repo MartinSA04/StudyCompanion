@@ -319,7 +319,10 @@ export default function studyCompanion(
         const outDir = fileURLToPath(dir);
 
         // Per-course raster app icons + pinned-tab mask (4.9). Independent of
-        // the Pagefind step; failures are non-fatal (warn + skip).
+        // the Pagefind step. Raster icon generation hard-fails the build if
+        // sharp can't run (the manifest and icon tags already reference the
+        // PNGs, so a skip would ship 404 icons); only the pinned-tab mask SVG
+        // is warn-and-skip.
         if (projectRoot) {
           await generateAppIcons(projectRoot, outDir, logger);
         }

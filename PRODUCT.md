@@ -47,7 +47,9 @@ are the loudest things on the page.
 1. **Content is the interface.** Chrome recedes; typography, math, and figures
    carry the hierarchy. No decoration that doesn't aid comprehension.
 2. **One vocabulary, everywhere.** Admonition is the reference component:
-   panels use --border, controls use --border-strong, completion is always
+   panels and structure use hairlines (--border), interactive controls are
+   surface-or-nothing bar the two sanctioned form glyphs (the keycap on
+   --border, the quiz radio ring on --border-strong), completion is always
    accent, disclosures share the Solution/Hint idiom, tables use the editorial
    divider style. New widgets must speak this language.
 3. **Explicit over derived.** Courses set explicit per-theme values (accent +
