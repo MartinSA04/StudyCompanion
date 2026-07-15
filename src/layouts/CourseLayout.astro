@@ -749,6 +749,7 @@ const hasTools = toolNav.some((t) => t.show);
         readProgress,
         writeProgress,
       } from "../lib/progress.ts";
+      import { refreshExamCountdowns } from "../lib/examCountdown.ts";
 
       // ---- Reading progress (per course, localStorage) ----
       // Stored as an array of section slugs, keyed off <body data-progress-key>
@@ -999,6 +1000,9 @@ const hasTools = toolNav.some((t) => t.show);
         paintProgress(doc);
         paintDoneBtn(doc);
         paintOverview(doc);
+        // The countdown phrase is baked at build time too, so recompute it on
+        // the incoming doc to avoid flashing a stale "om N dager" for a frame.
+        refreshExamCountdowns(doc);
       });
     </script>
   </body>
