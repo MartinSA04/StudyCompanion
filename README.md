@@ -20,7 +20,7 @@ npx degit MartinSA04/StudyCompanion/course-template course-mycode
 
 It ships the framework pin, a GitHub Pages deploy workflow, an annotated `content/course.yaml`, and example sections. Then read **`AUTHORING.md`** — the content author's guide (archetypes, widget decision guide, conventions, per-section definition-of-done).
 
-You author **only** under `content/` — `course.yaml` (metadata, formulas, glossary, exams, features, analytics, ui strings), `flashcards.yaml`, and `sections/NN-slug.mdx` — and drop static assets in `public/` (favicon, `figures/`, `sims/`). See `course-template/` for the exact file layout and an annotated `course.yaml`.
+You author **only** under `content/` — `course.yaml` (metadata, formulas, glossary, exams, features, analytics, ui strings), `flashcards.yaml`, and `sections/NN-slug.mdx` — and drop static assets in `public/` (`figures/`, `sims/`; the favicon and app icons are auto-generated from the course `accent`/`accentDark`). See `course-template/` for the exact file layout and an annotated `course.yaml`.
 
 > For local framework development, point the `study-companion` dependency at a `link:../path/to/study-companion` instead of the git tag (see `course-template/package.json`).
 

@@ -140,7 +140,7 @@ features: { progress: true, search: true, flashcards: true, theme: true }
 #   examsLabel: Eksamen
 #   formulaSheetLabel: Formelsamling
 #   officialFormulaSheetLabel: Offisiell formelsamling til eksamen
-#   noFormulaSheetNote: "Til eksamen i dette emnet deles det ikke ut noen formelsamling. Oversikten under er en studieressurs — på eksamen må alt kunnes uten hjelpemidler."
+#   noFormulaSheetNote: "Til eksamen i dette emnet deles det ikke ut noen formelsamling. Oversikten under er en studieressurs: på eksamen må alt kunnes uten hjelpemidler."
 #   sheetSearchPlaceholder: "Søk i formler og symboler …"
 #   sheetSearchLabel: Søk i formler
 #   onSheetLabel: På formelarket

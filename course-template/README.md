@@ -27,7 +27,9 @@ Then:
    `SCHEMA_VERSION` (currently **3**); a mismatch fails the build. The schema is
    strict — an unknown or misspelled key fails the build naming the key.
 4. Replace the example sections under `content/sections/` with your modules.
-5. Drop your favicon, figures, sims and any vendored exam PDFs into `public/`.
+5. Drop your figures, sims and any vendored exam PDFs into `public/`. No favicon
+   file is needed — the favicon and all app icons are generated from the course
+   `accent`/`accentDark`.
 
 ## Local framework development
 

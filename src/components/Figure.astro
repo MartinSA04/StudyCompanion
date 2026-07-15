@@ -14,8 +14,8 @@ import { renderMathString } from "../lib/katex.ts";
  *
  * Numbering is EXPLICIT (`number` prop) rather than auto-derived — same stance
  * as section/formula numbering, so reordering content never silently renumbers
- * a figure, and a future <FigureRef> (ROADMAP 2.4) has a stable label to target.
- * `caption` may contain `$inline$` math.
+ * a figure, and prose references and deep links get a stable, author-controlled
+ * label to target. `caption` may contain `$inline$` math.
  */
 interface Props {
   src: string;

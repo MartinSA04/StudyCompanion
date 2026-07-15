@@ -8,7 +8,8 @@ git tag in `package.json` and contains **only content**.
 - **Author ONLY under `content/`** — `course.yaml`, `flashcards.yaml`, and
   `sections/*.mdx` (flat `*.mdx` files directly under `content/sections/` — a
   nested folder or a `.md` stray fails the build). Static assets go in `public/`
-  (figures, sims, PDFs, favicon).
+  (figures, sims, PDFs). The favicon and app icons are auto-generated from the
+  course `accent`/`accentDark` — no favicon file is needed.
 - **Do NOT add components, pages, layouts, styles, or toolchain config.** The
   framework injects all of it. There is no `src/pages/` here.
 - **To change the design or add a widget, change the FRAMEWORK repo** and bump
