@@ -19,7 +19,7 @@ export interface CodeBlockController {
 /**
  * Resolve a <CodeBlock> (by `id`, or the first on the page) into a controller
  * that toggles the `.cb-line-active` class the CodeBlock styles — so a sim or
- * stepper can walk the highlight in lockstep with what it paints (ROADMAP 3.8).
+ * stepper can walk the highlight in lockstep with what it paints.
  * Returns null when no such block exists.
  */
 export function makeCodeBlockController(

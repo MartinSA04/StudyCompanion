@@ -12,7 +12,7 @@
  *    pixels (the context is pre-scaled for devicePixelRatio).
  *  - "dom": an empty themed element the module renders SVG/HTML into — for
  *    visualizations that want crisp labels / selectable text (graphs, trees).
- *    For *stepped* algorithm traces prefer the higher-level <Stepper> (5.2).
+ *    For *stepped* algorithm traces prefer the higher-level <Stepper>.
  *
  * Course module contract (e.g. course `public/sims/thin-lens.js`):
  *
@@ -30,7 +30,7 @@
  *   // host="canvas": canvas, ctx     host="dom": stage (an element)
  * }.
  *
- * `codeBlock(id)` (ROADMAP 3.8) returns a controller for a course <CodeBlock>
+ * `codeBlock(id)` returns a controller for a course <CodeBlock>
  * (matched by its `id`, or the first one when omitted), so a sim can step the
  * highlighted line(s) in lockstep with what it paints. Returns null if none.
  *

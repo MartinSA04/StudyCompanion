@@ -1,5 +1,5 @@
 /**
- * Demo for ROADMAP 3.8 — a course-owned simulation that DRIVES a <CodeBlock>.
+ * Demo of a course-owned simulation that DRIVES a <CodeBlock>.
  * Steps through a tiny array-sum routine: each step advances the highlighted
  * source line (via api.codeBlock) AND paints the matching state (array bars,
  * the current element, the running total) on the canvas. This is the pattern

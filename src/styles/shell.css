@@ -872,7 +872,7 @@
   }
 }
 
-/* ====== safe-area insets & installed-app polish (PWA / iOS, 4.10) ======
+/* ====== safe-area insets & installed-app polish (PWA / iOS) ======
    `viewport-fit=cover` (set on the head viewport meta) lets the page extend
    under the notch / Dynamic Island / home indicator; inset the sticky chrome so
    nothing hides there. `env(safe-area-inset-*)` is 0 on devices without a

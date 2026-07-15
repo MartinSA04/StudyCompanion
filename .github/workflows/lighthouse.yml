@@ -4,9 +4,9 @@ on:
   pull_request:
   workflow_dispatch:
 
-# SEO / PWA / perf guard (ROADMAP 4.13). DESIGN targets Lighthouse ≥95 but
-# nothing enforced it; the §4 metadata can silently regress. Complements the
-# visual-regression workflow (2.6, which guards pixels, not metadata / CWV).
+# SEO / PWA / perf guard. DESIGN targets Lighthouse ≥95 but
+# nothing enforced it; the SEO/PWA metadata can silently regress. Complements the
+# visual-regression workflow (which guards pixels, not metadata / CWV).
 # The resource-summary byte budgets in the lighthouserc files are generous
 # error thresholds; tighten them once the KaTeX-CSS and inline-script diets land.
 permissions:

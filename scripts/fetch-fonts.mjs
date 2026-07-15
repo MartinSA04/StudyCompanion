@@ -1,6 +1,6 @@
 // Vendor the three brand fonts (Fraunces, Spectral, IBM Plex Mono) from Google
 // Fonts into the package so the framework carries no render-blocking third-party
-// request (see ROADMAP 2.5). Re-run this to refresh: `node scripts/fetch-fonts.mjs`.
+// request. Re-run this to refresh: `node scripts/fetch-fonts.mjs`.
 //
 // We vendor EVERY range Google ships (latin, latin-ext, greek, cyrillic, …) — no
 // glyphs are dropped, so any character a course types in prose still renders in

@@ -19,7 +19,7 @@ import studyCompanion from "./src/index.ts";
 export default defineConfig({
   // A real course sets its own canonical origin here (one of the "three thin
   // files"); the framework reads it for canonical / Open Graph / sitemap
-  // absolute URLs (ROADMAP 4.1). The reserved example domain stands in for the
+  // absolute URLs. The reserved example domain stands in for the
   // demo harness so those features are exercised in the standalone build.
   site: "https://demo.example.com",
   srcDir: "./demo",

@@ -62,7 +62,7 @@ const nativeImport = new Function("specifier", "return import(specifier)") as (
 
 /**
  * Generate the per-course raster app icons + Safari pinned-tab mask into the
- * static output at build (4.9). The mask SVG needs nothing; the PNGs load
+ * static output at build. The mask SVG needs nothing; the PNGs load
  * `sharp` — declared as this package's own optionalDependency, matching
  * Astro's supported range, so it resolves by NAME under every package manager
  * (including pnpm's unhoisted store) — through the same guarded dynamic
@@ -289,7 +289,7 @@ export default function studyCompanion(
           prerender: true,
         });
 
-        // 3. Discoverability + installability endpoints (§4). All prerendered to
+        // 3. Discoverability + installability endpoints. All prerendered to
         //    static files, course-derived, no per-course wiring: a hand-rolled
         //    sitemap (honours noindex/draft), robots.txt, the PWA manifest, and a
         //    branded 404 (otherwise a bad URL hits Astro's unstyled default).
@@ -318,7 +318,7 @@ export default function studyCompanion(
       "astro:build:done": async ({ dir, logger }) => {
         const outDir = fileURLToPath(dir);
 
-        // Per-course raster app icons + pinned-tab mask (4.9). Independent of
+        // Per-course raster app icons + pinned-tab mask. Independent of
         // the Pagefind step. Raster icon generation hard-fails the build if
         // sharp can't run (the manifest and icon tags already reference the
         // PNGs, so a skip would ship 404 icons); only the pinned-tab mask SVG

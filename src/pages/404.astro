@@ -4,7 +4,7 @@ import Icon from "../components/Icon.astro";
 import { loadCourse } from "../lib/loadCourse.ts";
 import { sectionNav } from "../lib/nav.ts";
 
-// Branded 404 (4.12). The integration injects only `/` and `/[slug]`, so a bad
+// Branded 404. The integration injects only `/` and `/[slug]`, so a bad
 // URL would otherwise hit Astro's unstyled default — off-brand and a soft-404
 // SEO smell. This renders the normal shell (topbar search, sidebar nav) so a
 // mistyped link is a soft landing back into the guide, not a dead end.

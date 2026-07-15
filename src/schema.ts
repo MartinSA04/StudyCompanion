@@ -136,7 +136,7 @@ export const courseSchema = z.strictObject({
 
   /**
    * Institution / provider name (e.g. "NTNU"), used as the schema.org `provider`
-   * on the overview's `Course` JSON-LD (4.4). Explicit, not derived from a URL
+   * on the overview's `Course` JSON-LD. Explicit, not derived from a URL
    * host — omit it and no provider is emitted (no guessing).
    */
   institution: z.string().optional(),
@@ -149,7 +149,7 @@ export const courseSchema = z.strictObject({
    * Optional SEO / social-card metadata. Additive: omit the object and every
    * value below falls back to data derived from the rest of `course.yaml`
    * (title, subtitle, accent, language). Absolute-URL features additionally
-   * need `site` in astro.config.mjs (see ROADMAP 4.1).
+   * need `site` in astro.config.mjs.
    */
   seo: z
     .strictObject({
@@ -289,7 +289,7 @@ export const sectionSchema = z.strictObject({
   updated: z.coerce.date().optional(),
   /**
    * Keep this module out of search results: emits
-   * `<meta name="robots" content="noindex">` and drops it from the sitemap (4.5)
+   * `<meta name="robots" content="noindex">` and drops it from the sitemap
    * and Open Graph. The page is still built and linked in-site — only crawlers
    * are told to skip it. Use for low-value or duplicate pages.
    */

@@ -2,7 +2,7 @@ import { fileURLToPath } from "node:url";
 import { defineConfig, devices } from "@playwright/test";
 
 /**
- * Visual-regression snapshots of the bundled kitchen-sink demo (ROADMAP 2.6).
+ * Visual-regression snapshots of the bundled kitchen-sink demo.
  * Builds + previews the demo course, then screenshots every injected route in
  * both themes — so a scoped-CSS regression (like the theme-toggle icon-scope bug)
  * is caught on a PR instead of by eye.

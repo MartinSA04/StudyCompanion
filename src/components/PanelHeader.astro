@@ -5,7 +5,7 @@ import { renderMathString } from "../lib/katex.ts";
  * The shared header bar that sits at the top of a bordered panel — one card-tinted
  * strip with a bottom hairline, a leading mark (a mono kicker badge or an accent
  * dot) and an optional display title. Extracted so `<Example>` and `<Simulation>`
- * stop re-implementing slightly-drifting copies of the same bar (ROADMAP 2.7).
+ * stop re-implementing slightly-drifting copies of the same bar.
  *
  * Slots: `kicker-icon` sits inside the kicker badge (kept as one chip); the
  * default slot is trailing content. `title` may contain `$inline$` math.

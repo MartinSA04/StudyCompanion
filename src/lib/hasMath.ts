@@ -22,13 +22,15 @@ export function stringsHaveMath(strings: (string | undefined)[]): boolean {
 }
 
 /**
- * KaTeX-emitting widgets an MDX author can drop into a module body WITHOUT any
- * `$…$` delimiter in the raw source (their math arrives as a `tex=` prop or a
- * component that calls renderMathString internally). A module using one of these
- * paints KaTeX even when its prose has no `$`, so its presence keeps the preload
- * on. Names mirror the mdx-components.ts map; kept broad on purpose — a widget
- * added here that turns out never to typeset only costs a wasted preload, while
- * omitting one that does would flash the fallback serif.
+ * KaTeX-emitting widgets whose math arrives WITHOUT a `$…$` delimiter in the raw
+ * source (via a `tex=` prop or a component that calls renderMathString
+ * internally), so a module using one paints KaTeX even when its prose has no `$` —
+ * which keeps the preload on. Most are author-facing tags that mirror the
+ * mdx-components.ts map; `PanelHeader` is the one deliberate internal exception (a
+ * title bar the other widgets embed, never written by an author — a drift guard in
+ * test/hasMath.test.ts pins this). Kept broad on purpose: a tag here that never
+ * typesets only costs a wasted preload, while omitting one that does would flash
+ * the fallback serif.
  */
 const MATH_WIDGET_TAGS = [
   "Formula",

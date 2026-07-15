@@ -1,7 +1,7 @@
 /**
  * Wrap every markdown-authored `<table>` in `<div class="table-scroll">` so a
  * wide table gets horizontal scrolling instead of breaking the layout on
- * mobile — the same treatment `<Table>` gives its own markup (2.5). Plain GFM
+ * mobile — the same treatment `<Table>` gives its own markup. Plain GFM
  * tables in prose have no such wrapper by default, so this rehype plugin adds
  * one at build time. `.table-scroll` styling lives in base.css.
  *

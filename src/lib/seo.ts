@@ -99,6 +99,6 @@ export function warnMissingSiteOnce(): void {
     "[study-companion] `site` is not set in astro.config.mjs — canonical, " +
       "Open Graph and sitemap URLs need an absolute origin, so they were " +
       'skipped. Add e.g. `site: "https://<course>.example.com"` to the course ' +
-      "config (see ROADMAP 4.1).",
+      "config.",
   );
 }

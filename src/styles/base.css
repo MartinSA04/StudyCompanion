@@ -399,7 +399,7 @@ td {
 thead th {
   background: var(--card);
   /* Structural divider, not a control edge — tables take --border throughout
-     (Two-Border Rule; keeps the authored-Markdown header rule in step with
+     (Structural-Border Rule; keeps the authored-Markdown header rule in step with
      <Table>'s). */
   border-bottom: 1px solid var(--border);
   font-family: var(--font-display);

@@ -58,16 +58,16 @@ interface Props {
    * layout renders the tags; every value is optional and degrades gracefully.
    */
   seo?: {
-    /** `<meta name="description">` + `og:description`; pages always supply one (4.3). */
+    /** `<meta name="description">` + `og:description`; pages always supply one. */
     description?: string;
-    /** `og:type` — "article" for modules, "website" for overview/tools (4.2). */
+    /** `og:type` — "article" for modules, "website" for overview/tools. */
     ogType?: "website" | "article";
     /** ISO date → `article:modified_time` (module pages with `updated`). */
     modifiedTime?: string;
-    /** Keep out of search (4.6) → `<meta name="robots" content="noindex">`. */
+    /** Keep out of search → `<meta name="robots" content="noindex">`. */
     noindex?: boolean;
   };
-  /** schema.org objects → one `<script type="application/ld+json">` each (4.4). */
+  /** schema.org objects → one `<script type="application/ld+json">` each. */
   jsonLd?: Record<string, unknown>[];
   /** Render the right "on this page" rail column (module pages with a TOC). */
   hasToc?: boolean;
@@ -241,7 +241,7 @@ const title = pageTitle
   : `${course.code} · ${course.title}`;
 const ogTitle = pageTitle ?? course.title;
 
-// ---- SEO / social metadata (4.1–4.4, 4.7) ----
+// ---- SEO / social metadata ----
 // All derived from course.yaml + the page props. Absolute-URL features need
 // `site` in the course's astro.config.mjs; without it they degrade (skipped +
 // one DEV warning) rather than emitting unusable relative URLs.
@@ -257,8 +257,8 @@ const metaDescription =
 const ogType = seo?.ogType ?? "website";
 const siteName = `${course.code} ${course.title}`;
 const locale = ogLocale(course.language);
-// Interim social-card image: the build-time raster app icon (4.9). A square
-// logo → a `summary` Twitter card; 4.11 will add a 1200×630 `summary_large_image`.
+// Interim social-card image: the build-time raster app icon. A square
+// logo → a `summary` Twitter card; a 1200×630 `summary_large_image` is deferred.
 const ogImage = site ? new URL("/icon-512.png", site).href : null;
 const twitterHandle = course.seo?.twitter
   ? course.seo.twitter.startsWith("@")
@@ -297,7 +297,7 @@ const hasTools = toolNav.some((t) => t.show);
     {seo?.noindex && <meta name="robots" content="noindex" />}
     {canonicalUrl && <link rel="canonical" href={canonicalUrl} />}
 
-    {/* Browser-chrome + native-control theming (4.7). ONE un-mediaed meta,
+    {/* Browser-chrome + native-control theming. ONE un-mediaed meta,
         owned by the theme scripts: dark rendering only ever comes from script
         setting data-theme (tokens.css has no prefers-color-scheme fallback),
         so a media-keyed dark meta would paint dark chrome on a light page for
@@ -310,7 +310,7 @@ const hasTools = toolNav.some((t) => t.show);
     <meta name="color-scheme" content="light dark" />
     <meta name="format-detection" content="telephone=no" />
 
-    {/* Installable PWA + Apple home-screen (4.8–4.10, 4.15). The raster icons
+    {/* Installable PWA + Apple home-screen. The raster icons
         and pinned-tab mask are emitted per-course at build (astro:build:done);
         the manifest is an injected endpoint. */}
     <link rel="manifest" href="/manifest.webmanifest" />
@@ -326,7 +326,7 @@ const hasTools = toolNav.some((t) => t.show);
     <meta name="application-name" content={course.code} />
     <meta name="generator" content="study-companion" />
 
-    {/* Open Graph + Twitter card (4.2) — link unfurls in chats / search. */}
+    {/* Open Graph + Twitter card — link unfurls in chats / search. */}
     <meta property="og:type" content={ogType} />
     <meta property="og:title" content={ogTitle} />
     <meta property="og:description" content={metaDescription} />
@@ -347,7 +347,7 @@ const hasTools = toolNav.some((t) => t.show);
     {twitterHandle && <meta name="twitter:site" content={twitterHandle} />}
     {twitterHandle && <meta name="twitter:creator" content={twitterHandle} />}
 
-    {/* schema.org structured data (4.4) — Course / LearningResource /
+    {/* schema.org structured data — Course / LearningResource /
         BreadcrumbList / DefinedTermSet, built per page kind in the page. */}
     {
       jsonLd?.map((obj) => (

@@ -80,7 +80,7 @@ const examIso = course.exam?.date?.toISOString();
 const hasExamCard =
   examDate || course.exam?.format || course.exam?.aids || daysToExam != null;
 
-// ---- SEO + structured data (4.2–4.4) ----
+// ---- SEO + structured data ----
 const overviewUrl = absoluteUrl("/", Astro.site);
 const seo = {
   description: truncateDescription(

@@ -1,7 +1,7 @@
 import { slugify } from "./slug.ts";
 
 /**
- * Build-time cross-reference validation (ROADMAP 2.9).
+ * Build-time cross-reference validation.
  *
  * `<Term>` and `<FormulaRef>` only `console.warn` on an unresolved target, and
  * only in DEV — so a production `astro build` happily emits dead links to

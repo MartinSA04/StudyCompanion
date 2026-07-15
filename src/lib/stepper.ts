@@ -1,5 +1,5 @@
 /**
- * Pure logic for the <Stepper> algorithm trace-player (ROADMAP 5.2). Kept free
+ * Pure logic for the <Stepper> algorithm trace-player. Kept free
  * of any DOM so it can be unit-tested with node:test — the `.astro` island wires
  * these into the player chrome (the island itself is exercised by the demo build,
  * same split as mdx-components).

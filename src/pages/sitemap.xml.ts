@@ -2,9 +2,9 @@ import type { APIContext } from "astro";
 import { loadCourse } from "../lib/loadCourse.ts";
 import { sectionSlug, TOOL_SLUGS } from "../lib/nav.ts";
 
-// Prerendered to a static /sitemap.xml at build (4.5). Hand-rolled rather than
+// Prerendered to a static /sitemap.xml at build. Hand-rolled rather than
 // pulling in @astrojs/sitemap: it keeps the near-zero-dependency stance and
-// gives full control to honour per-section `noindex` (4.6) and emit `lastmod`
+// gives full control to honour per-section `noindex` and emit `lastmod`
 // from each section's `updated`. Draft sections are already gone — loadCourse
 // drops them in a production build.
 export const prerender = true;

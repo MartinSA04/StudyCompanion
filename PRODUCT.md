@@ -36,11 +36,11 @@ are the loudest things on the page.
 
 - Generic docs-site chrome (Starlight/Docusaurus look): evaluated and
   rejected; this is an editorial reading surface, not a docs theme.
-- SaaS/AI-slop tells: gradient text, glassmorphism, hero-metric blocks,
-  identical icon-card grids, side-stripe callout borders.
 - One-page scroll guides: the framework is deliberately multi-page
   (one module per view) with an editorial folio structure.
-- Playful/bouncy motion, confetti, gamification aesthetics.
+- SaaS/AI-slop tells and playful/bouncy motion — gradient text,
+  glassmorphism, hero metrics, icon-card grids, confetti, and the rest are
+  enumerated and enforced as the design system's "Don't" list (`DESIGN.md` §6).
 
 ## Design Principles
 

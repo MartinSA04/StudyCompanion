@@ -53,7 +53,7 @@ Author under `content/` only. **[`course-template/content/`](course-template/con
 | `<LearningGoals>` | `title?` | Module objectives ("læringsmål"); slotted list. |
 | `<ExamFocus>` | `title?` | Exam-priority block ("eksamensfokus"); slotted MDX. |
 | `<Table>` | `columns`, `rows`, `caption?`, `rowHeader?`, `align?` | Data-driven reference/complexity table; cells may contain `$math$`. First column is a row header; scrolls horizontally on overflow. |
-| `<Callout>` | `type` = note\|tip\|warning, `title?` | Admonition box; slotted MDX body. |
+| `<Callout>` | `type?` = note\|tip\|warning, `title?` | Admonition box; slotted MDX body. |
 | `<Derivation>` | `title?`, `open?` | Collapsible worked steps (`<details>`). |
 | `<Steps>` / `<Step>` | `<Step title?>` | Numbered procedure as a vertical ribbon (a real `<ol>`). `title` may contain `$…$`. |
 | `<KeyTakeaways>` | `title?` | End-of-module recap; the slotted bullet list renders as a checklist. |
@@ -67,39 +67,30 @@ Author under `content/` only. **[`course-template/content/`](course-template/con
 
 Fenced code blocks (` ```py `) are highlighted by Shiki and get a copy button automatically.
 
-> **Captions & labels** (`<Formula caption>`, `course.yaml` formula `label`, etc.) are
-> rendered with KaTeX for `$…$` spans; the rest is escaped except the simple inline
-> tags `<b> <i> <em> <strong> <sub> <sup> <code> <br>` (attribute-less) — so use
-> `<b>…</b>`/`<em>…</em>` for emphasis, not Markdown `**…**`, and a literal `<`/`&`
-> (e.g. `n<m`) is safe plain text.
+> **Captions & labels** (`<Formula caption>`, `course.yaml` formula `label`, etc.)
+> render `$…$` via KaTeX and allow a few attribute-less inline tags (`<b> <em>
+> <sub> <sup> <code> <br>`, …) — use those for emphasis, **not** Markdown `**…**`.
+> Full escaping rules and the exact tag whitelist: `AUTHORING.md` §6.
 
 ---
 
 ## Course-owned simulations
 
-Interactive simulations stay in the **course** repo so the framework carries no per-course code. Put an ES module in the course's `public/sims/` and reference it:
+Interactive simulations live in the **course** repo (an ES module in
+`public/sims/`) so the framework carries no per-course code:
 
 ```mdx
 <Simulation src="/sims/thin-lens.js" title="Tynnlinse-avbildning" height={300} />
 ```
 
-The module default-exports an `init(api)` called when the figure scrolls into view:
-
-```js
-// public/sims/thin-lens.js
-export default function init({ canvas, ctx, controls, getSize, onResize }) {
-  function draw() { const { w, h } = getSize(); /* paint with ctx (CSS px) */ }
-  // append <input>/<button> to `controls`, call draw() on change
-  onResize(draw);   // framework re-runs this after DPR resize
-  draw();
-}
-```
-
-`api` = `{ canvas, ctx, controls, getSize:()=>({w,h}), onResize:(cb)=>void, codeBlock:(id?)=>controller|null, signal }` (for `host="dom"`, `canvas`/`ctx` are replaced by `stage`, an element). The context is pre-scaled for `devicePixelRatio`, so you work in CSS pixels. The framework owns the chrome, DPR sizing, and lazy mount.
-
-`api.codeBlock(id)` returns a controller for a `<CodeBlock id="…">` on the page — `{ setActiveLine(n), setActiveLines([…]), clear() }` — so a simulation can walk the highlighted source line(s) in lockstep with what it paints (e.g. animate an algorithm). Returns `null` if no such block exists.
-
-`api.signal` is a page-lifecycle `AbortSignal` that fires when the page is swapped out (view transitions); an animating module must stop its `requestAnimationFrame` loop / timers on it (or bind listeners with `{ signal }`) so it doesn't keep painting after a navigation. The `src` is verified **at build time** — a root-relative path that doesn't resolve under the course's `public/` fails the build (same for `<Stepper src>`), so a typo can't ship a permanently dead widget.
+The module default-exports `init(api)`, called on scroll-into-view, where `api =
+{ canvas, ctx, controls, getSize, onResize, codeBlock, signal }` (with `stage`
+replacing `canvas`/`ctx` for `host="dom"`). The context is pre-scaled for
+`devicePixelRatio`; `signal` is a page-lifecycle `AbortSignal` for teardown across
+view transitions; `codeBlock(id)` returns a controller that drives a `<CodeBlock>`
+in lockstep with what the sim paints. The `src` is verified **at build time**
+(same for `<Stepper src>`), so a typo can't ship a dead widget. Full walkthrough
+and examples: **`AUTHORING.md` §5**.
 
 ---
 
