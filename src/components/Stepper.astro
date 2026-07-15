@@ -428,6 +428,16 @@ if (src.startsWith("/") && !src.startsWith("//")) {
       fig.dataset.ready = "true";
 
       const code = codeId ? makeCodeBlockController(codeId) : null;
+      // The linked <CodeBlock>'s variable strip is a hardcoded aria-live="polite"
+      // region (CodeBlock.astro); paint()'s setVars() replaceChildren()s it every
+      // autoplay tick, so we mute it during play the same way as the desc line
+      // (setPlaying, below). Resolved by codeId exactly as makeCodeBlockController
+      // does, so no need to widen the controller's API.
+      const varsLive = codeId
+        ? (document
+            .querySelector(`.codeblock[data-code-block="${codeId}"]`)
+            ?.querySelector<HTMLElement>("[data-codeblock-vars]") ?? null)
+        : null;
       const getSize = () => ({
         w: stage!.clientWidth || fig.clientWidth,
         h: cssH,
@@ -465,11 +475,13 @@ if (src.startsWith("/") && !src.startsWith("//")) {
         // Pressing play at the end replays from the start.
         if (p && idx >= frames.length - 1) idx = 0;
         playing = p;
-        // Autoplay would announce the polite desc every ~520ms tick — silence
-        // it while playing. Manual steps and the final resting frame still
+        // Autoplay would announce the polite desc — and the linked CodeBlock's
+        // var strip, which paint() rewrites each tick — every ~520ms; silence
+        // both while playing. Manual steps and the final resting frame still
         // announce: startLoop pauses BEFORE its last paint, so polite is
-        // already restored when that frame's text lands.
+        // already restored when that frame's text and vars land.
         descEl?.setAttribute("aria-live", p ? "off" : "polite");
+        varsLive?.setAttribute("aria-live", p ? "off" : "polite");
         if (playBtn) {
           playBtn.classList.toggle("is-playing", p);
           playBtn.setAttribute("aria-pressed", String(p));
