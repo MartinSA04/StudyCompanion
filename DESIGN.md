@@ -209,8 +209,8 @@ overrides) so the webfont swap does not reflow the column.
 - **Headline / h2** (600, 1.95rem, 1.18): section headings; text-wrap balance.
 - **Title / h3** (600, 1.5rem, 1.18): subsections and panel headers.
 - **Body** (400, 1rem = 17px, 1.65): all prose. Two-width scheme: running
-  prose (paragraphs, list text, disclosure bodies) is capped at the classic
-  ~72–78ch ideal measure for sustained reading; formula panels, figures,
+  prose (paragraphs, list text, disclosure bodies) is capped at a ~70ch
+  measure (--measure: 35rem) for sustained reading; formula panels, figures,
   tables, code blocks, and framed widgets keep the wider 820px frame, since
   those need the extra width for equations, wide tables, and code lines to
   avoid awkward wraps. Content sizes are rem so the reading size scales;
@@ -393,3 +393,7 @@ and do not re-report them in future reviews.
   full titles on desktop; titles on the pager would wrap multiple lines on
   mobile; pressing next lands on the module's title immediately. The button
   does not need to spell it out.
+- **The flashcards tool keeps the English label "Flashcards".** It is the
+  day-to-day word students use; a Norwegian coinage like "læringskort" would
+  read as artificial. The schema default (ui.flashcardsLabel) stays English;
+  do not localize it.
