@@ -363,6 +363,7 @@ const hasMemorize = examFormulaSheet && formulas.some((f) => f.memorize);
 
 <script>
   import { onPage } from "../lib/pageLifecycle.ts";
+  import { filterList } from "../lib/filterList.ts";
   onPage((signal) => {
     // Copy LaTeX — toggles the data-copied state; the icon swap is pure CSS.
     document.querySelectorAll<HTMLButtonElement>(".fs-copy").forEach((btn) => {
@@ -402,23 +403,20 @@ const hasMemorize = examFormulaSheet && formulas.some((f) => f.memorize);
     let term = "";
 
     const apply = () => {
-      let anyVisible = false;
-      rows.forEach((r) => {
-        const matchMode =
-          mode === "all" ||
-          (mode === "sheet" && r.dataset.onsheet === "true") ||
-          (mode === "memorize" && r.dataset.memorize === "true");
-        const matchTerm = !term || (r.dataset.text ?? "").includes(term);
-        const show = matchMode && matchTerm;
-        r.hidden = !show;
-        if (show) anyVisible = true;
+      filterList({
+        rows,
+        groups,
+        rowSelector: ".fs-row",
+        empty,
+        predicate: (r) => {
+          const matchMode =
+            mode === "all" ||
+            (mode === "sheet" && r.dataset.onsheet === "true") ||
+            (mode === "memorize" && r.dataset.memorize === "true");
+          const matchTerm = !term || (r.dataset.text ?? "").includes(term);
+          return matchMode && matchTerm;
+        },
       });
-      groups.forEach((g) => {
-        g.hidden = ![...g.querySelectorAll<HTMLElement>(".fs-row")].some(
-          (r) => !r.hidden,
-        );
-      });
-      if (empty) empty.hidden = anyVisible;
     };
 
     chips.forEach((chip) => {

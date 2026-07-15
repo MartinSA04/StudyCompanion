@@ -262,8 +262,9 @@ const haystack = (e: GlossaryEntry) =>
 
 <script>
   import { onPage } from "../lib/pageLifecycle.ts";
-  // Free-text search over term + definition. Empty groups and the whole list
-  // collapse cleanly, mirroring the FormulaSheet filter.
+  import { filterList } from "../lib/filterList.ts";
+  // Free-text search over term + definition. Row/group/empty toggling is the
+  // shared filterList kernel; this widget adds only the sr-status announcement.
   onPage((signal) => {
     const rows = [...document.querySelectorAll<HTMLElement>(".gloss-row")];
     const groups = [
@@ -279,18 +280,13 @@ const haystack = (e: GlossaryEntry) =>
     const emptyLabel = empty?.textContent ?? "Ingen begreper matcher søket.";
 
     const apply = (term: string) => {
-      let visibleCount = 0;
-      rows.forEach((r) => {
-        const show = !term || (r.dataset.text ?? "").includes(term);
-        r.hidden = !show;
-        if (show) visibleCount++;
+      const visibleCount = filterList({
+        rows,
+        groups,
+        rowSelector: ".gloss-row",
+        empty,
+        predicate: (r) => !term || (r.dataset.text ?? "").includes(term),
       });
-      groups.forEach((g) => {
-        g.hidden = ![...g.querySelectorAll<HTMLElement>(".gloss-row")].some(
-          (r) => !r.hidden,
-        );
-      });
-      if (empty) empty.hidden = visibleCount > 0;
       // Announce the outcome only while a filter is active — an empty term is the
       // reset-to-all state, which needs no announcement (and would be noise on
       // load). Empty vs. "N treff" mirrors the visible .gloss-empty / list.
