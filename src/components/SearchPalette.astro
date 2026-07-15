@@ -379,11 +379,13 @@ import Icon from "./Icon.astro";
           return;
         }
         if (e.key !== "Tab") return;
+        // querySelectorAll returns document order regardless of selector order,
+        // so first/last are the real DOM extremes: input -> Esc -> result anchors.
         const focusables = [
-          input,
-          ...results.querySelectorAll<HTMLAnchorElement>("a"),
-          dialog.querySelector<HTMLButtonElement>(".search-esc"),
-        ].filter((el): el is HTMLElement => el != null);
+          ...dialog.querySelectorAll<HTMLElement>(
+            ".search-input, .search-esc, .search-results a",
+          ),
+        ];
         if (!focusables.length) return;
         const first = focusables[0];
         const last = focusables[focusables.length - 1];
