@@ -7,9 +7,9 @@ import { assertOneOf } from "../lib/assertProp.ts";
 /**
  * A named, boxed result — a law, theorem, definition or principle ("Snells lov",
  * "Huygens' prinsipp"). Gives recurring named results a consistent treatment and
- * a STABLE `id` anchor for deep-linking (and for the future <FormulaRef>/glossary
- * cross-refs, ROADMAP 2.3/2.4). The `id` is derived from `name` (slugified) unless
- * given explicitly. `name` may contain `$inline$` math; the body is slotted MDX.
+ * a STABLE `id` anchor for deep-linking (and for the <FormulaRef>/glossary
+ * cross-refs). The `id` is derived from `name` (slugified) unless given
+ * explicitly. `name` may contain `$inline$` math; the body is slotted MDX.
  */
 interface Props {
   kind?: "law" | "theorem" | "definition" | "principle";

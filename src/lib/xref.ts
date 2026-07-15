@@ -127,6 +127,16 @@ export function validateXrefs(input: XrefInput): XrefReport {
     for (const tag of openingTags(text, "Statement")) {
       const explicit = attr(tag, "id");
       const name = attr(tag, "name");
+      // An explicit id is emitted verbatim as the DOM id / "#fragment" (with no
+      // slugify pass to normalise it), so hold it to the same shape as
+      // course.formulas[].id (schema.ts). `+` also rejects id="", which the
+      // slug-derived empty-anchor rule below never sees because explicit != null.
+      if (explicit != null && !/^[A-Za-z0-9_-]+$/.test(explicit)) {
+        errors.push(
+          `${label}: <Statement id="${explicit}"> is emitted verbatim as a DOM id and a "#fragment", so it must be ASCII letters, digits, "-" or "_" (e.g. "snells-lov") — no spaces, punctuation or math.`,
+        );
+        continue;
+      }
       const anchor = explicit ?? (name != null ? slugify(name) : null);
       // A named result with no explicit id whose name slugs to nothing (e.g.
       // name="$\nabla \times E$" — slugify strips math) would render id="" /

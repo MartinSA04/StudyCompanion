@@ -135,6 +135,41 @@ test("an explicit id rescues a name that slugs to an empty anchor", () => {
   assert.deepEqual(errors, []);
 });
 
+test("an explicit <Statement id> with a space is an error", () => {
+  // Emitted verbatim as a DOM id / "#fragment" — a space ships a broken anchor.
+  const { errors } = validateXrefs({
+    glossaryTerms: [],
+    formulaIds: [],
+    sections: [
+      { label: "01", body: '<Statement id="snells lov" name="Snells lov" />' },
+    ],
+  });
+  assert.equal(errors.length, 1);
+  assert.match(errors[0], /01/);
+  assert.match(errors[0], /snells lov/);
+});
+
+test("an empty explicit <Statement id> is an error", () => {
+  const { errors } = validateXrefs({
+    glossaryTerms: [],
+    formulaIds: [],
+    sections: [{ label: "01", body: '<Statement id="" name="Snells lov" />' }],
+  });
+  assert.equal(errors.length, 1);
+  assert.match(errors[0], /01/);
+});
+
+test("a valid explicit <Statement id> passes", () => {
+  const { errors } = validateXrefs({
+    glossaryTerms: [],
+    formulaIds: [],
+    sections: [
+      { label: "01", body: '<Statement id="snells-lov" name="Snells lov" />' },
+    ],
+  });
+  assert.deepEqual(errors, []);
+});
+
 test("distinct explicit ids avoid a false duplicate for identical names", () => {
   const { errors } = validateXrefs({
     glossaryTerms: [],
