@@ -490,11 +490,31 @@ const hasTools = toolNav.some((t) => t.show);
          dev`); GoatCounter is cookieless, so no consent banner is needed.
          `is:inline` emits the third-party CDN tag verbatim (no Astro bundling). */
       import.meta.env.PROD && course.analytics?.goatcounter && (
-        <script
-          is:inline
-          data-goatcounter={course.analytics.goatcounter}
-          async
-          src="https://gc.zgo.at/count.js"></script>
+        <>
+          <script
+            is:inline
+            data-goatcounter={course.analytics.goatcounter}
+            async
+            src="https://gc.zgo.at/count.js"></script>
+          {/* count.js self-counts the initial load but never hooks the History
+              API, so every view-transition navigation goes uncounted. Bridge
+              them off astro:page-load: skip the first firing (it coincides with
+              the load count.js already logged) and count each later one. The
+              listener registers once — ClientRouter does not re-run an identical
+              head inline script across swaps, so this persists as-is. */}
+          <script is:inline>
+            {`(function () {
+              var first = true;
+              document.addEventListener("astro:page-load", function () {
+                if (first) { first = false; return; }
+                if (window.goatcounter && window.goatcounter.count)
+                  window.goatcounter.count({
+                    path: location.pathname + location.search,
+                  });
+              });
+            })();`}
+          </script>
+        </>
       )
     }
 
@@ -724,40 +744,13 @@ const hasTools = toolNav.some((t) => t.show);
         course-specific inputs ride the <body> data attributes instead of
         define:vars. */}
     <script>
-      import { normalizeProgress } from "../lib/progress.ts";
+      import { readProgress, writeProgress } from "../lib/progress.ts";
 
       // ---- Reading progress (per course, localStorage) ----
-      // Stored as an array of section slugs, matching lib/progress.ts. The key
-      // and section total are read off <body> per call rather than captured:
-      // the astro:before-swap paint below targets the INCOMING document. Every
-      // read runs through normalizeProgress, so a legacy order-number record
-      // migrates (mapped order→slug via the nav links' data-nav-order) and a
-      // stale entry prunes the first time any page paints — then the record is
-      // rewritten once so the migration sticks.
-      const writeProg = (doc: Document, slugs: Set<string>) => {
-        const key = doc.body.dataset.progressKey;
-        if (!key) return;
-        try {
-          localStorage.setItem(key, JSON.stringify([...slugs]));
-        } catch {}
-      };
-      const readProg = (doc: Document): Set<string> => {
-        const key = doc.body.dataset.progressKey;
-        if (!key) return new Set();
-        let raw: unknown = null;
-        try {
-          raw = JSON.parse(localStorage.getItem(key) ?? "null");
-        } catch {}
-        const nav = [
-          ...doc.querySelectorAll<HTMLElement>("[data-nav-slug]"),
-        ].map((a) => ({
-          slug: a.dataset.navSlug!,
-          order: Number(a.dataset.navOrder),
-        }));
-        const { slugs, dirty } = normalizeProgress(raw, nav);
-        if (dirty) writeProg(doc, slugs);
-        return slugs;
-      };
+      // Stored as an array of section slugs, keyed off <body data-progress-key>
+      // per call rather than captured — the astro:before-swap paint below
+      // targets the INCOMING document. See lib/progress.ts for the migration /
+      // pruning / dirty-writeback contract behind readProgress/writeProgress.
 
       // ---- Mobile menu open/close ----
       // A plain function (not nested in setupPage) so the global Escape
@@ -819,7 +812,7 @@ const hasTools = toolNav.some((t) => t.show);
         const bar = fill ? fill.closest(".progressbar") : null;
         const navLinks = [...doc.querySelectorAll<HTMLElement>("[data-nav-slug]")];
         const total = Number(doc.body.dataset.sectionTotal ?? 0);
-        const set = readProg(doc);
+        const set = readProgress(doc);
         let count = 0;
         navLinks.forEach((a) => {
           const on = set.has(a.dataset.navSlug!);
@@ -841,7 +834,7 @@ const hasTools = toolNav.some((t) => t.show);
         doc = doc || document;
         const doneBtn = doc.querySelector<HTMLElement>("[data-done-slug]");
         if (!doneBtn) return;
-        const on = readProg(doc).has(doneBtn.dataset.doneSlug!);
+        const on = readProgress(doc).has(doneBtn.dataset.doneSlug!);
         doneBtn.classList.toggle("done", on);
         // The check (an SVG) shows via the .done class; only swap the label text.
         const label = doneBtn.querySelector("[data-done-label]");
@@ -861,10 +854,10 @@ const hasTools = toolNav.some((t) => t.show);
           doneBtn.dataset.scBound = "1";
           doneBtn.addEventListener("click", () => {
             const slug = doneBtn.dataset.doneSlug!;
-            const set = readProg(document);
+            const set = readProgress(document);
             if (set.has(slug)) set.delete(slug);
             else set.add(slug);
-            writeProg(document, set);
+            writeProgress(document, set);
             paintDoneBtn();
             paintProgress();
           });

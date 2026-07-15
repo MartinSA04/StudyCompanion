@@ -5,11 +5,11 @@
  * because order is mutable editorial state: renumbering sections would shift
  * every done-mark onto the wrong module, while a slug follows its file.
  *
- * The layout and overview scripts read/write this key themselves (they need
- * the per-document key off `<body data-progress-key>` across view-transition
- * swaps), routing every read through `normalizeProgress` so the legacy
- * order-number records (pre-slug releases) migrate and stale entries prune on
- * first sight. Storage access stays try/catch-wrapped at the call sites so
+ * The layout and overview scripts read/write this key through `readProgress` /
+ * `writeProgress` (they need the per-document key off `<body data-progress-key>`
+ * across view-transition swaps), routing every read through `normalizeProgress`
+ * so the legacy order-number records (pre-slug releases) migrate and stale
+ * entries prune on first sight. Storage access stays try/catch-wrapped so
  * private-mode / disabled storage degrades to a non-persistent (but still
  * functional) state rather than throwing.
  */
@@ -48,4 +48,43 @@ export function normalizeProgress(
     }
   }
   return { slugs, dirty };
+}
+
+/**
+ * Persist a done-set to a document's per-`<body>` progress key. No-op when the
+ * body carries no key or storage throws (private mode / disabled storage), so
+ * the caller degrades to a non-persistent state rather than crashing.
+ * Parameterized on the document so the overview's `astro:before-swap` paint can
+ * write the INCOMING page's storage. Browser-only (uses `localStorage`).
+ */
+export function writeProgress(doc: Document, slugs: Set<string>): void {
+  const key = doc.body.dataset.progressKey;
+  if (!key) return;
+  try {
+    localStorage.setItem(key, JSON.stringify([...slugs]));
+  } catch {}
+}
+
+/**
+ * Read the stored done-set for a document, routed through `normalizeProgress`
+ * so a legacy order-number record migrates and stale entries prune on first
+ * sight, then rewritten once (via `writeProgress`) when that made it `dirty`.
+ * Rebuilds the nav from the rendered `[data-nav-slug]`/`[data-nav-order]` links
+ * and reads the key off `<body>`, so it works on both the live and an incoming
+ * (view-transition) document. Empty set when the body carries no key.
+ * Browser-only (uses `localStorage`).
+ */
+export function readProgress(doc: Document): Set<string> {
+  const key = doc.body.dataset.progressKey;
+  if (!key) return new Set();
+  let raw: unknown = null;
+  try {
+    raw = JSON.parse(localStorage.getItem(key) ?? "null");
+  } catch {}
+  const nav = [...doc.querySelectorAll<HTMLElement>("[data-nav-slug]")].map(
+    (a) => ({ slug: a.dataset.navSlug!, order: Number(a.dataset.navOrder) }),
+  );
+  const { slugs, dirty } = normalizeProgress(raw, nav);
+  if (dirty) writeProgress(doc, slugs);
+  return slugs;
 }

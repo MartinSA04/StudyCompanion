@@ -440,7 +440,7 @@ import Icon from "./Icon.astro";
               g.items
                 .map(
                   (r) =>
-                    `<a class="search-result" href="${r.url}">` +
+                    `<a class="search-result" href="${esc(r.url)}">` +
                     `<div class="search-result-title">${esc(r.title)}</div>` +
                     `<div class="search-result-excerpt">${r.excerpt}</div></a>`,
                 )
@@ -508,6 +508,10 @@ import Icon from "./Icon.astro";
       },
       { signal },
     );
+    // The debounced search can outlive a swap; cancel it on teardown.
+    signal.addEventListener("abort", () => clearTimeout(debounce), {
+      once: true,
+    });
 
     // ---- ↑/↓ keyboard navigation through results ----
     let focusIdx = -1;

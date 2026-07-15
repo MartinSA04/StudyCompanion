@@ -227,7 +227,7 @@ const jsonLd = [
 
 <script>
   import { onPage } from "../lib/pageLifecycle.ts";
-  import { normalizeProgress } from "../lib/progress.ts";
+  import { readProgress } from "../lib/progress.ts";
   import { refreshExamCountdowns } from "../lib/examCountdown.ts";
 
   // Overview paint: tile done-marks, the hero "N av M fullført" row and the
@@ -242,22 +242,9 @@ const jsonLd = [
       ...doc.querySelectorAll<HTMLAnchorElement>("[data-tile-slug]"),
     ];
     if (!key || !tiles.length) return;
-    let raw: unknown = null;
-    try {
-      raw = JSON.parse(localStorage.getItem(key) ?? "null");
-    } catch {}
-    const nav = [...doc.querySelectorAll<HTMLElement>("[data-nav-slug]")].map(
-      (a) => ({
-        slug: a.dataset.navSlug!,
-        order: Number(a.dataset.navOrder),
-      }),
-    );
-    const { slugs: done, dirty } = normalizeProgress(raw, nav);
-    if (dirty) {
-      try {
-        localStorage.setItem(key, JSON.stringify([...done]));
-      } catch {}
-    }
+    // Read + migrate + prune + dirty-writeback all live in lib/progress.ts,
+    // shared with the layout's sidebar/progress-bar paint.
+    const done = readProgress(doc);
 
     let count = 0;
     tiles.forEach((t) => {
