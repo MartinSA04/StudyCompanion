@@ -278,8 +278,8 @@
 
 /* ====== right "on this page" rail ======
    The third grid column on module pages, wide screens only. Sticky like the
-   sidebar so the scroll-spy "you are here" marker stays in view; below 1280px it
-   collapses and PageToc's inline copy takes over at the top of the content. */
+   sidebar so the scroll-spy "you are here" marker stays in view; below --layout-max
+   (1440px) it collapses and PageToc's inline copy takes over at the top of the content. */
 .toc-rail {
   display: none;
   position: sticky;
@@ -979,9 +979,7 @@ summary,
   /* Collapsed <details> (solutions, derivations, self-check answers) are forced
      open for printing by the layout's `beforeprint` handler — CSS can't reliably
      reveal closed-details content. Here we just drop the now-pointless chevrons. */
-  .solution-chev,
-  .derivation-chevron,
-  .selfcheck-chev {
+  .sc-chev {
     display: none !important;
   }
 
