@@ -3,7 +3,9 @@
  * wide table gets horizontal scrolling instead of breaking the layout on
  * mobile — the same treatment `<Table>` gives its own markup. Plain GFM
  * tables in prose have no such wrapper by default, so this rehype plugin adds
- * one at build time. `.table-scroll` styling lives in base.css.
+ * one at build time. `.table-scroll` styling lives in base.css. The wrapper
+ * carries `tabindex="0"` so keyboard users can scroll a clipped table — the
+ * same treatment Shiki gives every `<pre>` (WCAG 2.1.1).
  *
  * Mirrors rehypePagefindIgnoreKatex in the integration: a small hast walker
  * over a minimally-typed node, registered alongside the other rehype plugins
@@ -31,7 +33,7 @@ function wrap(node: HastNode): HastNode {
   return {
     type: "element",
     tagName: "div",
-    properties: { className: ["table-scroll"] },
+    properties: { className: ["table-scroll"], tabIndex: 0 },
     children: [node],
   };
 }

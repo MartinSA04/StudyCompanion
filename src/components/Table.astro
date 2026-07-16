@@ -31,7 +31,7 @@ const alignOf = (i: number) => `text-align:${align[i] ?? "left"}`;
 ---
 
 <figure class="data-table">
-  <div class="data-table-scroll">
+  <div class="data-table-scroll" tabindex="0">
     <table>
       {
         /* A real <caption> child (not a <figcaption> sibling), so the table

@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { rehypeTableScroll } from "../src/lib/rehype-table-scroll.ts";
+import { rehypeKatexScroll } from "../src/lib/rehype-katex-scroll.ts";
 
 /**
  * Hand-built hast trees exercise the walker directly (no MDX pipeline). The
@@ -31,6 +32,8 @@ test("a bare table is wrapped in a div.table-scroll", () => {
   assert.equal(root.children.length, 1);
   const wrapper = root.children[0];
   assert.ok(isWrapper(wrapper));
+  // Keyboard-focusable so the scroll viewport can be reached without a pointer.
+  assert.equal(wrapper.properties.tabIndex, 0);
   assert.equal(wrapper.children.length, 1);
   assert.equal(wrapper.children[0].tagName, "table");
 });
@@ -69,4 +72,37 @@ test("a nested table (inside a non-wrapper element) is still wrapped", () => {
   const inner = root.children[0].children[0]; // the plain div
   assert.ok(isWrapper(inner.children[0]));
   assert.equal(inner.children[0].children[0].tagName, "table");
+});
+
+/**
+ * rehypeKatexScroll stamps tabindex on the display-math block that owns the
+ * overflow-x:auto viewport, so it too can be scrolled from the keyboard.
+ */
+const runKatex = (tree: any) => {
+  rehypeKatexScroll()(tree);
+  return tree;
+};
+
+test("a .katex-display block (className array) is stamped tabindex=0", () => {
+  const node = el("span", { className: ["katex-display"] }, [el("span")]);
+  runKatex({ type: "root", children: [node] });
+  assert.equal(node.properties.tabIndex, 0);
+});
+
+test("a .katex-display block (className string) is stamped tabindex=0", () => {
+  const node = el("span", { className: "katex-display" });
+  runKatex({ type: "root", children: [node] });
+  assert.equal(node.properties.tabIndex, 0);
+});
+
+test("a nested .katex-display block is still stamped", () => {
+  const node = el("span", { className: ["katex-display"] });
+  runKatex({ type: "root", children: [el("p", {}, [node])] });
+  assert.equal(node.properties.tabIndex, 0);
+});
+
+test("a non-display .katex block is left untouched", () => {
+  const node = el("span", { className: ["katex"] });
+  runKatex({ type: "root", children: [node] });
+  assert.equal(node.properties.tabIndex, undefined);
 });

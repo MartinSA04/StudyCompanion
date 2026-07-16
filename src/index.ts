@@ -9,6 +9,7 @@ import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import { flexokiDark } from "./lib/shiki-flexoki.ts";
 import { rehypeTableScroll } from "./lib/rehype-table-scroll.ts";
+import { rehypeKatexScroll } from "./lib/rehype-katex-scroll.ts";
 
 /**
  * After rehype-katex, tag KaTeX's `.katex-mathml` (the visually-hidden MathML +
@@ -243,6 +244,7 @@ export default function studyCompanion(
             rehypePlugins: [
               rehypeKatex,
               rehypePagefindIgnoreKatex,
+              rehypeKatexScroll,
               rehypeTableScroll,
             ],
             // Warm Flexoki-dark syntax theme instead of Astro's default cool
