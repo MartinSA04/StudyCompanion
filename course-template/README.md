@@ -14,6 +14,12 @@ pnpm install
 pnpm dev
 ```
 
+Copy from the repo's **main** branch — the `degit` path above takes HEAD by
+default. Don't copy the template out of a release-tag checkout: a tag's committed
+`pnpm-lock.yaml` always records the *previous* release by construction (the
+lockfile is regenerated only after the tag is pushed), so it would start you on a
+stale lockfile.
+
 Then:
 
 1. Edit `package.json` → set `name` and pin the framework tag. Use the **newest**

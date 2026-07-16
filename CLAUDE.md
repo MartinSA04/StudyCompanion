@@ -10,7 +10,9 @@ This is study-companion: an Astro 6 integration + component library for course s
 - On every release: bump `package.json` version, then update the framework pin to
   the newest tag in `course-template/` (and regenerate `course-template/pnpm-lock.yaml`
   so the committed lockfile matches the new pin — `pnpm install --lockfile-only`
-  in the template) AND every consuming course repo (except any marked FROZEN
+  in the template; this regen necessarily happens after the tag push, so the
+  tagged tree always carries the previous template lockfile — copy the template
+  from main, not a tag) AND every consuming course repo (except any marked FROZEN
   below). Keep all non-frozen course pins in lockstep with the latest tag.
   Consuming repos:
   - optics — `~/School/TFY4195/companion` — **FROZEN**: course is complete; do NOT

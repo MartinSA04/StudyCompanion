@@ -5,8 +5,8 @@
  * stay legible regardless of what a course picks: text placed ON the accent
  * (skip-link, SelfCheck badge, filled chips) and the accent used AS link text
  * on the page ground. CourseLayout derives `--accent-contrast` from the
- * accent's luminance at build time, and warns in dev if the accent is too
- * light to read as a link.
+ * accent's luminance at build time, and the build warns (dev and production) if
+ * the accent is too light to read as a link.
  */
 
 /** Parse #rgb / #rgba / #rrggbb / #rrggbbaa to [r,g,b] (0–255), or null. */
@@ -59,7 +59,7 @@ export function contrastText(accent: string): string {
   return onDarkInk >= onWhite ? DARK_INK : LIGHT_INK;
 }
 
-/** Contrast of `accent` used AS text on a background hex (for the dev warning). */
+/** Contrast of `accent` used AS text on a background hex (for the build warning). */
 export function accentOnBg(accent: string, bgHex: string): number | null {
   const a = parseHex(accent);
   const b = parseHex(bgHex);
