@@ -46,6 +46,7 @@ body {
   font-size: var(--text-base);
   font-weight: var(--weight-normal);
   min-height: 100dvh;
+  overflow-wrap: break-word;
 }
 
 /* Theme-swap coherence: body easing its own background/color while every
