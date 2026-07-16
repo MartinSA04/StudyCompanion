@@ -933,6 +933,18 @@ const hasTools = toolNav.some((t) => t.show);
         toggleMenu(false);
       });
 
+      // Crossing the drawer breakpoint upward (iPad portrait→landscape, a window
+      // drag) with the drawer still open would strand the desktop grid
+      // scroll-locked / inert / dimmed with no visible control — the
+      // .menu-toggle and .sidebar-close only render below the breakpoint. Close
+      // it on exit. The 980px literal must stay in lockstep with the shell.css
+      // drawer breakpoint (shell.css:810/833). Guarded like the Escape handler
+      // so toggleMenu(false) can't steal focus to the (now hidden) toggle.
+      matchMedia("(max-width: 980px)").addEventListener("change", (e) => {
+        const sidebar = document.getElementById("sidebar");
+        if (!e.matches && sidebar?.classList.contains("open")) toggleMenu(false);
+      });
+
       // A hash change while already on the page (clicking an in-page anchor,
       // not a full navigation — astro:page-load covers that case) also moves
       // focus to a `tabindex="-1"` deep-link target.
