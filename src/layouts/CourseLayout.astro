@@ -5,7 +5,14 @@ import { TOOL_SLUGS, partGroups } from "../lib/nav.ts";
 import ThemeToggle from "../components/ThemeToggle.astro";
 import SearchPalette from "../components/SearchPalette.astro";
 import Icon from "../components/Icon.astro";
-import { contrastText, accentOnBg, accentInk } from "../lib/color.ts";
+import {
+  contrastText,
+  accentOnBg,
+  accentInk,
+  mixSrgb,
+  ACCENT_SOFT_MIX,
+  ACCENT_WEAK_MIX,
+} from "../lib/color.ts";
 import { THEME_COLOR_LIGHT, THEME_COLOR_DARK } from "../lib/themeColor.ts";
 import { faviconDataUri } from "../lib/favicon.ts";
 import { ogLocale, canonicalPathname, warnMissingSiteOnce } from "../lib/seo.ts";
@@ -207,12 +214,28 @@ const onAccentDark = contrastText(accentDark);
 const accentVars =
   `--accent-light: ${accentLight}; --accent-dark: ${accentDark}; ` +
   `--accent-contrast-light: ${onAccentLight}; --accent-contrast-dark: ${onAccentDark};`;
+// --accent-ink also paints TEXT on the accent-TINTED grounds --accent-soft (10%
+// accent) and --accent-weak (12%), both over --bg-elevated (Statement kicker,
+// search mark, FormulaSheet/Flashcards/ExamSummary/Stepper). Tinting toward the
+// accent hue costs ~0.4 contrast the neutral-ground checks below never see, so a
+// mid-tone accent that clears --bg/--bg-elevated can still ship sub-AA text
+// there. Computed from the accent (the neutral grounds stay literal copies of
+// tokens.css); a non-hex accent yields null and is skipped.
+const tinted = (accent: string, ground: string): [string, string][] => {
+  const soft = mixSrgb(accent, ground, ACCENT_SOFT_MIX);
+  const weak = mixSrgb(accent, ground, ACCENT_WEAK_MIX);
+  const grounds: [string, string][] = [];
+  if (soft) grounds.push(["--accent-soft", soft]);
+  if (weak) grounds.push(["--accent-weak", weak]);
+  return grounds;
+};
 checkAccentInk(
   accentLight,
   LIGHT_FG,
   [
     ["--bg", LIGHT_BG],
     ["--bg-elevated", LIGHT_BG_ELEVATED],
+    ...tinted(accentLight, LIGHT_BG_ELEVATED),
   ],
   "light",
 );
@@ -222,6 +245,7 @@ checkAccentInk(
   [
     ["--bg-elevated", DARK_BG_ELEVATED],
     ["--card-nested", DARK_CARD_NESTED],
+    ...tinted(accentDark, DARK_BG_ELEVATED),
   ],
   "dark",
 );

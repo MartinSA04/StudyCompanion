@@ -7,6 +7,9 @@ import {
   contrastText,
   accentOnBg,
   accentInk,
+  mixSrgb,
+  ACCENT_SOFT_MIX,
+  ACCENT_WEAK_MIX,
 } from "../src/lib/color.ts";
 
 test("parseHex handles 3/4/6/8-digit hex, with or without #", () => {
@@ -65,4 +68,35 @@ test("accentInk mixes 75% accent / 25% fg", () => {
   // Falls back to the accent unchanged for un-parseable colors.
   assert.equal(accentInk("not-a-color", "#ffffff"), "not-a-color");
   assert.equal(accentInk("#1f5f8b", "also-bad"), "#1f5f8b");
+});
+
+test("mixSrgb reproduces color-mix(in srgb, …) per channel", () => {
+  // 50/50 endpoints (round-half-up on the .5 channels).
+  assert.equal(mixSrgb("#000000", "#ffffff", 0.5), "#808080");
+  // --accent-soft: color-mix(in srgb, accent 10%, --bg-elevated). Flexoki
+  // yellow-600 over the light panel is the #ebe5ce that ships as its tint.
+  assert.equal(mixSrgb("#ad8301", "#f2f0e5", ACCENT_SOFT_MIX), "#ebe5ce");
+  // --accent-weak (12%) is the more-tinted of the pair.
+  assert.equal(mixSrgb("#ad8301", "#f2f0e5", ACCENT_WEAK_MIX), "#eae3ca");
+  // Null for un-parseable colors on either side.
+  assert.equal(mixSrgb("tomato", "#f2f0e5", ACCENT_SOFT_MIX), null);
+  assert.equal(mixSrgb("#ad8301", "hsl(0 0% 0%)", ACCENT_SOFT_MIX), null);
+});
+
+test("a mid-tone accent AA on neutral grounds fails on the accent tint", () => {
+  // Flexoki yellow-600 as the course accent: --accent-ink clears AA (4.5:1) as
+  // text on both neutral grounds the guard used to check, yet the accent-tinted
+  // grounds it actually renders on (Statement kicker, search mark, …) tip it
+  // under — the exact sub-AA-text case the neutral-only guard shipped.
+  const ink = accentInk("#ad8301", "#100f0f"); // light --fg
+  const onBg = accentOnBg(ink, "#fffcf0"); // --bg
+  const onElevated = accentOnBg(ink, "#f2f0e5"); // --bg-elevated
+  assert.ok(onBg != null && onBg >= 4.5);
+  assert.ok(onElevated != null && onElevated >= 4.5);
+  const soft = mixSrgb("#ad8301", "#f2f0e5", ACCENT_SOFT_MIX);
+  const weak = mixSrgb("#ad8301", "#f2f0e5", ACCENT_WEAK_MIX);
+  const onSoft = accentOnBg(ink, soft!); // --accent-soft
+  const onWeak = accentOnBg(ink, weak!); // --accent-weak
+  assert.ok(onSoft != null && onSoft < 4.5);
+  assert.ok(onWeak != null && onWeak < 4.5);
 });

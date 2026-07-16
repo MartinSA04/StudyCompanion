@@ -82,3 +82,33 @@ export function accentInk(accent: string, fg: string): string {
     .map((v) => v.toString(16).padStart(2, "0"))
     .join("")}`;
 }
+
+/**
+ * Accent share (0–1) of the two accent-TINTED grounds that --accent-ink text
+ * renders on, copied from tokens.css so they move together:
+ *   --accent-soft: color-mix(in srgb, var(--accent) 10%, var(--bg-elevated))
+ *   --accent-weak: color-mix(in srgb, var(--accent) 12%, transparent)
+ * --accent-weak paints over the same --bg-elevated panels, so 12% accent over
+ * --bg-elevated reproduces its composite. Must track tokens.css:27-28.
+ */
+export const ACCENT_SOFT_MIX = 0.1;
+export const ACCENT_WEAK_MIX = 0.12;
+
+/**
+ * Reproduce `color-mix(in srgb, a <weight>, b)` for two opaque colors: a
+ * gamma-encoded per-channel mix, channel = round(a*weight + b*(1-weight)) — the
+ * same composite `color-mix(in srgb, a P%, transparent)` yields when painted
+ * over an opaque `b`. Unlike the guard's literal neutral grounds (copied hex),
+ * an accent-tinted ground depends on the per-course accent and must be computed;
+ * this stays a pure named export so it still tree-shakes. Falls back to null for
+ * un-parseable CSS colors (named / hsl() / etc.).
+ */
+export function mixSrgb(a: string, b: string, weight: number): string | null {
+  const ca = parseHex(a);
+  const cb = parseHex(b);
+  if (!ca || !cb) return null;
+  const ch = (i: number) => Math.round(ca[i] * weight + cb[i] * (1 - weight));
+  return `#${[ch(0), ch(1), ch(2)]
+    .map((v) => v.toString(16).padStart(2, "0"))
+    .join("")}`;
+}
