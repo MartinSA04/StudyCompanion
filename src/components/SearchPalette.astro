@@ -523,11 +523,13 @@ import Icon from "./Icon.astro";
       (e) => {
         const links = [...results.querySelectorAll<HTMLAnchorElement>("a")];
         if (e.key === "Enter" && !e.isComposing) {
+          // Always suppress the default: the input lives in a method="dialog"
+          // form, so an Enter with no result to activate (empty-query hint, the
+          // debounce window, or pagefind still loading) would otherwise submit
+          // the form and close the palette.
+          e.preventDefault();
           const target = focusIdx >= 0 ? links[focusIdx] : links[0];
-          if (target) {
-            e.preventDefault();
-            target.click();
-          }
+          target?.click();
         } else if (e.key === "ArrowDown") {
           const first = links[0];
           if (first) {
