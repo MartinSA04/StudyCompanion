@@ -4,14 +4,15 @@
       "staticDistDir": "./dist",
       "url": [
         "http://localhost/index.html",
-        "http://localhost/simulering/index.html",
-        "http://localhost/formelsamling/index.html"
+        "http://localhost/simulering.html",
+        "http://localhost/formelsamling.html"
       ],
       "numberOfRuns": 1,
       "settings": { "preset": "desktop" }
     },
     "assert": {
       "assertions": {
+        "http-status-code": ["error", { "minScore": 1 }],
         "categories:accessibility": ["error", { "minScore": 0.9 }],
         "categories:seo": ["warn", { "minScore": 0.9 }],
         "categories:best-practices": ["warn", { "minScore": 0.9 }],
