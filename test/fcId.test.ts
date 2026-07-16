@@ -34,6 +34,16 @@ test("a one-character edit changes the id", () => {
   assert.notEqual(fcId("Newton's first law"), fcId("Newton's second law"));
 });
 
+test("fcId golden vectors are a persistence contract (do not change)", () => {
+  // Ratings persist in each consumer's localStorage keyed by these exact
+  // outputs; changing the FNV constants or code-unit iteration (θ locks
+  // UTF-16) reshuffles every key and orphans every stored flashcard rating.
+  assert.equal(fcId("What is refraction?"), "ub0bl");
+  assert.equal(fcId(""), "ztntfp");
+  assert.equal(fcId("a"), "1r9wi7g");
+  assert.equal(fcId("θ = 90°"), "ki4tmz");
+});
+
 test("<Flashcards> keys ratings on fcId of the RAW front (parity)", () => {
   const source = readFileSync(
     fileURLToPath(
