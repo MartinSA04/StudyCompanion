@@ -55,3 +55,39 @@ test("print un-clips horizontally-scrolling wide content", async ({ page }) => {
   await page.waitForLoadState("networkidle");
   expect(await page.locator("pre").first().evaluate(overflowX)).toBe("visible");
 });
+
+/**
+ * Shiki paints code with an INLINE dark theme (background-color:#1c1b1a on the
+ * <pre>, per-token color on each <span>; see shiki-flexoki.ts) that never
+ * theme-switches. Print defaults to print-color-adjust: economy, which drops the
+ * background fill — so an un-corrected printout renders light Flexoki ink on
+ * dropped white (~1.6:1). The @media print block forces pure black-on-white ink
+ * economy, with !important to beat Shiki's inline styles. Emulate print media
+ * and assert both the <pre> and a descendant token span resolve to that.
+ */
+test("print forces Shiki code blocks to black-on-white ink economy", async ({
+  page,
+}) => {
+  await page.emulateMedia({ media: "print" });
+  await page.goto("/eksempler");
+  await page.waitForLoadState("networkidle");
+
+  const pre = page.locator("pre.astro-code").first();
+  const paint = (node: Element) => {
+    const s = getComputedStyle(node);
+    return { color: s.color, background: s.backgroundColor };
+  };
+  // The forced fill/ink resolve to pure white/black despite Shiki's inline theme.
+  expect(await pre.evaluate(paint)).toEqual({
+    color: "rgb(0, 0, 0)",
+    background: "rgb(255, 255, 255)",
+  });
+  // A syntax-token <span> carries its own inline color — assert the !important
+  // override reaches descendants, not just the <pre>.
+  expect(
+    await pre
+      .locator("span")
+      .first()
+      .evaluate((n) => getComputedStyle(n).color),
+  ).toBe("rgb(0, 0, 0)");
+});

@@ -1034,4 +1034,17 @@ summary,
     white-space: pre-wrap;
     word-break: break-word;
   }
+  /* Shiki paints the code surface with an INLINE dark theme (see shiki-flexoki.ts:
+     background-color:#1c1b1a on the <pre>, per-token color on each <span>) that
+     never theme-switches; browsers default to print-color-adjust: economy and
+     drop background fills, so the printout would render #cecdc3 ink on dropped
+     white (~1.6:1). Force pure black-on-white ink economy (print stylesheet is
+     exempt from the no-#000/#fff rule, DESIGN.md). !important is required to beat
+     Shiki's inline styles. */
+  pre.astro-code,
+  pre.astro-code code,
+  pre.astro-code span {
+    background: #fff !important;
+    color: #000 !important;
+  }
 }
