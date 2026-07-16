@@ -43,3 +43,54 @@ jobs:
       # generation, Pagefind indexing, demo MDX). sharp and Pagefind need no
       # extra setup on the ubuntu runner (see lighthouse.yml, same build).
       - run: pnpm build
+
+  # The `check` build above exercises the framework through the repo's own
+  # `link:.` dep — a SYMLINKED install, which happens to dodge Vite's SSR module
+  # runner. Real consumers pin a github tarball, so the framework installs as a
+  # PACKED node_modules dependency, and in that mode the runner intercepts the
+  # `astro:build:done` dynamic imports (sharp icons, Pagefind) — the reason
+  # src/index.ts loads them through the Function-constructor `nativeImport`
+  # instead of a plain `import()`. A regression back to `import()` stays green in
+  # `check` and breaks every consumer deploy with "Vite module runner has been
+  # closed". This job reproduces a consumer: pack the framework, scaffold
+  # course-template against the .tgz, build, and assert the build:done artifacts
+  # shipped.
+  packed-consumer:
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      # Pack the `files` allowlist into a tarball — no install needed, pnpm pack
+      # runs no scripts here. Version-agnostic destination so the glob below
+      # survives every release bump.
+      - run: pnpm pack --pack-destination "$RUNNER_TEMP"
+      # Scaffold a throwaway consumer from the shipped template, then repin its
+      # study-companion dep at the tarball. The dep MUST be a `file:` spec at the
+      # .tgz FILE: pnpm extracts a tarball into its store (packed = intercepted
+      # mode, what consumers get), whereas a file:/link: at the source DIR would
+      # symlink and dodge the very interception this job guards.
+      - name: Assemble packed consumer fixture
+        run: |
+          cp -r course-template "$RUNNER_TEMP/fixture"
+          rm -f "$RUNNER_TEMP/fixture/pnpm-lock.yaml"
+          tarball="$(echo "$RUNNER_TEMP"/study-companion-*.tgz)"
+          cd "$RUNNER_TEMP/fixture"
+          pnpm pkg set "dependencies.study-companion=file:$tarball"
+          pnpm install --no-frozen-lockfile
+      - name: Build the packed consumer
+        run: pnpm build
+        working-directory: ${{ runner.temp }}/fixture
+      # The whole point: prove the build:done hooks ran under interception. A
+      # regressed plain `import()` throws before writing any of these.
+      - name: Assert build:done artifacts shipped
+        run: |
+          dist="$RUNNER_TEMP/fixture/dist"
+          for f in apple-touch-icon.png icon-192.png icon-512.png icon-maskable-512.png safari-pinned-tab.svg; do
+            [ -s "$dist/$f" ] || { echo "missing build:done icon: $f"; exit 1; }
+          done
+          [ -s "$dist/pagefind/pagefind-entry.json" ] || { echo "missing/empty Pagefind index"; exit 1; }
