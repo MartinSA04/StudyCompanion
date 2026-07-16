@@ -146,6 +146,16 @@ test("ui string overrides default to the current Norwegian chrome", () => {
   assert.equal(over.ui.glossaryLabel, "Begreper");
 });
 
+test("features defaults apply when the block is omitted (prefault)", () => {
+  const parsed = courseSchema.parse(base);
+  assert.deepEqual(parsed.features, {
+    progress: true,
+    search: true,
+    flashcards: false,
+    theme: true,
+  });
+});
+
 test("section draft/noindex default to false and coerce when set", () => {
   const def = sectionSchema.parse({ order: 1, title: "M" });
   assert.equal(def.draft, false);

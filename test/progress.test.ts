@@ -5,6 +5,7 @@ import {
   normalizeProgress,
   readProgress,
   writeProgress,
+  paintOverview,
 } from "../src/lib/progress.ts";
 
 test("progressKey namespaces by course code", () => {
@@ -143,4 +144,111 @@ test("writeProgress no-ops without a key and swallows a storage error", () => {
   // A blocked setItem (private mode) must not throw.
   installStorage({}, "setItem");
   assert.doesNotThrow(() => writeProgress(fakeDoc(KEY), new Set(["intro"])));
+});
+
+/**
+ * Overview stand-in: paintOverview reads `[data-tile-slug]` tiles (each with a
+ * `[data-done-sr]` companion), the `[data-hero-progress-row]` / its
+ * `[data-progress-done]`, the `[data-hero-continue]` pill, and — via
+ * readProgress — `[data-nav-slug]` links off the same document. `navSlugs` can
+ * be a superset of the tiles so a stored slug survives pruning without being a
+ * rendered tile (exercises the intersection count). Returns the DOM handles so
+ * assertions can read what the paint mutated.
+ */
+function overviewDoc(
+  tileSlugs: string[],
+  {
+    key = KEY,
+    navSlugs = tileSlugs,
+  }: { key?: string; navSlugs?: string[] } = {},
+) {
+  const tiles = tileSlugs.map((slug) => {
+    const classes = new Set<string>();
+    const sr = { textContent: "" };
+    return {
+      dataset: { tileSlug: slug },
+      href: `/${slug}/`,
+      sr,
+      classList: {
+        toggle(c: string, on: boolean) {
+          if (on) classes.add(c);
+          else classes.delete(c);
+        },
+        contains: (c: string) => classes.has(c),
+      },
+      querySelector: (s: string) => (s === "[data-done-sr]" ? sr : null),
+    };
+  });
+  const progressDone = { textContent: "" };
+  const heroRow = {
+    hidden: true,
+    querySelector: (s: string) =>
+      s === "[data-progress-done]" ? progressDone : null,
+  };
+  const continueLink = { hidden: false, href: "" };
+  const doc = {
+    body: { dataset: key === undefined ? {} : { progressKey: key } },
+    querySelectorAll: (s: string) =>
+      s === "[data-tile-slug]"
+        ? tiles
+        : s === "[data-nav-slug]"
+          ? navSlugs.map((slug, i) => ({
+              dataset: { navSlug: slug, navOrder: String(i + 1) },
+            }))
+          : [],
+    querySelector: (s: string) =>
+      s === "[data-hero-progress-row]"
+        ? heroRow
+        : s === "[data-hero-continue]"
+          ? continueLink
+          : null,
+  } as unknown as Document;
+  return { doc, tiles, heroRow, progressDone, continueLink };
+}
+
+test("paintOverview counts stored∩rendered tiles, not stale stored slugs", () => {
+  // "ekstra" is in the nav (survives readProgress pruning) but is not a tile,
+  // so it must not inflate the count past the rendered tiles ("N av M").
+  installStorage({ [KEY]: JSON.stringify(["intro", "ekstra"]) });
+  const { doc, progressDone, heroRow } = overviewDoc(
+    ["intro", "bølger", "optikk"],
+    { navSlugs: ["intro", "bølger", "optikk", "ekstra"] },
+  );
+  paintOverview(doc);
+  assert.equal(progressDone.textContent, "1");
+  assert.equal(heroRow.hidden, false);
+});
+
+test("paintOverview leaves the hero row hidden when nothing is done", () => {
+  installStorage();
+  const { doc, heroRow } = overviewDoc(["intro", "bølger"]);
+  paintOverview(doc);
+  assert.equal(heroRow.hidden, true);
+});
+
+test("paintOverview points the continue pill at the first not-done tile", () => {
+  installStorage({ [KEY]: JSON.stringify(["intro"]) });
+  const { doc, continueLink } = overviewDoc(["intro", "bølger", "optikk"]);
+  paintOverview(doc);
+  assert.equal(continueLink.href, "/bølger/");
+  assert.equal(continueLink.hidden, false);
+});
+
+test("paintOverview hides the continue pill when every tile is done", () => {
+  const slugs = ["intro", "bølger", "optikk"];
+  installStorage({ [KEY]: JSON.stringify(slugs) });
+  const { doc, continueLink, progressDone } = overviewDoc(slugs);
+  paintOverview(doc);
+  assert.equal(progressDone.textContent, "3");
+  assert.equal(continueLink.hidden, true);
+});
+
+test("paintOverview tracks each tile's sr-only text against its .done class", () => {
+  installStorage({ [KEY]: JSON.stringify(["intro"]) });
+  const { doc, tiles } = overviewDoc(["intro", "bølger"]);
+  paintOverview(doc);
+  assert.equal(tiles[0].sr.textContent, ", fullført");
+  assert.equal(tiles[0].classList.contains("done"), true);
+  assert.equal(tiles[1].sr.textContent, "");
+  assert.equal(tiles[1].classList.contains("done"), false);
 });
