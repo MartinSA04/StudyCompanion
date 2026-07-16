@@ -824,11 +824,22 @@
     border-right: 1px solid var(--border);
     z-index: 60;
     transform: translateX(-100%);
-    transition: transform var(--dur) var(--ease);
+    /* transform alone leaves the closed drawer focusable and in the a11y tree
+       (toggleMenu only inerts elements OUTSIDE the drawer, and only while open),
+       so pull it too. Like .scrim, visibility flips only AFTER the slide-out
+       finishes — its delay must track the transform duration (var(--dur)); the
+       scrim's shorter var(--dur-fast) would blank the drawer mid-animation. */
+    visibility: hidden;
+    transition:
+      transform var(--dur) var(--ease),
+      visibility 0s linear var(--dur);
     padding: var(--gap-11) var(--gap-4) var(--gap-5);
   }
   .sidebar.open {
     transform: translateX(0);
+    visibility: visible;
+    /* Drop the var(--dur) visibility delay on open so focus can move in at once. */
+    transition-delay: 0s;
   }
   .menu-toggle {
     display: grid;
