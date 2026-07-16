@@ -1,4 +1,6 @@
 ---
+import fs from "node:fs";
+import path from "node:path";
 import { renderMathString } from "../lib/katex.ts";
 
 /**
@@ -32,6 +34,26 @@ interface Props {
 const { src, alt, caption, number, width, height, full = false } = Astro.props;
 const label = number != null && number !== "" ? `Figur ${number}` : null;
 const ratio = width && height ? `${width} / ${height}` : undefined;
+
+// Build-time guard: a root-relative src must resolve to a real file under the
+// consuming project's public/ — a typo otherwise ships a green build with a
+// permanently dead widget (the <img> just 404s). process.cwd() is the project
+// root in both `astro dev` and `astro build`, and public/ is Astro's default
+// publicDir; a project on a custom publicDir has no public/ here and skips the
+// check. Absolute URLs (CDN-hosted images) and data: URIs don't start with a
+// single "/", so they're left to the network / inlined as-is.
+if (src.startsWith("/") && !src.startsWith("//")) {
+  const file = path.join(process.cwd(), "public", src);
+  if (
+    fs.existsSync(path.join(process.cwd(), "public")) &&
+    !fs.existsSync(file)
+  ) {
+    throw new Error(
+      `study-companion: <Figure src="${src}"> does not resolve to a file — ` +
+        `expected ${file}. Check the path against the course repo's public/.`,
+    );
+  }
+}
 
 if (import.meta.env.DEV && !ratio) {
   console.warn(
