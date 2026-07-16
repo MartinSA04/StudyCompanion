@@ -39,6 +39,15 @@ for (const theme of THEMES) {
       if (name === "module-oversikt") {
         await expect(page.locator(".katex-display").first()).toBeVisible();
       }
+      // A DOM-host sim lazy-mounts within ~200px of the viewport (simRuntime's
+      // lazyMountAll rootMargin), but this fullPage capture never scrolls — its
+      // stage would be blessed empty, and unlike a masked .sim-canvas nothing
+      // hides that. Scroll the figure in and wait for the module's rendered SVG.
+      const domSim = page.locator('[data-sim-host="dom"]');
+      if (await domSim.count()) {
+        await domSim.scrollIntoViewIfNeeded();
+        await domSim.locator(".sim-host svg").waitFor();
+      }
       await expect(page).toHaveScreenshot(`${name}-${theme}.png`, {
         fullPage: true,
         mask: [page.locator(".sim-canvas")],

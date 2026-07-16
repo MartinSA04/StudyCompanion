@@ -23,6 +23,21 @@ Bytt tema i topplinja — simuleringen tegnes på nytt med riktig aksentfarge, f
 rammeverket sender et `sc:themechange`-event.
 </Callout>
 
+## DOM-verten for skarpe etiketter
+
+`host="dom"` bytter `<canvas>` mot et tema-tilpasset element modulen tegner SVG
+eller HTML inn i (`api.stage`) — velg den når diagrammet trenger skarpe, merkbare
+etiketter framfor piksler. Modulen bruker sidens fargevariabler, så figuren
+skifter tema av seg selv.
+
+<Simulation
+  src="/sims/enhetssirkel.js"
+  title="Enhetssirkel"
+  caption="Dra i vinkelen og les av sin θ og cos θ som projeksjoner av radien."
+  host="dom"
+  height={280}
+/>
+
 ## Kodegjennomgang styrt av en simulering
 
 En simulering kan også **styre en kodeblokk**: `<CodeBlock id="…">` får en stabil
