@@ -5,9 +5,11 @@
  * you own only the drawing + inputs.
  *
  * Contract: default-export init(api), where
- *   api = { canvas, ctx, controls, getSize, onResize, codeBlock }.
+ *   api = { canvas, ctx, controls, getSize, onResize, codeBlock, signal }.
  * Coordinates are CSS pixels (the context is pre-scaled for devicePixelRatio).
  * Call onResize(draw) so the framework can repaint after a resize / theme change.
+ * signal is an AbortSignal that fires on view-transition swap — stop any
+ * requestAnimationFrame loop or timer on it (this static sim needs neither).
  */
 export default function init({ ctx, controls, getSize, onResize }) {
   let b = 4; // length of one leg (the slider controls it)
