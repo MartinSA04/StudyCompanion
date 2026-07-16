@@ -182,6 +182,10 @@ const hasMemorize = examFormulaSheet && formulas.some((f) => f.memorize);
   }
   <p class="fs-empty" hidden>{labels.empty}</p>
 </div>
+<!-- Polite match-count feedback for screen readers: the filter is visual-only
+     otherwise (rows just get [hidden]). Mirrors the role=status pattern used by
+     Glossary/Quiz/Flashcards; visually hidden since the sighted result is the list. -->
+<p class="sr-only" role="status" aria-live="polite" data-fs-status></p>
 
 <style>
   /* Notice shown for closed-book courses: no formula sheet at the exam. A
@@ -398,12 +402,16 @@ const hasMemorize = examFormulaSheet && formulas.some((f) => f.memorize);
     const searchInput =
       document.querySelector<HTMLInputElement>(".fs-search-input");
     const empty = document.querySelector<HTMLElement>(".fs-empty");
+    const status = document.querySelector<HTMLElement>("[data-fs-status]");
+    // Reuse the localized empty-state copy for the screen-reader announcement,
+    // so the two never drift apart under a course's `ui` override.
+    const emptyLabel = empty?.textContent ?? "Ingen formler matcher søket.";
 
     let mode = "all";
     let term = "";
 
     const apply = () => {
-      filterList({
+      const visibleCount = filterList({
         rows,
         groups,
         rowSelector: ".fs-row",
@@ -417,6 +425,18 @@ const hasMemorize = examFormulaSheet && formulas.some((f) => f.memorize);
           return matchMode && matchTerm;
         },
       });
+      // Announce the outcome only while a filter is active — the default all-chip
+      // with an empty term is the reset-to-all state, which needs no announcement
+      // (and would be noise on load). Empty vs. "N treff" mirrors the visible
+      // .fs-empty / list.
+      if (status) {
+        status.textContent =
+          mode === "all" && !term
+            ? ""
+            : visibleCount === 0
+              ? emptyLabel
+              : `${visibleCount} treff`;
+      }
     };
 
     chips.forEach((chip) => {
