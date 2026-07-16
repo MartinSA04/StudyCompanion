@@ -48,6 +48,27 @@ for (const theme of THEMES) {
     await expect(quiz).toHaveScreenshot(`quiz-answered-${theme}.png`);
   });
 
+  test(`quiz answered wrong — ${theme}`, async ({ page }) => {
+    await forceTheme(page, theme);
+    await page.goto("/eksempler");
+    await page.waitForLoadState("networkidle");
+
+    const quiz = page.locator(".quiz");
+    // Answer index 0 ("Spredning") — a WRONG option (answer is 1). A wrong click
+    // auto-reveals the correct row too, so one snapshot pins the red graded row +
+    // its "x" cross mark, the "Ikke helt. Se riktig svar." feedback and the
+    // green correct row together — the whole --wrong/--wrong-bg token surface the
+    // correct-answer snapshot above never paints.
+    await quiz.locator('.quiz-option[data-index="0"]').click();
+    await expect(quiz.locator(".quiz-feedback")).toHaveAttribute(
+      "data-result",
+      "wrong",
+    );
+    await expect(quiz.locator(".quiz-explain")).toBeVisible();
+
+    await expect(quiz).toHaveScreenshot(`quiz-answered-wrong-${theme}.png`);
+  });
+
   test(`flashcard flipped — ${theme}`, async ({ page }) => {
     await forceTheme(page, theme);
     await page.goto("/flashcards");
