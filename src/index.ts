@@ -10,6 +10,7 @@ import rehypeKatex from "rehype-katex";
 import { flexokiDark } from "./lib/shiki-flexoki.ts";
 import { rehypeTableScroll } from "./lib/rehype-table-scroll.ts";
 import { rehypeKatexScroll } from "./lib/rehype-katex-scroll.ts";
+import { rehypeKatexHeading } from "./lib/rehype-katex-heading.ts";
 
 /**
  * After rehype-katex, tag KaTeX's `.katex-mathml` (the visually-hidden MathML +
@@ -243,6 +244,9 @@ export default function studyCompanion(
             remarkPlugins: [remarkMath],
             rehypePlugins: [
               rehypeKatex,
+              // Prune inline-math heading subtrees before Astro's appended
+              // rehypeHeadingIds collects heading text (see the plugin doc).
+              rehypeKatexHeading,
               rehypePagefindIgnoreKatex,
               rehypeKatexScroll,
               rehypeTableScroll,
