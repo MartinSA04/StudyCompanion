@@ -14,7 +14,9 @@ accent: "#205ea6"
 accentDark: "#4385be"
 
 exam:
-  date: 2026-06-15
+  # Far future (like `deadlines` below) so the countdown pill renders in the
+  # demo instead of aging into the hidden past state; snapshots mask the phrase.
+  date: 2028-06-15
   # Start time is a VERBATIM string (never a Date) — a time-of-day Date would
   # reintroduce the UTC-midnight print bug lib/dates.ts guards against.
   time: "09:00"
