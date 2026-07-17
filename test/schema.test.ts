@@ -144,10 +144,10 @@ test("ui string overrides default to the current Norwegian chrome", () => {
   assert.equal(parsed.ui.nextDeadlineLabel, "Neste frist");
   assert.equal(
     parsed.ui.examAuthorityNote,
-    "Autoritativ eksamensinformasjon finnes i Studentweb",
+    "Offisiell eksamensinformasjon finnes i Studentweb",
   );
-  assert.equal(parsed.ui.footerDisclaimer, "Med forbehold om feil.");
-  assert.equal(parsed.ui.reportIssueLabel, "Meld fra om feil");
+  assert.equal(parsed.ui.footerDisclaimer, "Merk at siden kan inneholde feil.");
+  assert.equal(parsed.ui.reportIssueLabel, "Meld fra om eventuelle feil her.");
   // The GitHub edit→PR flow reads as a change proposal, not a raw file edit.
   assert.equal(parsed.ui.editPageLabel, "Foreslå endring");
   // Overriding one key leaves the rest at their defaults (prefault).

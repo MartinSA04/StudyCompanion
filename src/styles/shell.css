@@ -785,32 +785,44 @@
 .site-footer .accent-text:hover {
   text-decoration: underline;
 }
-/* Per-page freshness + "edit this page" line (only on module pages). */
-.footer-meta {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: var(--gap-2);
+/* Trust sentence: a plain centered paragraph (no .footer-meta flex/separator,
+   so no "·" dot falls between the disclaimer and the report-issue link — they
+   read as one flowing note). A small breather sets it off from the mechanical
+   code·title·term line below. */
+.footer-trust {
   margin-bottom: var(--gap-2);
 }
-.footer-edit,
-.footer-report {
+
+/* Module-level metadata row — the section file's freshness + its edit link —
+   rendered ABOVE the footer separator (not inside .site-footer) so it reads as
+   page metadata, not site chrome. Muted mono fine print at the footer's scale;
+   freshness sits left, the edit link right (space-between). Sits on the page
+   --bg ground, where --faint is contrast-safe (see the --faint note in tokens.css). */
+.page-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--gap-2);
+  margin-top: var(--gap-10);
+  color: var(--faint);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+}
+/* The row owns the gap down from the content, so collapse the footer's own top
+   margin to a modest breather before the separator (not a second full gap). */
+.page-meta + .site-footer {
+  margin-top: var(--gap-4);
+}
+/* margin-left:auto keeps the edit link on the right even when it is the only
+   child (no freshness span to push it there via space-between). */
+.page-meta-edit {
+  margin-left: auto;
   color: var(--accent-ink);
   text-decoration: none;
 }
-.footer-edit:hover,
-.footer-report:hover {
+.page-meta-edit:hover {
   text-decoration: underline;
-}
-/* The "·" before the edit link is line punctuation, not part of the link:
-   generated on the freshness span (only when the link follows it), so the
-   link's hover underline, focus ring, hit area and accessible name all stop
-   at its own label. */
-.footer-meta span:not(:last-child)::after {
-  content: "·";
-  margin-left: var(--gap-2);
-  color: var(--border-strong);
 }
 
 /* ====== mobile ====== */

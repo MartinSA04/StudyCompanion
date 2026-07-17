@@ -43,9 +43,12 @@ Author under `content/` only. **[`course-template/content/`](course-template/con
 > when `deadlines[]` is set, a quiet **agenda**: ONE flat list (no per-section
 > dates, no done-states) whose past items hide themselves client-side against the
 > reader's clock. `links[]` may carry a `group` (buckets the sidebar Lenker list,
-> first-seen order) and a muted `note`. The footer always shows
-> `ui.footerDisclaimer` and, when `repoUrl` is set, a "Meld fra om feil" issue
-> link beside the "Foreslå endring" edit link.
+> first-seen order) and a muted `note`. The footer's trust line reads as one
+> flowing sentence: `ui.footerDisclaimer`, joined by a `ui.reportIssueLabel`
+> issue link (→ `${repoUrl}/issues/new`) when `repoUrl` is set. A module page's
+> freshness line (`ui.updatedLabel` + its `updated` date) and its "Foreslå
+> endring" edit link sit in a row just **above** the footer separator, reading
+> as page metadata rather than site chrome.
 
 ### Widgets (available in every MDX section — no imports needed)
 

@@ -57,9 +57,9 @@ interface Props {
   active: string;
   /** Page <title>; defaults to the course title. */
   pageTitle?: string;
-  /** "Edit this page" deep-link for the footer (section pages only). */
+  /** "Edit this page" deep-link, shown in the page-meta row (section pages only). */
   editUrl?: string;
-  /** Last-updated date for the footer freshness line (section pages only). */
+  /** Last-updated date, shown in the page-meta freshness row (section pages only). */
   updated?: Date;
   /**
    * Per-page SEO / social meta, computed in the page where the data lives. The
@@ -745,40 +745,52 @@ const hasTools = toolNav.some((t) => t.show);
 
       <main class="content" id="content" tabindex="-1">
         <slot />
+        {
+          /* Module-level metadata (this section file's freshness + its edit
+             link): a row ABOVE the footer's border-top separator, so it reads as
+             page metadata rather than site/page-wide chrome. Freshness sits on
+             the LEFT, the edit link on the RIGHT (space-between); when only one
+             is present the edit link still holds the right (margin-left: auto).
+             Only rendered on section pages, which supply `updated`/`editUrl`. */
+          (updatedStr || editUrl) && (
+            <div class="page-meta">
+              {updatedStr && (
+                <span class="page-meta-updated">
+                  {ui.updatedLabel} {updatedStr}
+                </span>
+              )}
+              {editUrl && (
+                <a
+                  class="page-meta-edit"
+                  href={editUrl}
+                  target="_blank"
+                  rel="noopener noreferrer">
+                  {ui.editPageLabel}
+                </a>
+              )}
+            </div>
+          )
+        }
         <footer class="site-footer">
-          {
-            (updatedStr || editUrl) && (
-              <p class="footer-meta">
-                {updatedStr && (
-                  <span>
-                    {ui.updatedLabel} {updatedStr}
-                  </span>
-                )}
-                {editUrl && (
-                  <a
-                    class="footer-edit"
-                    href={editUrl}
-                    target="_blank"
-                    rel="noopener noreferrer">
-                    {ui.editPageLabel}
-                  </a>
-                )}
-              </p>
-            )
-          }
-          {/* Trust line: the disclaimer always renders; the issue link joins it
-              (same span·link separator idiom as the freshness line above) only
-              when the course names its repo. */}
-          <p class="footer-meta">
-            <span>{ui.footerDisclaimer}</span>
+          {/* Trust line: one flowing sentence. The disclaimer always renders and
+              stands alone as a complete sentence; when the course names its repo
+              the report-issue link joins it directly after (footer .accent-text
+              idiom, so it reads as a link) and the pair becomes one note. A plain
+              <p class="footer-trust"> — NOT .footer-meta — so no span·separator
+              dot falls between the sentence and the link. */}
+          <p class="footer-trust">
+            {ui.footerDisclaimer}
             {issueUrl && (
-              <a
-                class="footer-report"
-                href={issueUrl}
-                target="_blank"
-                rel="noopener noreferrer">
-                {ui.reportIssueLabel}
-              </a>
+              <>
+                {" "}
+                <a
+                  class="accent-text"
+                  href={issueUrl}
+                  target="_blank"
+                  rel="noopener noreferrer">
+                  {ui.reportIssueLabel}
+                </a>
+              </>
             )}
           </p>
           <p>{course.code} · {course.title} · {course.term}</p>

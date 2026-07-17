@@ -173,12 +173,12 @@ features: { progress: true, search: true, flashcards: true, theme: true }
 #   glossaryEmptyLabel: Ingen begreper matcher søket.
 #   glossaryOtherGroupLabel: Andre begreper
 #   linksOtherGroupLabel: Andre lenker
-#   examAuthorityNote: Autoritativ eksamensinformasjon finnes i Studentweb
+#   examAuthorityNote: Offisiell eksamensinformasjon finnes i Studentweb
 #   deadlinesLabel: Frister
 #   nextDeadlineLabel: Neste frist
 #   courseLabel: Emneside
 #   tocLabel: Innhold
 #   editPageLabel: Foreslå endring
-#   reportIssueLabel: Meld fra om feil
-#   footerDisclaimer: "Med forbehold om feil."
+#   reportIssueLabel: Meld fra om eventuelle feil her.
+#   footerDisclaimer: "Merk at siden kan inneholde feil."
 #   updatedLabel: Oppdatert

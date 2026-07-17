@@ -289,7 +289,7 @@ export const courseSchema = z.strictObject({
       /** Muted link to exam.authorityUrl rendered on every exam-facts surface. */
       examAuthorityNote: z
         .string()
-        .default("Autoritativ eksamensinformasjon finnes i Studentweb"),
+        .default("Offisiell eksamensinformasjon finnes i Studentweb"),
       /** Heading for the dated-coursework agenda block on the overview. */
       deadlinesLabel: z.string().default("Frister"),
       /** Lede prefix on the overview agenda: "Neste frist: …". */
@@ -297,10 +297,17 @@ export const courseSchema = z.strictObject({
       courseLabel: z.string().default("Emneside"),
       tocLabel: z.string().default("Innhold"),
       editPageLabel: z.string().default("Foreslå endring"),
-      /** Footer link to `${repoUrl}/issues/new` (only rendered when repoUrl is set). */
-      reportIssueLabel: z.string().default("Meld fra om feil"),
-      /** Always-rendered footer disclaimer (renders even without repoUrl). */
-      footerDisclaimer: z.string().default("Med forbehold om feil."),
+      /**
+       * Report-an-error link (→ `${repoUrl}/issues/new`, only rendered when
+       * repoUrl is set). Rendered as a link directly after `footerDisclaimer`,
+       * so the disclaimer + link pair reads as one flowing note.
+       */
+      reportIssueLabel: z.string().default("Meld fra om eventuelle feil her."),
+      /**
+       * Always-rendered footer disclaimer (renders even without repoUrl). Must
+       * stand alone as a complete sentence when repoUrl is unset (no link joins it).
+       */
+      footerDisclaimer: z.string().default("Merk at siden kan inneholde feil."),
       updatedLabel: z.string().default("Oppdatert"),
     })
     .prefault({}),
