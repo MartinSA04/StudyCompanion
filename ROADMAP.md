@@ -42,6 +42,11 @@ the value at the time, or waiting on a real consumer that needs it.
 - **Preact escalation** for `<Quiz>`/`<Flashcards>` — only if island state
   outgrows vanilla JS. Not needed at current complexity.
 - **Keystatic** content editing — revisit only if non-technical authors appear.
+- **Full chrome i18n** — extend the schema `ui` override layer to island-internal
+  strings (Flashcards filter/nav/empty-state/keyboard-hint microcopy, copy-button
+  feedback, ThemeToggle label) so an `nn`/`en` course renders monolingual chrome;
+  `language` already admits those values but overrides stop at page chrome.
+  Revisit when a non-`nb` consumer materializes. `minor`, **L**.
 
 ## Infrastructure follow-ups
 
