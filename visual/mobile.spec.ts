@@ -33,7 +33,14 @@ for (const { path, name } of PAGES) {
     // by Playwright's default path template, so the arg stays unsuffixed.
     await expect(page).toHaveScreenshot(`${name}.png`, {
       fullPage: true,
-      mask: [page.locator(".sim-canvas")],
+      mask: [
+        page.locator(".sim-canvas"),
+        // Same contract as kitchen-sink.spec.ts: countdown PHRASES (exam pill
+        // + deadline lede) drift every run and get masked; deadline rows carry
+        // data-exam-countdown only for client auto-hide and render
+        // deterministic dates/titles, so they stay asserted.
+        page.locator("[data-exam-countdown]:not([data-countdown-no-text])"),
+      ],
     });
   });
 }

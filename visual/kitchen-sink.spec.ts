@@ -50,7 +50,15 @@ for (const theme of THEMES) {
       }
       await expect(page).toHaveScreenshot(`${name}-${theme}.png`, {
         fullPage: true,
-        mask: [page.locator(".sim-canvas")],
+        mask: [
+          page.locator(".sim-canvas"),
+          // Countdown PHRASES (overview exam pill + deadline lede, Eksamen
+          // summary pill) SSR a live "om N dager" against a far-future date,
+          // so their pixels drift every run — mask just these. Deadline ROWS
+          // also carry data-exam-countdown (for client auto-hide) but render
+          // only deterministic dates/titles, so they stay asserted.
+          page.locator("[data-exam-countdown]:not([data-countdown-no-text])"),
+        ],
       });
     });
   }
