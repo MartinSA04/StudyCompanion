@@ -424,7 +424,11 @@ const seo = {
           <h1>{course.ui.examsLabel}</h1>
         </header>
         {course.exam && (
-          <ExamSummary exam={course.exam} language={course.language} />
+          <ExamSummary
+            exam={course.exam}
+            language={course.language}
+            authorityNote={course.ui.examAuthorityNote}
+          />
         )}
         {course.examArchive && (
           <p class="exam-archive-note">{course.ui.examArchiveNote}</p>

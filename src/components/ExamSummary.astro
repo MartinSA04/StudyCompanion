@@ -8,21 +8,32 @@ import {
 import { formatDate } from "../lib/dates.ts";
 
 /**
- * A summary of the UPCOMING exam — date + countdown, duration, format and
- * permitted aids — shown atop the Eksamen tool page so a student lands on the
- * facts of the exam they're sitting before the past-paper list.
+ * A summary of the UPCOMING exam — date + countdown, start time, duration,
+ * format and permitted aids — shown atop the Eksamen tool page so a student
+ * lands on the facts of the exam they're sitting before the past-paper list.
  *
- * Pure presentation of the existing `course.exam` data (no schema change);
- * renders only the fields that are present, and nothing at all if `exam`
- * carries none of them. The countdown pill SSRs a build-time snapshot and the
- * script below re-derives it against the viewer's clock, so a site built a
- * week early still says "i dag" on exam morning.
+ * Pure presentation of `course.exam`: renders only the fields that are present,
+ * and nothing at all if `exam` carries none of them. When it does render, a
+ * quiet footer line links `exam.authorityUrl` (Studentweb by default) as the
+ * portal that owns the authoritative exam facts. The countdown pill SSRs a
+ * build-time snapshot and the script below re-derives it against the viewer's
+ * clock, so a site built a week early still says "i dag" on exam morning.
  */
 interface Props {
   exam: NonNullable<Course["exam"]>;
   language?: string;
+  /**
+   * Text for the Studentweb authority note. Defaults to the framework's
+   * Norwegian string; the Eksamen page passes `course.ui.examAuthorityNote` so a
+   * per-course override reaches this surface too.
+   */
+  authorityNote?: string;
 }
-const { exam, language = "nb" } = Astro.props;
+const {
+  exam,
+  language = "nb",
+  authorityNote = "Autoritativ eksamensinformasjon finnes i Studentweb",
+} = Astro.props;
 
 const examDate = exam.date ? formatDate(exam.date, language, "full") : null;
 const daysToExam = exam.date ? daysUntil(exam.date) : null;
@@ -46,6 +57,9 @@ const durationStr = (() => {
 })();
 
 const facts = [
+  // Start time is a VERBATIM string (schema keeps it off Date to avoid the
+  // UTC-midnight print bug); it renders as-is next to the date.
+  exam.time && { label: "Tid", value: exam.time },
   durationStr && { label: "Varighet", value: durationStr },
   exam.format && { label: "Form", value: exam.format },
   exam.aids && { label: "Hjelpemidler", value: exam.aids },
@@ -82,6 +96,11 @@ const hasContent = Boolean(examDate) || facts.length > 0;
           ))}
         </dl>
       )}
+      <p class="exam-authority">
+        <a href={exam.authorityUrl} target="_blank" rel="noopener noreferrer">
+          {authorityNote}
+        </a>
+      </p>
     </div>
   )
 }
@@ -159,6 +178,23 @@ const hasContent = Boolean(examDate) || facts.length > 0;
     color: var(--fg);
     font-size: var(--text-sm);
     line-height: var(--leading-snug);
+  }
+  /* Studentweb authority note: a quiet footer line naming the portal that owns
+     the authoritative exam facts. Fine print, not a callout. */
+  .exam-authority {
+    margin: 0;
+    padding: var(--space-3) var(--space-4);
+    border-top: 1px solid var(--border);
+    font-size: var(--text-xs);
+    line-height: var(--leading-snug);
+    color: var(--muted);
+  }
+  .exam-authority a {
+    color: var(--muted);
+    text-decoration: none;
+  }
+  .exam-authority a:hover {
+    text-decoration: underline;
   }
 </style>
 
