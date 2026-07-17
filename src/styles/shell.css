@@ -196,6 +196,16 @@
 .nav-section:first-child {
   margin-top: 0;
 }
+/* Sub-heading inside the Lenker list — a course-authored link `group`. A quieter
+   step below the .nav-section master label: same mono meta, but sentence-case
+   (the group name is authored copy) and tucked tighter to the links it labels. */
+.nav-subsection {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--faint);
+  margin: var(--gap-3) 0 var(--gap-1);
+  padding-left: var(--gap-1);
+}
 .nav-link {
   display: flex;
   /* Hang the number/icon/check at the top so they sit on the title's FIRST line
@@ -253,6 +263,18 @@
 .nav-title {
   flex: 1;
   line-height: var(--leading-snug);
+}
+/* Optional muted gloss under a Lenker label (a link's `note`). Sidebar meta
+   scale + the resting number tone; steps up with the row on hover like .nav-num
+   so it clears AA on the elevated fill. */
+.nav-note {
+  display: block;
+  font-size: var(--text-xs);
+  color: var(--faint);
+  line-height: var(--leading-snug);
+}
+.nav-link:hover .nav-note {
+  color: var(--muted);
 }
 /* Completion shows only once a module is done — a bare accent-ink check, no
    empty box on the pending rows (that read as a clickable form control it
@@ -772,11 +794,13 @@
   gap: var(--gap-2);
   margin-bottom: var(--gap-2);
 }
-.footer-edit {
+.footer-edit,
+.footer-report {
   color: var(--accent-ink);
   text-decoration: none;
 }
-.footer-edit:hover {
+.footer-edit:hover,
+.footer-report:hover {
   text-decoration: underline;
 }
 /* The "·" before the edit link is line punctuation, not part of the link:

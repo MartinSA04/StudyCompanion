@@ -17,6 +17,7 @@ import { THEME_COLOR_LIGHT, THEME_COLOR_DARK } from "../lib/themeColor.ts";
 import { faviconDataUri } from "../lib/favicon.ts";
 import { ogLocale, canonicalPathname, warnMissingSiteOnce } from "../lib/seo.ts";
 import { formatDate } from "../lib/dates.ts";
+import { groupBySection } from "../lib/groupBySection.ts";
 import { progressKey as progressKeyFor } from "../lib/progress.ts";
 import { serializeLd } from "../lib/jsonLd.ts";
 import { ClientRouter } from "astro:transitions";
@@ -201,7 +202,24 @@ function checkAccentFallback(accent: string) {
 // Module nav grouped into parts (single null-part group when no section sets one).
 const moduleGroups = partGroups(nav);
 
+// Sidebar Lenker grouping: a link's optional `group` clusters it under a
+// first-seen sub-heading; group-less links fall into the trailing
+// ui.linksOtherGroupLabel group, whose heading groupBySection suppresses when
+// it's the only group — so a course with no `group` fields still renders one
+// flat, unlabelled list (byte-for-byte the old markup). Mapped onto the
+// `section` key groupBySection reads (the same idiom <FormulaSheet> uses).
+const linkGroups = groupBySection(
+  course.links.map((l) => ({ ...l, section: l.group })),
+  ui.linksOtherGroupLabel,
+);
+
 const updatedStr = updated ? formatDate(updated, course.language) : null;
+
+// Footer "report an error" deep-link — GitHub's new-issue route on the same
+// repo. Trailing slashes trimmed to match the edit-link build in [slug].astro.
+const issueUrl = course.repoUrl
+  ? `${course.repoUrl.replace(/\/+$/, "")}/issues/new`
+  : null;
 
 // Per-theme brand accent. The course sets `accent` (light) and optionally
 // `accentDark`; the framework uses exactly those (no auto-lightening) and
@@ -698,11 +716,16 @@ const hasTools = toolNav.some((t) => t.show);
           course.links.length > 0 && (
             <>
               <div class="nav-section">Lenker</div>
-              {course.links.map((l) => (
-                <a class="nav-link sc-press sc-lift" href={l.url} target="_blank" rel="noopener noreferrer">
-                  <span class="nav-num"><Icon name="external" /></span>
-                  <span class="nav-title">{l.label}</span>
-                </a>
+              {linkGroups.map((g) => (
+                <>
+                  {g.section && <div class="nav-subsection">{g.section}</div>}
+                  {g.items.map((l) => (
+                    <a class="nav-link sc-press sc-lift" href={l.url} target="_blank" rel="noopener noreferrer">
+                      <span class="nav-num"><Icon name="external" /></span>
+                      <span class="nav-title">{l.label}{l.note && <span class="nav-note">{l.note}</span>}</span>
+                    </a>
+                  ))}
+                </>
               ))}
             </>
           )
@@ -743,6 +766,21 @@ const hasTools = toolNav.some((t) => t.show);
               </p>
             )
           }
+          {/* Trust line: the disclaimer always renders; the issue link joins it
+              (same span·link separator idiom as the freshness line above) only
+              when the course names its repo. */}
+          <p class="footer-meta">
+            <span>{ui.footerDisclaimer}</span>
+            {issueUrl && (
+              <a
+                class="footer-report"
+                href={issueUrl}
+                target="_blank"
+                rel="noopener noreferrer">
+                {ui.reportIssueLabel}
+              </a>
+            )}
+          </p>
           <p>{course.code} · {course.title} · {course.term}</p>
           {
             course.courseUrl && (
