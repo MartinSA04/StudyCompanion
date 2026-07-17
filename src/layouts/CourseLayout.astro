@@ -623,7 +623,11 @@ const hasTools = toolNav.some((t) => t.show);
     </template>
 
     <div class:list={["layout", { "layout--toc": hasToc }]}>
-      <aside class="sidebar" id="sidebar" aria-label="Moduler">
+      {/* The primary navigation landmark (module + tool list): a <nav>, not an
+          <aside> — the on-page TOC rail and the prev/next pager are the page's
+          other landmarks, and the module list is navigation, not complementary
+          content. Styling/behaviour hook off .sidebar/#sidebar, never the tag. */}
+      <nav class="sidebar" id="sidebar" aria-label="Moduler">
         {/* Visible only in the mobile drawer — the desktop rail has no overlay
             to dismiss. Fills the drawer's top padding so it never overlaps a
             nav row. */}
@@ -698,7 +702,7 @@ const hasTools = toolNav.some((t) => t.show);
             </>
           )
         }
-      </aside>
+      </nav>
 
       {
         /* Before <main> in the DOM so the tab order runs nav → on-this-page →
