@@ -328,6 +328,9 @@ const hasSections = sections.length > 0;
     border: 0;
     background: none;
     text-align: left;
+    /* Vertical page scroll still starts on the card; horizontal drags reach the
+       swipe handler instead of being claimed by the browser as a pan. */
+    touch-action: pan-y;
   }
   /* `.fc-card { display:block }` would otherwise override the [hidden]
      attribute (the deck shows one card at a time via `hidden`). */
@@ -472,10 +475,41 @@ const hasSections = sections.length > 0;
       display: none;
     }
   }
+
+  /* Thumb-zone controls: on a phone the rating/nav row pins to the bottom of the
+     viewport so the card scrolls above it and the primary actions sit under the
+     thumb. --bg fill + a top hairline lift it off the scrolling card, and the
+     safe-area inset keeps it clear of the home indicator. Targets grow to the
+     44px WCAG touch size — the 38px --control-h is a pointer-scale token, below
+     that bar. Desktop keeps the inline row untouched. */
+  @media (max-width: 640px) {
+    .fc-controls {
+      position: sticky;
+      bottom: 0;
+      z-index: 1;
+      background: var(--bg);
+      border-top: 1px solid var(--border);
+      padding-block: var(--space-3);
+      padding-bottom: calc(var(--space-3) + env(safe-area-inset-bottom));
+    }
+    .fc-btn,
+    .fc-nav {
+      min-height: 44px;
+    }
+    /* Keep focus/scrollIntoView targets clear of the sticky bar: on short
+       viewports (split-screen, foldables) tabbing to the card could otherwise
+       tuck it fully behind the controls. 72px ≈ the bar's height (44px button
+       + block padding + hairline); over-padding merely scrolls a touch
+       further. Scoped :global — only the flashcards page has the bar. */
+    :global(html) {
+      scroll-padding-bottom: calc(72px + env(safe-area-inset-bottom));
+    }
+  }
 </style>
 
 <script>
   import { onPage } from "../lib/pageLifecycle.ts";
+  import { attachSwipe, SWIPE_THRESHOLD } from "../lib/swipe.ts";
   // Keyed by each card's content id (data-fc-id), not its position — see the
   // component doc comment.
   type Levels = Record<string, number>;
@@ -762,6 +796,68 @@ const hasSections = sections.length > 0;
       .forEach((b) =>
         b.addEventListener("click", () => rate(b.dataset.fcRate === "1")),
       );
+
+    // Swipe parity: right ≙ Kan, left ≙ Øv. A committed swipe just clicks the
+    // matching button, so rating flows through the one rate() path and the
+    // buttons stay the canonical (and only guaranteed) way to act — swipe is
+    // never the sole route. During a drag the visible card follows the finger
+    // and springs back on a sub-threshold release.
+    const stage = deck.querySelector<HTMLElement>(".fc-stage")!;
+    const reviewBtn =
+      deck.querySelector<HTMLButtonElement>('[data-fc-rate="0"]')!;
+    const knownBtn =
+      deck.querySelector<HTMLButtonElement>('[data-fc-rate="1"]')!;
+    const prefersReduced = () =>
+      window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
+    const shownCard = () => cards.find((c) => !c.hidden);
+    // A committed swipe's pointerup synthesises a trailing click on the card;
+    // swallow that one so a rating doesn't also flip the card. onEnd sets this
+    // per gesture (and the capture handler only acts on pointer clicks, detail
+    // > 0), so it can neither leak onto a later tap nor eat a keyboard flip.
+    let swallowFlip = false;
+    const cleanupSwipe = attachSwipe(stage, {
+      onMove(dx) {
+        // prefers-reduced-motion: no follow transform at all — the verdict
+        // still commits on release.
+        if (prefersReduced()) return;
+        const card = shownCard();
+        if (!card) return;
+        // Follow the finger, capped at 1.2× threshold with a ≤3° lean.
+        // transition:none keeps the follow 1:1; clearing it on release restores
+        // .sc-lift's transform transition, which springs the card back.
+        const t = Math.max(-1, Math.min(1, dx / (SWIPE_THRESHOLD * 1.2)));
+        card.style.transition = "none";
+        card.style.transform = `translateX(${t * SWIPE_THRESHOLD * 1.2}px) rotate(${t * 3}deg)`;
+      },
+      onEnd(verdict) {
+        const card = shownCard();
+        if (card) {
+          card.style.transition = "";
+          card.style.transform = "";
+        }
+        // Rating hidden (all-known / filter-empty end state) ⇒ swipe does
+        // nothing.
+        const commit = verdict !== null && deck.dataset.empty !== "true";
+        swallowFlip = commit;
+        if (!commit) return;
+        (verdict === "right" ? knownBtn : reviewBtn).click();
+      },
+    });
+    signal.addEventListener("abort", cleanupSwipe, { once: true });
+    // Capture phase on the stage runs before the card's own (bubble) flip
+    // handler, so a committed swipe's trailing click is stopped before it flips.
+    // detail === 0 spares keyboard/programmatic activations.
+    stage.addEventListener(
+      "click",
+      (e) => {
+        if (!swallowFlip || e.detail === 0) return;
+        swallowFlip = false;
+        e.stopPropagation();
+        e.preventDefault();
+      },
+      { capture: true, signal },
+    );
+
     resetBtn.addEventListener("click", () => {
       if (undoStash) {
         // "Angre": restore the stashed ratings.
