@@ -139,6 +139,17 @@ test("ui string overrides default to the current Norwegian chrome", () => {
   assert.equal(parsed.ui.sheetEmptyLabel, "Ingen formler matcher søket.");
   assert.equal(parsed.ui.formulaSheetOtherGroupLabel, "Andre formler");
   assert.equal(parsed.ui.glossaryOtherGroupLabel, "Andre begreper");
+  assert.equal(parsed.ui.linksOtherGroupLabel, "Andre lenker");
+  assert.equal(parsed.ui.deadlinesLabel, "Frister");
+  assert.equal(parsed.ui.nextDeadlineLabel, "Neste frist");
+  assert.equal(
+    parsed.ui.examAuthorityNote,
+    "Autoritativ eksamensinformasjon finnes i Studentweb",
+  );
+  assert.equal(parsed.ui.footerDisclaimer, "Med forbehold om feil.");
+  assert.equal(parsed.ui.reportIssueLabel, "Meld fra om feil");
+  // The GitHub edit→PR flow reads as a change proposal, not a raw file edit.
+  assert.equal(parsed.ui.editPageLabel, "Foreslå endring");
   // Overriding one key leaves the rest at their defaults (prefault).
   const over = courseSchema.parse({
     ...base,
@@ -146,6 +157,60 @@ test("ui string overrides default to the current Norwegian chrome", () => {
   });
   assert.equal(over.ui.formulaSheetLabel, "Sheet");
   assert.equal(over.ui.glossaryLabel, "Begreper");
+});
+
+test("exam.authorityUrl defaults to Studentweb; exam.time stays a verbatim string", () => {
+  const parsed = courseSchema.parse({ ...base, exam: { date: "2026-06-01" } });
+  assert.equal(
+    parsed.exam?.authorityUrl,
+    "https://fsweb.no/studentweb/login.jsf?inst=FSNTNU",
+  );
+  // exam.time is NEVER coerced to a Date — a time-of-day Date would reintroduce
+  // the UTC-midnight print bug lib/dates.ts guards; it passes through verbatim.
+  const timed = courseSchema.parse({ ...base, exam: { time: "09:00" } });
+  assert.equal(timed.exam?.time, "09:00");
+});
+
+test("deadlines default to [] and reject unknown keys (strictObject)", () => {
+  assert.deepEqual(courseSchema.parse(base).deadlines, []);
+  const ok = courseSchema.parse({
+    ...base,
+    deadlines: [
+      {
+        title: "Øving 1",
+        date: "2028-09-01",
+        note: "Innlevering i Blackboard",
+        url: "https://example.com/oving-1",
+      },
+    ],
+  });
+  assert.equal(ok.deadlines[0].title, "Øving 1");
+  const bad = courseSchema.safeParse({
+    ...base,
+    deadlines: [{ title: "Øving 1", date: "2028-09-01", done: true }],
+  });
+  assert.equal(bad.success, false);
+});
+
+test("links carry optional group + note (strictObject rejects typos)", () => {
+  const ok = courseSchema.parse({
+    ...base,
+    links: [
+      {
+        label: "Forelesninger",
+        url: "https://example.com/f",
+        group: "Timeplan",
+      },
+      { label: "Notater", url: "https://example.com/n", note: "PDF" },
+    ],
+  });
+  assert.equal(ok.links[0].group, "Timeplan");
+  assert.equal(ok.links[1].note, "PDF");
+  const bad = courseSchema.safeParse({
+    ...base,
+    links: [{ label: "x", url: "https://example.com", grup: "typo" }],
+  });
+  assert.equal(bad.success, false);
 });
 
 test("features defaults apply when the block is omitted (prefault)", () => {

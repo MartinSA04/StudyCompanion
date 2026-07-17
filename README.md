@@ -20,7 +20,7 @@ npx degit MartinSA04/StudyCompanion/course-template course-mycode
 
 It ships the framework pin, a GitHub Pages deploy workflow, an annotated `content/course.yaml`, and example sections. Then read **`AUTHORING.md`** — the content author's guide (archetypes, widget decision guide, conventions, per-section definition-of-done).
 
-You author **only** under `content/` — `course.yaml` (metadata, formulas, glossary, exams, features, analytics, ui strings), `flashcards.yaml`, and `sections/NN-slug.mdx` — and drop static assets in `public/` (`figures/`, `sims/`; the favicon and app icons are auto-generated from the course `accent`/`accentDark`). See `course-template/` for the exact file layout and an annotated `course.yaml`.
+You author **only** under `content/` — `course.yaml` (metadata, formulas, glossary, exams, deadlines, features, analytics, ui strings), `flashcards.yaml`, and `sections/NN-slug.mdx` — and drop static assets in `public/` (`figures/`, `sims/`; the favicon and app icons are auto-generated from the course `accent`/`accentDark`). See `course-template/` for the exact file layout and an annotated `course.yaml`.
 
 > For local framework development, point the `study-companion` dependency at a `link:../path/to/study-companion` instead of the git tag (see `course-template/package.json`).
 
@@ -36,6 +36,16 @@ Author under `content/` only. **[`course-template/content/`](course-template/con
 
 - **`course.yaml`** — YAML scalars containing LaTeX must be double-quoted with **escaped backslashes**: `tex: "\\dfrac{a}{b}"`.
 - **`sections/NN-slug.mdx`** — frontmatter is the contract; `order` (not the filename) is the source of truth for sequence. Inline `$…$` and display `$$…$$` math render server-side via KaTeX.
+
+> **Overview & chrome, straight from `course.yaml`.** The overview renders an
+> **exam-facts** card (`exam.date` / `time` / `format` / `aids`, with a muted
+> authority-note link to `exam.authorityUrl` — default **NTNU Studentweb**) and,
+> when `deadlines[]` is set, a quiet **agenda**: ONE flat list (no per-section
+> dates, no done-states) whose past items hide themselves client-side against the
+> reader's clock. `links[]` may carry a `group` (buckets the sidebar Lenker list,
+> first-seen order) and a muted `note`. The footer always shows
+> `ui.footerDisclaimer` and, when `repoUrl` is set, a "Meld fra om feil" issue
+> link beside the "Foreslå endring" edit link.
 
 ### Widgets (available in every MDX section — no imports needed)
 

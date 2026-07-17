@@ -49,6 +49,8 @@ institution: "Example University"
 # ── Upcoming exam (optional) ─────────────────────────────────────────────────
 exam:
   date: 2026-06-01 # ISO date → build-time countdown on the overview + exam page.
+  time: "09:00" # Start time as a VERBATIM string (never a Date — a time-of-day
+  #               Date would reintroduce the UTC-midnight print bug).
   durationMinutes: 240 # Optional structured duration.
   format: 4t skriftlig # Free text.
   aids: Godkjent kalkulator + formelark # Permitted aids.
@@ -61,6 +63,10 @@ exam:
   # notice and drops the on-sheet / must-memorize chips + badges (so you don't
   # mark every formula). Override the wording with ui.noFormulaSheetNote.
   formulaSheet: true
+  # Portal that owns the AUTHORITATIVE exam facts — every exam-facts surface
+  # links here via ui.examAuthorityNote. Defaults to NTNU Studentweb; override
+  # only if a different portal is authoritative for your course.
+  # authorityUrl: "https://fsweb.no/studentweb/login.jsf?inst=FSNTNU"
 
 # ── Reference formulas (optional → Formelsamling page + inline <FormulaRef>) ──
 # YAML LaTeX must be DOUBLE-QUOTED with ESCAPED backslashes: "\\dfrac{a}{b}".
@@ -105,6 +111,14 @@ exams:
       solutionUrl: "https://example.com/exams/2025-losning.pdf",
     }
 
+# ── Dated coursework (optional → the overview agenda) ────────────────────────
+# ONE flat list of upcoming deadlines (øvinger, prosjekt, vurderinger) — no
+# per-section dates, no done-states. Past items hide themselves client-side
+# against the reader's clock. `note` and `url` are optional per item.
+# deadlines:
+#   - { title: "Øving 8", date: 2026-09-15, note: "Innlevering i Blackboard", url: "https://…" }
+#   - { title: "Prosjektinnlevering", date: 2026-11-01 }
+
 # ── Full exam archive (optional → a "see full archive" row on the Eksamen page) ─
 # Use when the `exams` above are a hand-picked selection and a complete archive
 # exists elsewhere. Shows a curated-selection note (ui.examArchiveNote) too.
@@ -123,7 +137,12 @@ features: { progress: true, search: true, flashcards: true, theme: true }
 #   goatcounter: "https://yourcode.goatcounter.com/count"
 
 # ── Free-form sidebar links (optional) ───────────────────────────────────────
+# Optional `group` buckets the list under headings (first-seen order; group-less
+# links fall into a trailing "Andre lenker" group). Optional `note` is a muted
+# second line under the link.
 # links:
+#   - { label: "Forelesningsplan", url: "https://…", group: "Timeplan" }
+#   - { label: "Zoom-rom", url: "https://…", group: "Timeplan", note: "Passord: …" }
 #   - { label: "Forelesningsnotater", url: "https://…" }
 
 # ── UI string overrides (optional — defaults are Norwegian) ──────────────────
@@ -153,7 +172,13 @@ features: { progress: true, search: true, flashcards: true, theme: true }
 #   glossarySearchLabel: Søk i begreper
 #   glossaryEmptyLabel: Ingen begreper matcher søket.
 #   glossaryOtherGroupLabel: Andre begreper
+#   linksOtherGroupLabel: Andre lenker
+#   examAuthorityNote: Autoritativ eksamensinformasjon finnes i Studentweb
+#   deadlinesLabel: Frister
+#   nextDeadlineLabel: Neste frist
 #   courseLabel: Emneside
 #   tocLabel: Innhold
-#   editPageLabel: Rediger denne siden
+#   editPageLabel: Foreslå endring
+#   reportIssueLabel: Meld fra om feil
+#   footerDisclaimer: "Med forbehold om feil."
 #   updatedLabel: Oppdatert

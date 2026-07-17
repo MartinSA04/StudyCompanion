@@ -81,6 +81,9 @@ export const courseSchema = z.strictObject({
   exam: z
     .strictObject({
       date: z.coerce.date().optional(),
+      /** Exam start time as a VERBATIM string (e.g. "09:00") — never a Date; a
+       *  time-of-day Date would reintroduce the UTC-midnight print bug lib/dates.ts guards. */
+      time: z.string().optional(),
       durationMinutes: z.number().optional(),
       format: z.string().optional(),
       aids: z.string().optional(),
@@ -101,11 +104,29 @@ export const courseSchema = z.strictObject({
        * marking every `formulas[]` entry `onSheet: false` / `memorize: true`.
        */
       formulaSheet: z.boolean().default(true),
+      /** Portal that owns the authoritative exam facts. Every surface that renders
+       *  exam facts also renders ui.examAuthorityNote linking here. */
+      authorityUrl: z
+        .url()
+        .default("https://fsweb.no/studentweb/login.jsf?inst=FSNTNU"),
     })
     .optional(),
 
   /** Past exam papers for <ExamList>. Additive since v1 (optional). */
   exams: z.array(examPaperSchema).default([]),
+
+  /** Dated coursework (øvinger, prosjekt, vurderinger) for the overview agenda. */
+  deadlines: z
+    .array(
+      z.strictObject({
+        title: z.string(),
+        date: z.coerce.date(),
+        /** Optional context line, e.g. "Innlevering i Blackboard". */
+        note: z.string().optional(),
+        url: z.url().optional(),
+      }),
+    )
+    .default([]),
 
   /**
    * Link to the official, COMPLETE past-exam archive (e.g. the institute's
@@ -142,7 +163,16 @@ export const courseSchema = z.strictObject({
   institution: z.string().optional(),
 
   links: z
-    .array(z.strictObject({ label: z.string(), url: z.url() }))
+    .array(
+      z.strictObject({
+        label: z.string(),
+        url: z.url(),
+        /** Optional grouping for the sidebar Lenker list (groupBySection idiom). */
+        group: z.string().optional(),
+        /** Optional muted one-line description under the link. */
+        note: z.string().optional(),
+      }),
+    )
     .default([]),
 
   /**
@@ -248,15 +278,29 @@ export const courseSchema = z.strictObject({
       glossaryEmptyLabel: z.string().default("Ingen begreper matcher søket."),
       /** Heading for section-less terms when the glossary is otherwise grouped. */
       glossaryOtherGroupLabel: z.string().default("Andre begreper"),
+      /** Heading for group-less links when the sidebar Lenker list is otherwise grouped. */
+      linksOtherGroupLabel: z.string().default("Andre lenker"),
       /** Note above <ExamList> when `examArchive` is set (curated selection). */
       examArchiveNote: z
         .string()
         .default(
           "Utvalget under er de mest relevante settene. Eldre eksamener finnes i det fullstendige arkivet.",
         ),
+      /** Muted link to exam.authorityUrl rendered on every exam-facts surface. */
+      examAuthorityNote: z
+        .string()
+        .default("Autoritativ eksamensinformasjon finnes i Studentweb"),
+      /** Heading for the dated-coursework agenda block on the overview. */
+      deadlinesLabel: z.string().default("Frister"),
+      /** Lede prefix on the overview agenda: "Neste frist: …". */
+      nextDeadlineLabel: z.string().default("Neste frist"),
       courseLabel: z.string().default("Emneside"),
       tocLabel: z.string().default("Innhold"),
-      editPageLabel: z.string().default("Rediger denne siden"),
+      editPageLabel: z.string().default("Foreslå endring"),
+      /** Footer link to `${repoUrl}/issues/new` (only rendered when repoUrl is set). */
+      reportIssueLabel: z.string().default("Meld fra om feil"),
+      /** Always-rendered footer disclaimer (renders even without repoUrl). */
+      footerDisclaimer: z.string().default("Med forbehold om feil."),
       updatedLabel: z.string().default("Oppdatert"),
     })
     .prefault({}),

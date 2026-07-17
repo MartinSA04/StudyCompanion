@@ -15,6 +15,9 @@ accentDark: "#4385be"
 
 exam:
   date: 2026-06-15
+  # Start time is a VERBATIM string (never a Date) — a time-of-day Date would
+  # reintroduce the UTC-midnight print bug lib/dates.ts guards against.
+  time: "09:00"
   durationMinutes: 240
   format: 4t skriftlig
   aids: Godkjent kalkulator + formelsamling
@@ -39,7 +42,12 @@ features: { progress: true, search: true, flashcards: true, theme: true }
 repoUrl: "https://github.com/MartinSA04/StudyCompanion"
 repoBranch: main
 
+# Exercises the sidebar Lenker grouping: two `group`s (first-seen order) + one
+# group-less link (the trailing "Andre lenker" bucket), plus a muted `note`.
 links:
+  - { label: "Forelesningsplan", url: "https://example.com/timeplan", group: "Timeplan" }
+  - { label: "Zoom-rom", url: "https://example.com/zoom", group: "Timeplan", note: "Passord: optikk" }
+  - { label: "Kompendium (PDF)", url: "https://example.com/kompendium.pdf", group: "Ressurser" }
   - { label: "study-companion (GitHub)", url: "https://github.com/MartinSA04/StudyCompanion" }
 
 # Exercises <FormulaSheet>: grouping by `section`, plus must-memorize rows
@@ -63,3 +71,14 @@ glossary:
 exams:
   - { label: "Eksamen V2025", date: 2025-06-02, url: "https://example.com/exams/2025.pdf", solutionUrl: "https://example.com/exams/2025-losning.pdf" }
   - { label: "Eksamen V2024", date: 2024-05-28, url: "https://example.com/exams/2024.pdf" }
+
+# Exercises the overview agenda (flat list, no done-states): one past item that
+# the build-time filter drops from the SSR output entirely, plus far-future
+# items (2028+, so they stay "upcoming" for years) with a `note` and a `url` on
+# some. Client auto-hide covers the between-builds gap instead: a row SSR'd as
+# upcoming hides itself once its date passes on the viewer's clock.
+deadlines:
+  - { title: "Øving 3", date: 2025-02-10, note: "Innlevering i Blackboard" }
+  - { title: "Øving 8", date: 2028-09-15, note: "Innlevering i Blackboard", url: "https://example.com/oving-8" }
+  - { title: "Prosjektinnlevering", date: 2028-11-01, url: "https://example.com/prosjekt" }
+  - { title: "Muntlig vurdering", date: 2029-01-10 }
