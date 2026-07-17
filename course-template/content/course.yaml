@@ -146,6 +146,7 @@ features: { progress: true, search: true, flashcards: true, theme: true }
 #   onSheetLabel: På formelarket
 #   memorizeLabel: Må pugges
 #   sheetEmptyLabel: Ingen formler matcher søket.
+#   formulaSheetOtherGroupLabel: Andre formler
 #   examArchiveNote: "Utvalget under er de mest relevante settene. Eldre eksamener finnes i det fullstendige arkivet."
 #   glossaryLabel: Begreper
 #   glossarySearchPlaceholder: "Søk i begreper …"

@@ -137,6 +137,8 @@ test("ui string overrides default to the current Norwegian chrome", () => {
   assert.equal(parsed.ui.formulaSheetLabel, "Formelsamling");
   assert.equal(parsed.ui.glossaryLabel, "Begreper");
   assert.equal(parsed.ui.sheetEmptyLabel, "Ingen formler matcher søket.");
+  assert.equal(parsed.ui.formulaSheetOtherGroupLabel, "Andre formler");
+  assert.equal(parsed.ui.glossaryOtherGroupLabel, "Andre begreper");
   // Overriding one key leaves the rest at their defaults (prefault).
   const over = courseSchema.parse({
     ...base,

@@ -2,6 +2,7 @@
 import katex from "katex";
 import type { FormulaEntry } from "../schema.ts";
 import { renderMathString, ignoreInSearch } from "../lib/katex.ts";
+import { groupBySection } from "../lib/groupBySection.ts";
 import Icon from "./Icon.astro";
 import MemorizeBadge from "./MemorizeBadge.astro";
 
@@ -29,6 +30,7 @@ interface Props {
     onSheet?: string;
     memorize?: string;
     empty?: string;
+    otherGroup?: string;
   };
 }
 const {
@@ -43,19 +45,14 @@ const labels = {
   onSheet: ui?.onSheet ?? "På formelarket",
   memorize: ui?.memorize ?? "Må pugges",
   empty: ui?.empty ?? "Ingen formler matcher søket.",
+  otherGroup: ui?.otherGroup ?? "Andre formler",
 };
 
-// Group by section, preserving first-seen order of both groups and entries.
-const groups: { section: string; items: FormulaEntry[] }[] = [];
-for (const f of formulas) {
-  const key = f.section ?? "";
-  let g = groups.find((x) => x.section === key);
-  if (!g) {
-    g = { section: key, items: [] };
-    groups.push(g);
-  }
-  g.items.push(f);
-}
+// Group by section (see groupBySection): section-less formulas are collected
+// into one trailing "Andre formler" group rather than an orphan headless card
+// mid-list, which also keeps the heading numbering below contiguous. Mirrors
+// <Glossary>.
+const groups = groupBySection(formulas, labels.otherGroup);
 
 // A \displaystyle prefix in *inline* mode keeps fractions full-size and lets
 // \left(…\right)/matrix delimiters stretch to their content, while emitting a

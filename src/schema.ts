@@ -237,6 +237,8 @@ export const courseSchema = z.strictObject({
       memorizeLabel: z.string().default("Må pugges"),
       /** Empty state when no formula matches the sheet search. */
       sheetEmptyLabel: z.string().default("Ingen formler matcher søket."),
+      /** Heading for section-less formulas when the sheet is otherwise grouped. */
+      formulaSheetOtherGroupLabel: z.string().default("Andre formler"),
       glossaryLabel: z.string().default("Begreper"),
       /** Placeholder for the Begreper search field. */
       glossarySearchPlaceholder: z.string().default("Søk i begreper …"),
