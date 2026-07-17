@@ -434,14 +434,19 @@ const hasTools = toolNav.some((t) => t.show);
           // `astro:after-swap` alone is a frame too late and flashes bright.
           (function () {
             function isDark() {
+              // Only the storage read can throw (policy-blocked storage /
+              // private-mode-class browsers); the OS fallback must survive it,
+              // or a dark-OS reader gets forced light — the flip listener's
+              // "OS still wins" guarantee below routes through here.
+              let saved = null;
               try {
-                const saved = localStorage.getItem(themeKey);
-                return saved
-                  ? saved === "dark"
-                  : matchMedia("(prefers-color-scheme: dark)").matches;
+                saved = localStorage.getItem(themeKey);
               } catch (e) {
-                return false;
+                /* storage blocked — fall through to the OS preference */
               }
+              return saved
+                ? saved === "dark"
+                : matchMedia("(prefers-color-scheme: dark)").matches;
             }
             // Browser chrome (<meta name="theme-color">) follows the EFFECTIVE
             // theme — the data-theme the scripts applied, which a persisted
