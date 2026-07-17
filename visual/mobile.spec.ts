@@ -15,6 +15,10 @@ const PAGES = [
   // Compare lives on /sammenligning — captured here stacked to one column.
   { path: "/sammenligning", name: "module-sammenligning" },
   { path: "/", name: "overview" },
+  // Flashcards is a tool page — captured here for the thumb-zone layout: the
+  // rating row becomes a sticky bottom bar below 640px, which no desktop shot
+  // reaches. (No countdown/sim here, so the masks below simply match nothing.)
+  { path: "/flashcards", name: "flashcards" },
 ];
 
 for (const { path, name } of PAGES) {

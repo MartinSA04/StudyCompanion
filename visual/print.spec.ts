@@ -91,3 +91,20 @@ test("print forces Shiki code blocks to black-on-white ink economy", async ({
       .evaluate((n) => getComputedStyle(n).color),
   ).toBe("rgb(0, 0, 0)");
 });
+
+/**
+ * Screen reserves a stable scrollbar gutter (base.css) so the centered column
+ * never shifts between scrolling and non-scrolling pages; paper has no
+ * scrollbar, so the print block must release it or the column prints with a
+ * blank strip and sits off-axis. Mirrors the screen="stable" guard in
+ * flashcards-touch.spec.ts.
+ */
+test("print releases the reserved scrollbar gutter", async ({ page }) => {
+  await page.goto("/oversikt");
+  await page.emulateMedia({ media: "print" });
+  expect(
+    await page.evaluate(
+      () => getComputedStyle(document.documentElement).scrollbarGutter,
+    ),
+  ).toBe("auto");
+});
