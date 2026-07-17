@@ -174,13 +174,14 @@ const jsonLd = [
         </h2>
         {examDate && (
           <p>
-            <strong>Dato:</strong> {examDate}
+            <strong>Dato:</strong> {examDate}{" "}
             {daysToExam != null && daysToExam >= 0 && (
-              <span data-exam-countdown={examIso} data-countdown-hide-past>
-                {" — "}
-                <span data-countdown-text>
-                  {formatExamCountdown(daysToExam)}
-                </span>
+              <span
+                class="sc-countdown"
+                data-exam-countdown={examIso}
+                data-countdown-hide-past
+              >
+                {formatExamCountdown(daysToExam)}
               </span>
             )}
           </p>
@@ -230,9 +231,8 @@ const jsonLd = [
           data-exam-countdown={nextDeadline.date.toISOString()}
           data-countdown-hide-past
         >
-          {course.ui.nextDeadlineLabel}: {nextDeadline.title}
-          {" — "}
-          <span data-countdown-text>
+          {course.ui.nextDeadlineLabel}: {nextDeadline.title}{" "}
+          <span class="sc-countdown" data-countdown-text>
             {formatExamCountdown(daysUntil(nextDeadline.date))}
           </span>
         </p>

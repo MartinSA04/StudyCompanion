@@ -15,8 +15,9 @@ import {
  * - `data-exam-countdown` — the exam date as an ISO string; marks the pill.
  *   `data-past` is kept in sync on it (ExamSummary's muted past style).
  * - `data-countdown-text` — optional child that receives the phrase, so
- *   surrounding chrome (the overview's " — " separator) survives the rewrite;
- *   without it the phrase replaces the element's own text.
+ *   surrounding chrome (the Frister lede's "Neste frist: {title}" prefix)
+ *   survives the rewrite; without it the phrase replaces the element's own
+ *   text (the exam-card pill is such a bare carrier).
  * - `data-countdown-hide-past` — hide the element entirely once the exam is
  *   past instead of relabeling (the overview shows no "avholdt" note).
  * - `data-countdown-no-text` — sync `data-past`/`hidden` only, never rewrite

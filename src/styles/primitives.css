@@ -340,6 +340,28 @@ details[open] > summary .sc-chev {
   font-weight: var(--weight-semibold);
 }
 
+/* --- Countdown pill ("om N dager") ---
+   The accent pill every "days left" phrase wears: mono, accent-contrast text on
+   an accent fill, pill radius. Promoted from ExamSummary's .exam-when-count so
+   the overview exam card + Frister lede and the Eksamen page all share one look.
+   Callers own any surrounding layout (a flex gap, or an inline space). */
+.sc-countdown {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: var(--accent-contrast);
+  background: var(--accent);
+  border-radius: var(--radius-pill);
+  padding: 0.1em 0.7em;
+}
+/* A past exam's countdown reads as a muted note, not an urgent accent pill. */
+.sc-countdown[data-past="true"] {
+  color: var(--muted);
+  background: transparent;
+  /* --border: a non-interactive badge is panel structure, not a control (the
+     Structural-Border Rule reserves --border-strong for interactive frames). */
+  border: 1px solid var(--border);
+}
+
 /* --- Floating content card ---
    Fill + soft shadow at rest. base.css owns the nested-alternation (a card
    nested in another recesses to --card-nested with no shadow, via !important
