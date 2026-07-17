@@ -105,6 +105,19 @@ const html = ignoreInSearch(
     min-width: 150px;
     max-width: 100%;
     overflow-x: auto;
+    /* Same y-recipe as .katex-display (base.css): a one-axis scroll container
+       computes overflow-y to auto, so a few px of KaTeX strut overshoot would
+       grow a stray vertical scrollbar next to the horizontal one. hidden stops
+       that; the block padding absorbs ascenders/descenders so nothing clips.
+       The inline-end padding is slack of a different kind: KaTeX's intrinsic
+       max-content measurement understates its laid-out width by a couple px
+       (italic correction on trailing glyphs), so the flex-sized cell would
+       "overflow" by phantom pixels and summon a scrollbar with visible room
+       to spare. Landing the overshoot in padding suppresses that; genuinely
+       wide formulas still scroll. */
+    overflow-y: hidden;
+    padding-block: var(--space-1);
+    padding-inline-end: var(--space-1);
     color: var(--fg);
   }
   .fx :global(.katex) {

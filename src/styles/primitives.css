@@ -75,12 +75,15 @@
 /* WCAG 2.5.8: the 32px box is below the 38px --control-h target. Rather than
    inflate the visually calm button, extend the HIT AREA with a transparent
    ::after that overhangs 3px on every side (32 + 2*3 = 38px). It anchors to the
-   nearest positioned ancestor: .code-copy is itself position:absolute (base.css)
-   and .fs-copy sits in a position:relative .fs-row — both give the overlay a
-   context, and the 3px overhang stays inside those bounds. NOTE: primitives.css
-   loads after base.css, so we must NOT set `position` on .sc-copy here (it would
-   override .code-copy's position:absolute at equal specificity); the pseudo
-   anchoring to an existing context sidesteps that. */
+   nearest positioned ancestor, so EVERY caller must be positioned ITSELF:
+   .code-copy is position:absolute (base.css), .fs-copy position:relative (its
+   own file). An unpositioned caller inside a positioned container silently
+   stretches the button's hover/click target over that whole container — this
+   bit .fs-copy once (the pseudo anchored to the position:relative .fs-row and
+   made the entire formula row hover-copy). NOTE: primitives.css loads after
+   base.css, so we must NOT set `position` on .sc-copy here (it would override
+   .code-copy's position:absolute at equal specificity); positioning stays the
+   caller's job. */
 .sc-copy::after {
   content: "";
   position: absolute;
