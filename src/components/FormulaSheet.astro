@@ -159,7 +159,7 @@ const hasMemorize = examFormulaSheet && formulas.some((f) => f.memorize);
               data-memorize={String(examFormulaSheet && f.memorize)}
               data-text={haystack(f)}
             >
-              <span class="fs-render" set:html={html(f.tex)} />
+              <span class="fs-render" set:html={html(f.tex)} tabindex="0" />
               {f.label && (
                 <span class="fs-label" set:html={renderMathString(f.label)} />
               )}
@@ -310,9 +310,24 @@ const hasMemorize = examFormulaSheet && formulas.some((f) => f.memorize);
   .fs-row[hidden] {
     display: none;
   }
+  /* The cell is bare inline KaTeX, and the .fs-list card clips its own overflow
+     (for the rounded corners). An unbreakable-wide box — a \left(…\right) group,
+     matrix or wide fraction — would be clipped there with no way to reach the
+     rest. Contain the scroll to the cell instead: the same overflow-x/max-width
+     pair .formula-inline uses. flex:0 1 auto (not none) lets the cell shrink to
+     the row so its own overflow-x engages; with flex-shrink 0 a wide formula
+     takes the whole row and pushes the trailing label/copy button past the
+     card's overflow:hidden, clipping the button. min-width keeps a short formula
+     from collapsing under a long caption on desktop. tabindex=0 (on the element)
+     makes the scroll viewport keyboard-reachable, matching .katex-display / Shiki
+     <pre> / .table-scroll (WCAG 2.1.1): block panels and rows follow
+     .katex-display and stay focusable; only inline prose math (.formula-inline)
+     stays unfocusable. */
   .fs-render {
-    flex: none;
+    flex: 0 1 auto;
     min-width: 150px;
+    max-width: 100%;
+    overflow-x: auto;
     color: var(--fg);
   }
   .fs-render :global(.katex) {
@@ -356,6 +371,10 @@ const hasMemorize = examFormulaSheet && formulas.some((f) => f.memorize);
     }
     .fs-render {
       min-width: 0;
+      /* Fill the stacked row so the cell's own overflow-x scrolls a wide
+         formula, rather than the cell growing past the row and the card
+         clipping it. */
+      align-self: stretch;
     }
     .fs-copy {
       position: absolute;

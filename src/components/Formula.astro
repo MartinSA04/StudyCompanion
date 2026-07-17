@@ -45,7 +45,7 @@ const html = ignoreInSearch(
   block ? (
     <figure class="formula">
       <div class="formula-row">
-        <span class="fx" set:html={html} />
+        <span class="fx" set:html={html} tabindex="0" />
         {caption && <span class="desc" set:html={renderMathString(caption)} />}
         {memorize && <MemorizeBadge />}
       </div>
@@ -90,8 +90,21 @@ const html = ignoreInSearch(
     padding: var(--space-3) 0;
   }
   .fx {
-    flex: none;
+    /* Own scroll container so a wide, unbreakable formula scrolls inside this
+       cell rather than giving the whole page a horizontal scrollbar that shifts
+       the topbar/nav (WCAG 1.4.10). flex:0 1 auto (not none) lets the cell
+       shrink to the row so max-width:100% can cap it and overflow-x confine the
+       spill; the 150px floor only aligns narrow formulas and stays well under
+       the cap. The inline variant's baseline/vertical-align dance does not
+       apply here — .fx is a flex item under align-items:center, not an inline
+       box. tabindex=0 (on the element) makes the scroll viewport
+       keyboard-reachable, matching .katex-display / Shiki <pre> / .table-scroll
+       (WCAG 2.1.1): block panels follow .katex-display and stay focusable; only
+       inline prose math (.formula-inline) stays unfocusable. */
+    flex: 0 1 auto;
     min-width: 150px;
+    max-width: 100%;
+    overflow-x: auto;
     color: var(--fg);
   }
   .fx :global(.katex) {
