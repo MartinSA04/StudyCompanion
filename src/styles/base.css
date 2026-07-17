@@ -22,11 +22,32 @@ html {
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   scroll-behavior: smooth;
+  /* Reserve the classic-scrollbar gutter on every page so the centered content
+     column never shifts sideways. Most pages are long enough to scroll (gutter
+     present), but short ones — the hub, a stub page — don't, and on classic-
+     scrollbar platforms the browser nudges the whole centered column left by
+     the scrollbar width ONLY while a page scrolls: navigating between a
+     scrolling and a non-scrolling page then jerks the layout by that width. A
+     stable gutter reserves the space whether or not the page scrolls, so the
+     column holds still. Overlay-scrollbar platforms have no gutter to reserve,
+     so this is inert there. Released for print below (paper has no scrollbar). */
+  scrollbar-gutter: stable;
 }
 
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
+  }
+}
+
+/* Paper has no scrollbar, so release the reserved gutter (above) for print —
+   engines that size the gutter from the OS scrollbar width would otherwise
+   print a blank right-hand strip and push the centered column off-centre. The
+   shell's own @media print block owns the rest of the paper adjustments; this
+   sits with the declaration it undoes. */
+@media print {
+  html {
+    scrollbar-gutter: auto;
   }
 }
 
