@@ -334,7 +334,13 @@ const seo = {
 
   {
     props.kind === "formulas" && (
-      <>
+      /* data-pagefind-body: the formula sheet is one of the two reference
+         surfaces the search hint names (SearchPalette). Pagefind indexes ONLY
+         tagged elements once any page carries the attribute, so an untagged
+         tool page drops out of the index entirely. The tool pages' KaTeX is
+         already search-ignored at its .katex-mathml layer (lib/katex.ts
+         ignoreInSearch), so no raw-LaTeX doubling reaches the index here. */
+      <div data-pagefind-body>
         <header class="tool-head">
           <h1>{course.ui.formulaSheetLabel}</h1>
         </header>
@@ -344,6 +350,7 @@ const seo = {
             href={course.exam.formulaSheetUrl}
             target="_blank"
             rel="noopener noreferrer"
+            data-pagefind-ignore
           >
             <Icon name="file" size={18} />
             <span class="os-label">{course.ui.officialFormulaSheetLabel}</span>
@@ -362,13 +369,17 @@ const seo = {
             empty: course.ui.sheetEmptyLabel,
           }}
         />
-      </>
+      </div>
     )
   }
 
   {
     props.kind === "glossary" && (
-      <>
+      /* data-pagefind-body: the glossary is the second reference surface the
+         search hint names (SearchPalette); same single-body rule as the formula
+         sheet above. Its KaTeX is already search-ignored at .katex-mathml
+         (renderMathString → ignoreInSearch), so definitions index as text. */
+      <div data-pagefind-body>
         <header class="tool-head">
           <h1>{course.ui.glossaryLabel}</h1>
         </header>
@@ -381,7 +392,7 @@ const seo = {
             otherGroup: course.ui.glossaryOtherGroupLabel,
           }}
         />
-      </>
+      </div>
     )
   }
 

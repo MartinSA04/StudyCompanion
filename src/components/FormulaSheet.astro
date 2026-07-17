@@ -109,7 +109,12 @@ const hasMemorize = examFormulaSheet && formulas.some((f) => f.memorize);
   </div>
   {
     hasMemorize && (
-      <div class="fs-filter" role="group" aria-label="Filtrer formler">
+      <div
+        class="fs-filter"
+        role="group"
+        aria-label="Filtrer formler"
+        data-pagefind-ignore
+      >
         <button
           type="button"
           class="fs-chip sc-press sc-chip"
