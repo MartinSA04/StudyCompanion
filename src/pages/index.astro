@@ -5,6 +5,7 @@ import ImportanceTag from "../components/ImportanceTag.astro";
 import { loadCourse } from "../lib/loadCourse.ts";
 import { validateXrefs } from "../lib/xref.ts";
 import { daysUntil, formatExamCountdown } from "../lib/countdown.ts";
+import { upcomingDeadlines } from "../lib/deadlines.ts";
 import { formatDate } from "../lib/dates.ts";
 import { absoluteUrl, truncateDescription } from "../lib/seo.ts";
 import { courseLd } from "../lib/jsonLd.ts";
@@ -78,7 +79,16 @@ const examDate = course.exam?.date
 const daysToExam = course.exam?.date ? daysUntil(course.exam.date) : null;
 const examIso = course.exam?.date?.toISOString();
 const hasExamCard =
-  examDate || course.exam?.format || course.exam?.aids || daysToExam != null;
+  examDate ||
+  course.exam?.format ||
+  course.exam?.aids ||
+  course.exam?.time ||
+  daysToExam != null;
+
+// Overview agenda: dated coursework still ahead, soonest first. A build-time
+// snapshot — the page script hides any row that slips past the viewer's clock.
+const deadlines = upcomingDeadlines(course.deadlines);
+const nextDeadline = deadlines[0];
 
 // ---- SEO + structured data ----
 const overviewUrl = absoluteUrl("/", Astro.site);
@@ -175,6 +185,11 @@ const jsonLd = [
             )}
           </p>
         )}
+        {course.exam?.time && (
+          <p>
+            <strong>Tid:</strong> {course.exam.time}
+          </p>
+        )}
         {course.exam?.format && (
           <p>
             <strong>Form:</strong> {course.exam.format}
@@ -185,6 +200,72 @@ const jsonLd = [
             <strong>Hjelpemidler:</strong> {course.exam.aids}
           </p>
         )}
+        {/* Studentweb owns the authoritative exam facts; a quiet mono meta
+            line points there from every surface that prints them. */}
+        <p class="exam-authority">
+          <a
+            href={course.exam!.authorityUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {course.ui.examAuthorityNote}
+            <Icon name="external" size={14} />
+          </a>
+        </p>
+      </div>
+    )
+  }
+
+  {
+    deadlines.length > 0 && (
+      <div class="card">
+        <h2>
+          <span class="dot" />
+          {course.ui.deadlinesLabel}
+        </h2>
+        {/* Lede: the soonest deadline + its countdown. The phrase sits in a
+            data-countdown-text child so lib/examCountdown.ts re-derives it
+            against the viewer's clock; the whole line hides once it passes. */}
+        <p
+          data-exam-countdown={nextDeadline.date.toISOString()}
+          data-countdown-hide-past
+        >
+          {course.ui.nextDeadlineLabel}: {nextDeadline.title}
+          {" — "}
+          <span data-countdown-text>
+            {formatExamCountdown(daysUntil(nextDeadline.date))}
+          </span>
+        </p>
+        {/* Flat list, no per-section grouping and no done-states. Each row
+            carries its date only to auto-hide client-side once past
+            (data-countdown-no-text keeps its SSR text verbatim). */}
+        <ul class="deadline-list">
+          {deadlines.map((d) => (
+            <li
+              class="deadline-row"
+              data-exam-countdown={d.date.toISOString()}
+              data-countdown-hide-past
+              data-countdown-no-text
+            >
+              <time
+                class="deadline-date"
+                datetime={d.date.toISOString().slice(0, 10)}
+              >
+                {formatDate(d.date, course.language)}
+              </time>
+              <span class="deadline-body">
+                {d.url ? (
+                  <a href={d.url} target="_blank" rel="noopener noreferrer">
+                    {d.title}
+                  </a>
+                ) : (
+                  d.title
+                )}
+                {d.note && <span class="deadline-note">{d.note}</span>}
+              </span>
+            </li>
+          ))}
+        </ul>
       </div>
     )
   }
@@ -225,6 +306,60 @@ const jsonLd = [
   }
 </CourseLayout>
 
+<style>
+  /* Studentweb authority note under the exam facts — a quiet mono meta line
+     mirroring the hero's external "Emneside" link; a footnote, not a callout. */
+  .exam-authority {
+    margin-top: var(--gap-4);
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+  }
+  .exam-authority a {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--accent-ink);
+    text-decoration: none;
+  }
+  .exam-authority a:hover {
+    text-decoration: underline;
+  }
+
+  /* Overview deadline agenda — a flat dated list with no urgency ramp and no
+     done-states. Mono date as marginalia, serif title as content. */
+  .deadline-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+  .deadline-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--space-1) var(--space-3);
+  }
+  /* The date reads in the normal muted meta tone — never a colour that
+     intensifies as the deadline nears. */
+  .deadline-date {
+    flex: none;
+    min-width: 9rem;
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--muted);
+  }
+  .deadline-body {
+    color: var(--fg);
+  }
+  .deadline-note {
+    display: block;
+    color: var(--muted);
+    font-size: var(--text-sm);
+  }
+</style>
+
 <script>
   import { onPage } from "../lib/pageLifecycle.ts";
   import { paintOverview } from "../lib/progress.ts";
@@ -234,8 +369,9 @@ const jsonLd = [
     // Tile done-marks, the hero "N av M fullført" row and the continue link;
     // see lib/progress.ts for the paint/intersection contract.
     paintOverview(document);
-    // The exam card's "om N dager" is a build-time snapshot; recompute it
-    // against the viewer's clock (see lib/examCountdown.ts).
+    // The exam card's "om N dager" and the deadline agenda's rows are
+    // build-time snapshots; recompute/hide them against the viewer's clock
+    // (see lib/examCountdown.ts — same [data-exam-countdown] contract).
     refreshExamCountdowns();
   });
   // The incoming-overview pre-paint (so tiles never flash unmarked for a frame

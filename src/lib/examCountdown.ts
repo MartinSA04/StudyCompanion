@@ -19,6 +19,9 @@ import {
  *   without it the phrase replaces the element's own text.
  * - `data-countdown-hide-past` — hide the element entirely once the exam is
  *   past instead of relabeling (the overview shows no "avholdt" note).
+ * - `data-countdown-no-text` — sync `data-past`/`hidden` only, never rewrite
+ *   the phrase. For rows (the deadline agenda) that carry a date purely to
+ *   auto-hide once past; their SSR text is verbatim content, not a countdown.
  */
 export function refreshExamCountdowns(doc: Document = document): void {
   for (const el of doc.querySelectorAll<HTMLElement>("[data-exam-countdown]")) {
@@ -31,6 +34,9 @@ export function refreshExamCountdowns(doc: Document = document): void {
       el.hidden = past;
       if (past) continue; // hidden — no text left to maintain
     }
+    // Rows that carry a date only to auto-hide when past keep their SSR text
+    // verbatim; data-past/hidden are synced above, but no phrase is written.
+    if (el.dataset.countdownNoText != null) continue;
     const target = el.querySelector<HTMLElement>("[data-countdown-text]") ?? el;
     target.textContent = past ? EXAM_PAST_LABEL : formatExamCountdown(days);
   }

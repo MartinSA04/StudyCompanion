@@ -20,6 +20,7 @@ type FakeEl = {
     examCountdown?: string;
     past?: string;
     countdownHidePast?: string;
+    countdownNoText?: string;
   };
   hidden: boolean;
   textContent: string;
@@ -35,10 +36,11 @@ function isoInDays(days: number): string {
 
 function makeEl(
   iso: string,
-  opts: { hidePast?: boolean; child?: FakeTarget } = {},
+  opts: { hidePast?: boolean; noText?: boolean; child?: FakeTarget } = {},
 ): FakeEl {
   const dataset: FakeEl["dataset"] = { examCountdown: iso };
   if (opts.hidePast) dataset.countdownHidePast = "";
+  if (opts.noText) dataset.countdownNoText = "";
   return {
     dataset,
     hidden: false,
@@ -97,6 +99,24 @@ test("refreshExamCountdowns: without the child the pill's own text is set", () =
   const el = makeEl(iso);
   refreshExamCountdowns(fakeDoc([el]));
   assert.equal(el.textContent, formatExamCountdown(daysUntil(new Date(iso))));
+});
+
+test("refreshExamCountdowns: a no-text row syncs data-past but never writes a phrase", () => {
+  // The deadline agenda's rows carry a date only to auto-hide once past; their
+  // SSR text is verbatim content, so a still-future row is left untouched.
+  const el = makeEl(isoInDays(5), { hidePast: true, noText: true });
+  refreshExamCountdowns(fakeDoc([el]));
+  assert.equal(el.dataset.past, "false");
+  assert.equal(el.hidden, false);
+  assert.equal(el.textContent, "");
+});
+
+test("refreshExamCountdowns: a past no-text row hides without a relabel", () => {
+  const el = makeEl(isoInDays(-2), { hidePast: true, noText: true });
+  refreshExamCountdowns(fakeDoc([el]));
+  assert.equal(el.dataset.past, "true");
+  assert.equal(el.hidden, true);
+  assert.equal(el.textContent, "");
 });
 
 test("refreshExamCountdowns: an unparseable date is skipped", () => {
