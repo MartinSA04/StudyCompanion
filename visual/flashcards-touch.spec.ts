@@ -47,7 +47,7 @@ async function swipeCard(page: Page, card: Locator, dx: number, dy = 0) {
 // we drive them.
 async function ready(page: Page) {
   await page.waitForLoadState("networkidle");
-  await expect(page.locator("[data-fc-card]:not([hidden])")).toHaveAttribute(
+  await expect(page.locator("[data-fc-card][data-current]")).toHaveAttribute(
     "data-flipped",
     "false",
   );
@@ -65,7 +65,7 @@ test.describe("flashcards touch — swipe parity + thumb zone", () => {
     await expect(known).toHaveText("0");
     await expect(pos).toHaveText("1");
 
-    await swipeCard(page, deck.locator("[data-fc-card]:not([hidden])"), PAST);
+    await swipeCard(page, deck.locator("[data-fc-card][data-current]"), PAST);
 
     // Same result as clicking Kan ([data-fc-rate="1"]): the known tally climbs
     // and the deck moves on to the next card.
@@ -90,7 +90,7 @@ test.describe("flashcards touch — swipe parity + thumb zone", () => {
     await deck.locator("[data-fc-prev]").click();
     await expect(pos).toHaveText("1");
 
-    await swipeCard(page, deck.locator("[data-fc-card]:not([hidden])"), -PAST);
+    await swipeCard(page, deck.locator("[data-fc-card][data-current]"), -PAST);
 
     // Left commits the Øv path ([data-fc-rate="0"]): the card is marked
     // not-known (tally back to 0) and the deck advances — the Øv button's exact
@@ -107,7 +107,7 @@ test.describe("flashcards touch — swipe parity + thumb zone", () => {
     const deck = page.locator(".flashcards");
     const known = deck.locator("[data-fc-known]");
     const pos = deck.locator("[data-fc-pos]");
-    const card = deck.locator("[data-fc-card]:not([hidden])");
+    const card = deck.locator("[data-fc-card][data-current]");
 
     await swipeCard(page, card, UNDER);
 
@@ -133,7 +133,7 @@ test.describe("flashcards touch — swipe parity + thumb zone", () => {
     const deck = page.locator(".flashcards");
     const known = deck.locator("[data-fc-known]");
     const pos = deck.locator("[data-fc-pos]");
-    const card = deck.locator("[data-fc-card]:not([hidden])");
+    const card = deck.locator("[data-fc-card][data-current]");
 
     // dy dominates dx: a vertical intent (page scroll), not a swipe.
     await swipeCard(page, card, 12, 96);
@@ -176,9 +176,9 @@ test.describe("flashcards touch — swipe parity + thumb zone", () => {
     const known = deck.locator("[data-fc-known]");
 
     const firstId = await deck
-      .locator("[data-fc-card]:not([hidden])")
+      .locator("[data-fc-card][data-current]")
       .getAttribute("data-fc-id");
-    await swipeCard(page, deck.locator("[data-fc-card]:not([hidden])"), PAST);
+    await swipeCard(page, deck.locator("[data-fc-card][data-current]"), PAST);
     await expect(known).toHaveText("1");
 
     await page.reload();
@@ -189,20 +189,19 @@ test.describe("flashcards touch — swipe parity + thumb zone", () => {
     // …and the due-first queue puts the now-known card behind the not-known
     // ones, so it is no longer the card in view.
     const afterId = await deck
-      .locator("[data-fc-card]:not([hidden])")
+      .locator("[data-fc-card][data-current]")
       .getAttribute("data-fc-id");
     expect(afterId).not.toBe(firstId);
   });
 
-  test("the rating row is a sticky thumb bar on a phone viewport", async ({
+  test("the rating row is pinned to the bottom when the page scrolls", async ({
     page,
   }) => {
     await page.goto("/flashcards");
     await ready(page);
     // Force a short viewport so the page scrolls and the rating row's natural
-    // position sits well below the fold: only then is a sticky bar (pinned to
-    // the bottom) distinguishable from a static one (scrolled off). Width stays
-    // under the component's 640px thumb-zone breakpoint.
+    // position sits well below the fold. Width stays under the component's 640px
+    // thumb-zone breakpoint.
     await page.setViewportSize({ width: 393, height: 320 });
     const max = await page.evaluate(
       () => document.documentElement.scrollHeight - window.innerHeight,
@@ -214,10 +213,32 @@ test.describe("flashcards touch — swipe parity + thumb zone", () => {
     const box = await next.boundingBox();
     const vh = page.viewportSize()!.height;
     expect(box).not.toBeNull();
-    // position:sticky;bottom:0 pins the row to the bottom of the visual viewport
-    // instead of leaving it at its (below-the-fold) flow position: its bottom
-    // edge is within the viewport and hugs the bottom, in thumb reach. The lower
-    // bound is loose to allow the row's own bottom padding (safe-area inset).
+    // The fixed bar hugs the bottom of the visual viewport: its bottom edge is
+    // within the viewport and in thumb reach. The lower bound is loose to allow
+    // the row's own bottom padding (safe-area inset).
+    expect(box!.y + box!.height).toBeLessThanOrEqual(vh + 1);
+    expect(box!.y + box!.height).toBeGreaterThan(vh - 48);
+  });
+
+  test("the thumb bar stays pinned even scrolled to the very bottom — fixed, not sticky", async ({
+    page,
+  }) => {
+    await page.goto("/flashcards");
+    await ready(page);
+    // The deck fills the screen and the footer sits below it, so the page always
+    // scrolls. Scroll all the way down: a `position: sticky` bar releases here and
+    // rides up to its in-flow slot ABOVE the footer (leaving the viewport floor to
+    // the footer), while a `position: fixed` bar stays welded to the floor. This
+    // is the guarantee the maintainer wanted — the controls are always under the
+    // thumb, never stranded mid-screen.
+    await page.evaluate(() =>
+      window.scrollTo(0, document.documentElement.scrollHeight),
+    );
+    const box = await page.locator("[data-fc-next]").boundingBox();
+    const vh = page.viewportSize()!.height;
+    expect(box).not.toBeNull();
+    // Bottom edge welded to the viewport floor (allowing the row's own bottom
+    // padding). A sticky bar at max scroll would be well above this.
     expect(box!.y + box!.height).toBeLessThanOrEqual(vh + 1);
     expect(box!.y + box!.height).toBeGreaterThan(vh - 48);
   });
@@ -236,6 +257,22 @@ test.describe("flashcards touch — swipe parity + thumb zone", () => {
     expect(gutter).toContain("stable");
   });
 
+  test("the page footer sits below the fold on a phone — it doesn't compete with the deck", async ({
+    page,
+  }) => {
+    await page.goto("/flashcards");
+    await ready(page);
+    // The deck fills the phone screen (card centred, controls pinned), so the
+    // shared site footer starts at or below the viewport floor — a reader has to
+    // scroll to reach it, and it stops pulling attention off the card.
+    const footer = page.locator("footer.site-footer");
+    await expect(footer).toHaveCount(1);
+    const box = await footer.boundingBox();
+    const vh = page.viewportSize()!.height;
+    expect(box).not.toBeNull();
+    expect(box!.y).toBeGreaterThanOrEqual(vh - 1);
+  });
+
   test("prefers-reduced-motion: a swipe still commits, with no follow transform", async ({
     page,
   }) => {
@@ -248,11 +285,14 @@ test.describe("flashcards touch — swipe parity + thumb zone", () => {
     await ready(page);
     const deck = page.locator(".flashcards");
     const known = deck.locator("[data-fc-known]");
-    const card = deck.locator("[data-fc-card]:not([hidden])");
+    const card = deck.locator("[data-fc-card][data-current]");
     await expect(known).toHaveText("0");
 
     // Drive the drag inline (not via swipeCard) so we can read the card's inline
-    // transform at full extension, before release: it must stay empty.
+    // transform at full extension, before release. The top card carries a resting
+    // stack transform; under reduce it must NOT follow the finger, so the value
+    // stays exactly what it was at rest (no per-move rewrite).
+    const rest = await card.evaluate((el) => el.style.transform);
     const box = await card.boundingBox();
     if (!box) throw new Error("no visible card to swipe");
     const cx = box.x + box.width / 2;
@@ -260,7 +300,7 @@ test.describe("flashcards touch — swipe parity + thumb zone", () => {
     await page.mouse.move(cx, cy);
     await page.mouse.down();
     await page.mouse.move(cx + PAST, cy, { steps: 8 });
-    expect(await card.evaluate((el) => el.style.transform)).toBe("");
+    expect(await card.evaluate((el) => el.style.transform)).toBe(rest);
     await page.mouse.up();
 
     // Verdict commits regardless of the motion preference: Kan tally climbs.

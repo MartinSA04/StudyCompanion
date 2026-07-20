@@ -96,9 +96,26 @@ const hasSections = sections.length > 0;
         data-fc-unknown
         aria-pressed="false">Kun ukjente</button
       >
-      <button type="button" class="fc-chip sc-press sc-chip" data-fc-shuffle
-        >Bland</button
+      <button
+        type="button"
+        class="fc-chip sc-press sc-chip fc-shuffle"
+        data-fc-shuffle
+        aria-label="Bland kortene"
       >
+        {
+          /* Icon-only: the shuffle glyph at rest, cross-fading to a check for a
+            beat after a click to confirm the (off-screen) reorder landed. Both
+            glyphs occupy one grid cell so the chip never resizes mid-swap.
+            aria-label above carries the accessible name; the glyphs are
+            decorative to AT. */
+        }
+        <span class="fc-shuffle-face fc-shuffle-idle" aria-hidden="true">
+          <Icon name="shuffle" size={15} />
+        </span>
+        <span class="fc-shuffle-face fc-shuffle-done" aria-hidden="true">
+          <Icon name="check" size={15} />
+        </span>
+      </button>
     </div>
   </div>
 
@@ -117,6 +134,7 @@ const hasSections = sections.length > 0;
           data-index={i}
           data-fc-id={card.id}
           data-section={card.section}
+          data-current={i === 0 ? "true" : undefined}
           hidden={i !== 0}
         >
           <span class="fc-inner">
@@ -270,6 +288,31 @@ const hasSections = sections.length > 0;
     gap: var(--space-2);
   }
   /* Chips are fully the shared .sc-chip (size, hover, selected state). */
+  /* Shuffle chip: an icon + label that cross-fades to a check + "Blandet" for a
+     beat after a click, so a one-shot action gives visible feedback. Both faces
+     occupy the same grid cell — the chip keeps its widest width and never
+     reflows the toolbar mid-swap. */
+  .fc-shuffle {
+    display: inline-grid;
+    place-items: center;
+  }
+  .fc-shuffle-face {
+    grid-area: 1 / 1;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    transition: opacity var(--dur-fast) var(--ease);
+  }
+  .fc-shuffle-done {
+    opacity: 0;
+    color: var(--accent-ink);
+  }
+  .fc-shuffle[data-shuffled="true"] .fc-shuffle-idle {
+    opacity: 0;
+  }
+  .fc-shuffle[data-shuffled="true"] .fc-shuffle-done {
+    opacity: 1;
+  }
   /* Empty/finished state — fills the card slot (dashed placeholder), and the
      rating controls hide, so it reads as a deliberate end-state rather than
      orphaned buttons over a vanished card. */
@@ -317,31 +360,43 @@ const hasSections = sections.length > 0;
   }
 
   .fc-stage {
-    perspective: 1200px;
-  }
-  .fc-card {
     position: relative;
-    display: block;
-    width: 100%;
-    min-height: 200px;
+    perspective: 1200px;
+    /* The cards are absolutely stacked (below) and carry no flow height, so the
+       stage sets it — a little over the 200px content floor. */
+    min-height: 240px;
+    /* Let the cards peeking out below the top card show their rim. */
+    margin-bottom: var(--space-3);
+  }
+  /* The deck is a small STACK: the current card on top, with the next card (and,
+     deeper, the previous) already rendered behind it and nudged down, so a slow
+     drag slides the top card off to preview the one beneath — a real z-stack,
+     not a text swap. All cards share one box (absolute, inset:0), layered by
+     z-index; the script (applyRole) owns each card's transform, z, opacity and
+     interactivity per role, and animates role changes through the transition
+     declared here. */
+  .fc-card {
+    position: absolute;
+    inset: 0;
     padding: 0;
     border: 0;
     background: none;
     text-align: left;
+    transform-origin: center;
     /* Vertical page scroll still starts on the card; horizontal drags reach the
        swipe handler instead of being claimed by the browser as a pan. */
     touch-action: pan-y;
+    transition:
+      transform var(--dur) var(--ease),
+      opacity var(--dur) var(--ease);
+    will-change: transform;
   }
-  /* `.fc-card { display:block }` would otherwise override the [hidden]
-     attribute (the deck shows one card at a time via `hidden`). */
   .fc-card[hidden] {
     display: none;
   }
   .fc-inner {
-    position: relative;
-    display: block;
-    width: 100%;
-    min-height: 200px;
+    position: absolute;
+    inset: 0;
     transition: transform var(--dur) var(--ease);
     transform-style: preserve-3d;
   }
@@ -361,10 +416,9 @@ const hasSections = sections.length > 0;
     padding: var(--space-6) var(--space-5);
     transition: box-shadow var(--dur-fast) var(--ease);
   }
-  /* Same shadow-lift as the tiles (the 1px rise + transition come from .sc-lift
-     on .fc-card): the face's resting shadow grows on hover, signalling "click to
-     flip". The shadow lives on the face, not the card, hence the child target. */
-  .fc-card:hover .fc-face {
+  /* Only the top (current) card lifts on hover — the peeked cards behind it are
+     inert. The shadow lives on the face, not the card, hence the child target. */
+  .fc-card[data-current]:hover .fc-face {
     box-shadow: var(--shadow);
   }
   /* Float (fill + shadow + radius) comes from the shared .sc-panel; the answer
@@ -418,7 +472,7 @@ const hasSections = sections.length > 0;
     font-size: var(--text-xs);
     font-weight: var(--weight-semibold);
   }
-  .fc-card[data-level="1"] .fc-level {
+  .fc-card[data-level="1"][data-current] .fc-level {
     display: inline-flex;
   }
   .fc-level-check {
@@ -476,31 +530,57 @@ const hasSections = sections.length > 0;
     }
   }
 
-  /* Thumb-zone controls: on a phone the rating/nav row pins to the bottom of the
-     viewport so the card scrolls above it and the primary actions sit under the
-     thumb. --bg fill + a top hairline lift it off the scrolling card, and the
-     safe-area inset keeps it clear of the home indicator. Targets grow to the
-     44px WCAG touch size — the 38px --control-h is a pointer-scale token, below
-     that bar. Desktop keeps the inline row untouched. */
+  /* Thumb-zone controls: on a phone the rating/nav row is FIXED to the bottom of
+     the viewport so the primary actions always sit under the thumb — sticky only
+     pinned once the page had scrolled far enough, leaving the row stranded
+     mid-screen on a short page. Full-bleed --bg fill + a top hairline lift it off
+     the card, and the safe-area inset clears the home indicator. The rating pair
+     grows to fill the bar (full-width targets); the nav arrows keep their size.
+     Targets grow to the 44px WCAG touch size — the 38px --control-h is a
+     pointer-scale token, below that bar. Desktop keeps the inline row untouched. */
   @media (max-width: 640px) {
     .fc-controls {
-      position: sticky;
+      position: fixed;
+      left: 0;
+      right: 0;
       bottom: 0;
-      z-index: 1;
+      z-index: 5;
       background: var(--bg);
       border-top: 1px solid var(--border);
-      padding-block: var(--space-3);
+      padding: var(--space-3) var(--space-4);
       padding-bottom: calc(var(--space-3) + env(safe-area-inset-bottom));
+    }
+    /* Reserve the fixed bar's footprint at the end of the deck so it never
+       covers the counter or the page's own footer. 72px ≈ 44px target + block
+       padding + hairline. */
+    .flashcards {
+      padding-bottom: calc(72px + env(safe-area-inset-bottom));
+    }
+    /* Give the card the room to sit CENTRED on the phone screen (not tucked
+       under the toolbar), which also pushes the page footer below the fold so it
+       stops competing with the deck for attention. The absolute cards fill this
+       taller stage (inset:0) and their faces centre the text, so the Q/A lands
+       mid-screen. dvh tracks the mobile browser's collapsing chrome; the value
+       clears the header + toolbar above and the fixed control bar below. */
+    .fc-stage {
+      min-height: calc(100dvh - 23rem);
+    }
+    /* Full-width rating targets: the Øv/Kan pair fills the space between the
+       arrows, each button splitting it evenly. */
+    .fc-rate {
+      flex: 1;
+    }
+    .fc-rate .fc-btn {
+      flex: 1;
     }
     .fc-btn,
     .fc-nav {
       min-height: 44px;
     }
-    /* Keep focus/scrollIntoView targets clear of the sticky bar: on short
-       viewports (split-screen, foldables) tabbing to the card could otherwise
-       tuck it fully behind the controls. 72px ≈ the bar's height (44px button
-       + block padding + hairline); over-padding merely scrolls a touch
-       further. Scoped :global — only the flashcards page has the bar. */
+    /* Keep focus/scrollIntoView targets clear of the fixed bar: tabbing to the
+       card must not tuck it behind the controls. 72px ≈ the bar's height;
+       over-padding merely scrolls a touch further. Scoped :global — only the
+       flashcards page has the bar. */
     :global(html) {
       scroll-padding-bottom: calc(72px + env(safe-area-inset-bottom));
     }
@@ -550,8 +630,11 @@ const hasSections = sections.length > 0;
       );
     };
 
-    const focusCard = () =>
-      cards.find((c) => !c.hidden)?.focus({ preventScroll: true });
+    const focusCard = () => currentCard()?.focus({ preventScroll: true });
+
+    const stage = deck.querySelector<HTMLElement>(".fc-stage")!;
+    const prefersReduced = () =>
+      window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
 
     // Plain text of a face's card text, for the live announcement. KaTeX
     // output carries both MathML (what a screen reader gets) and an
@@ -697,29 +780,106 @@ const hasSections = sections.length > 0;
       paintBadges();
     };
 
+    // ---- The stack: current on top, next (and, deeper, previous) behind it ----
+    // Every card shares one absolute box; its role decides transform, z, opacity
+    // and interactivity. Roles change through the transition on .fc-card, so a
+    // nav/rating slides the top card off while the next rises from behind.
+    const REST = {
+      current: "translate3d(0, 0, 0) scale(1)",
+      next: "translate3d(0, 14px, 0) scale(0.95)",
+      prev: "translate3d(0, 26px, 0) scale(0.9)",
+    } as const;
+    const roleZ = { current: "3", next: "2", prev: "1" } as const;
+    const roleOpacity = { current: "1", next: "1", prev: "0.55" } as const;
+    type Role = "current" | "next" | "prev";
+
+    const currentCard = () =>
+      cards.find((c) => c.dataset.current === "true") ?? null;
+    const nextCard = () => {
+      const len = queue.length;
+      if (len < 2) return null;
+      const idx = queue[(pos + 1) % len];
+      return (
+        cards.find((c) => Number(c.dataset.index) === idx && !c.hidden) ?? null
+      );
+    };
+
+    // Position one card for its role (or hide it). `snap` applies the position
+    // with no transition — for first paint, and to fold a flown-off card back
+    // into the pile without it sliding in.
+    const applyRole = (
+      c: HTMLButtonElement,
+      role: Role | null,
+      snap: boolean,
+    ) => {
+      if (!role) {
+        c.hidden = true;
+        c.dataset.flipped = "false";
+        delete c.dataset.current;
+        c.setAttribute("aria-hidden", "true");
+        c.tabIndex = -1;
+        c.style.transition = "";
+        c.style.transform = "";
+        c.style.opacity = "";
+        c.style.zIndex = "";
+        c.style.pointerEvents = "";
+        syncFaces(c);
+        return;
+      }
+      const isCurrent = role === "current";
+      c.hidden = false;
+      c.style.transition = snap ? "none" : "";
+      c.style.zIndex = roleZ[role];
+      c.style.opacity = roleOpacity[role];
+      c.style.transform = REST[role];
+      c.style.pointerEvents = isCurrent ? "" : "none";
+      c.tabIndex = isCurrent ? 0 : -1;
+      c.setAttribute("aria-hidden", isCurrent ? "false" : "true");
+      c.dataset.flipped = "false";
+      if (isCurrent) c.dataset.current = "true";
+      else delete c.dataset.current;
+      syncFaces(c);
+      if (snap) {
+        void c.offsetHeight; // commit the snapped position before re-enabling
+        c.style.transition = "";
+      }
+    };
+
+    // The role a card at deck index `i` should take at the current `pos`.
+    const roleFor = (i: number): Role | null => {
+      const len = queue.length;
+      if (i === queue[pos]) return "current";
+      if (len > 1 && i === queue[(pos + 1) % len]) return "next";
+      if (len > 2 && i === queue[(pos - 1 + len) % len]) return "prev";
+      return null;
+    };
+
+    // Assign every card its stack role. `except` leaves one card untouched (the
+    // outgoing card, mid-fly-off); `snap` is `true` for all, or a set of cards
+    // to position without animating.
+    const layout = (
+      opts: {
+        except?: HTMLElement | null;
+        snap?: Set<HTMLElement> | true;
+      } = {},
+    ) => {
+      cards.forEach((c) => {
+        if (c === opts.except) return;
+        const snap = opts.snap === true || (opts.snap?.has(c) ?? false);
+        applyRole(c, roleFor(Number(c.dataset.index)), snap);
+      });
+    };
+
     // Suppress the live announcement on the initial paint: page load isn't a
     // card change, and announcing the first card would talk over the page.
     let firstPaint = true;
-    const show = () => {
-      const idx = queue[pos];
-      const isEmpty = idx === undefined;
-      // Hiding the focused card orphans focus up to <main> (a tabindex=-1
-      // container), which would draw a focus ring around the whole page. If the
-      // card had focus, keep it on the deck by moving focus to the new card.
-      const refocus = cards.includes(
-        document.activeElement as HTMLButtonElement,
-      );
+    // Counters, announcement and empty-state copy — everything that isn't the
+    // card geometry (layout() owns that).
+    const postShow = () => {
+      const isEmpty = queue[pos] === undefined;
       deck.dataset.empty = isEmpty ? "true" : "false";
-      cards.forEach((c) => {
-        c.hidden = isEmpty || Number(c.dataset.index) !== idx;
-        c.dataset.flipped = "false";
-        syncFaces(c);
-      });
-      if (refocus && !isEmpty) {
-        focusCard();
-      }
       if (!firstPaint && !isEmpty) {
-        const cur = cards.find((c) => !c.hidden);
+        const cur = currentCard();
         if (cur) announce(cur);
       }
       firstPaint = false;
@@ -749,15 +909,102 @@ const hasSections = sections.length > 0;
       }
     };
 
+    // Full (re)render for the non-animated callers (filters, shuffle, reset,
+    // first paint). Keeps focus on the deck if a card held it — hiding a focused
+    // card would orphan focus to <main> and ring the whole page.
+    const show = (opts: { instant?: boolean } = {}) => {
+      const hadFocus = cards.includes(
+        document.activeElement as HTMLButtonElement,
+      );
+      layout({ snap: opts.instant ? true : undefined });
+      postShow();
+      if (hadFocus && queue[pos] !== undefined) focusCard();
+    };
+
+    // Spring the dragged cards back to rest without touching flip state (a
+    // sub-threshold drag must not silently un-flip the card in view).
+    const springBack = () => {
+      const cur = currentCard();
+      if (cur) {
+        cur.style.transition = "";
+        cur.style.transform = REST.current;
+      }
+      const nxt = nextCard();
+      if (nxt) {
+        nxt.style.transition = "";
+        nxt.style.transform = REST.next;
+        nxt.style.opacity = roleOpacity.next;
+      }
+    };
+
+    // Move to queue index `nextPos`, sliding the current card off toward `dir`
+    // while the next card rises from behind. Degrades to an instant swap under
+    // reduced motion, a single-card queue, or a no-op move.
+    const goTo = (nextPos: number, dir: "left" | "right") => {
+      const len = queue.length;
+      if (!len) {
+        pos = 0;
+        show();
+        return;
+      }
+      const wrapped = ((nextPos % len) + len) % len;
+      const outgoing = currentCard();
+      const hadFocus = cards.includes(
+        document.activeElement as HTMLButtonElement,
+      );
+      if (prefersReduced() || len <= 1 || wrapped === pos || !outgoing) {
+        pos = wrapped;
+        show();
+        return;
+      }
+      // Fly the outgoing card off the top of the stack. It keeps whatever
+      // transform a drag left on it, so a committed swipe continues from the
+      // finger rather than snapping to centre first.
+      const sign = dir === "right" ? 1 : -1;
+      outgoing.style.transition =
+        "transform calc(var(--dur) * 1.3) var(--ease), opacity calc(var(--dur) * 1.3) var(--ease)";
+      outgoing.style.transform = `translate3d(${sign * 118}%, 0, 0) rotate(${sign * 8}deg)`;
+      outgoing.style.opacity = "0";
+      outgoing.style.zIndex = "4";
+      outgoing.style.pointerEvents = "none";
+      outgoing.tabIndex = -1;
+      outgoing.setAttribute("aria-hidden", "true");
+      delete outgoing.dataset.current;
+      // Promote the rest: the next card becomes current and rises to the front.
+      pos = wrapped;
+      layout({ except: outgoing });
+      postShow();
+      if (hadFocus) focusCard();
+      // Once it has flown clear, fold the outgoing card into its new role behind
+      // the pile with no animation, so it doesn't slide back in.
+      let settled = false;
+      const settle = () => {
+        if (settled) return;
+        settled = true;
+        outgoing.style.opacity = "";
+        outgoing.style.zIndex = "";
+        applyRole(outgoing, roleFor(Number(outgoing.dataset.index)), true);
+      };
+      outgoing.addEventListener(
+        "transitionend",
+        (e) => {
+          if ((e as TransitionEvent).propertyName === "transform") settle();
+        },
+        { once: true },
+      );
+      setTimeout(settle, 500);
+    };
+
     // Navigation is a stable carousel: the queue order only changes when the
     // reader changes a filter, shuffles or resets — never silently mid-session,
     // so next/prev always moves to a different card (unless only one matches).
-    const advance = (delta: number) => {
-      const qlen = queue.length;
-      if (!qlen) return;
-      pos = (pos + delta + qlen) % qlen;
-      show();
-    };
+    // Forward slides the card left; back slides it right.
+    const advance = (delta: number) =>
+      goTo(pos + delta, delta < 0 ? "right" : "left");
+
+    // A committed swipe sets the fling direction so the card exits the way it was
+    // thrown; a button/keyboard rating mirrors the verdict below.
+    let pendingExit: "left" | "right" | null = null;
 
     const rate = (known: boolean) => {
       const idx = queue[pos];
@@ -768,12 +1015,14 @@ const hasSections = sections.length > 0;
       // can't clobber the other's ratings by rewriting the whole key from a
       // load-time snapshot. Adopting the merged state also converges this tab's
       // view on ratings other tabs made, without rebuilding the queue under the
-      // card in view (advance() moves off it next anyway).
+      // card in view (goTo() moves off it next anyway).
       levels = load().levels;
       levels[cards[idx].dataset.fcId!] = known ? 1 : 0;
       save(levels);
       renderProgress();
-      advance(1);
+      const dir = pendingExit ?? (known ? "right" : "left");
+      pendingExit = null;
+      goTo(pos + 1, dir);
     };
 
     // Card click = flip
@@ -802,45 +1051,55 @@ const hasSections = sections.length > 0;
     // buttons stay the canonical (and only guaranteed) way to act — swipe is
     // never the sole route. During a drag the visible card follows the finger
     // and springs back on a sub-threshold release.
-    const stage = deck.querySelector<HTMLElement>(".fc-stage")!;
     const reviewBtn =
       deck.querySelector<HTMLButtonElement>('[data-fc-rate="0"]')!;
     const knownBtn =
       deck.querySelector<HTMLButtonElement>('[data-fc-rate="1"]')!;
-    const prefersReduced = () =>
-      window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
-    const shownCard = () => cards.find((c) => !c.hidden);
     // A committed swipe's pointerup synthesises a trailing click on the card;
     // swallow that one so a rating doesn't also flip the card. onEnd sets this
     // per gesture (and the capture handler only acts on pointer clicks, detail
     // > 0), so it can neither leak onto a later tap nor eat a keyboard flip.
     let swallowFlip = false;
+    // How far the top card may follow the finger before release — enough travel
+    // to slide it clear and preview the next card rising behind it.
+    const DRAG_CAP = SWIPE_THRESHOLD * 2;
     const cleanupSwipe = attachSwipe(stage, {
       onMove(dx) {
         // prefers-reduced-motion: no follow transform at all — the verdict
         // still commits on release.
         if (prefersReduced()) return;
-        const card = shownCard();
+        const card = currentCard();
         if (!card) return;
-        // Follow the finger, capped at 1.2× threshold with a ≤3° lean.
-        // transition:none keeps the follow 1:1; clearing it on release restores
-        // .sc-lift's transform transition, which springs the card back.
-        const t = Math.max(-1, Math.min(1, dx / (SWIPE_THRESHOLD * 1.2)));
+        // The top card follows the finger (capped, with a slight lean); the next
+        // card rises from its peek toward the front in proportion, so a slow
+        // drag literally previews it. transition:none keeps the follow 1:1.
+        const clamped = Math.max(-DRAG_CAP, Math.min(DRAG_CAP, dx));
+        const t = clamped / DRAG_CAP;
         card.style.transition = "none";
-        card.style.transform = `translateX(${t * SWIPE_THRESHOLD * 1.2}px) rotate(${t * 3}deg)`;
+        card.style.transform = `translate3d(${clamped}px, 0, 0) rotate(${t * 4}deg)`;
+        const nxt = nextCard();
+        if (nxt) {
+          const p = Math.min(1, Math.abs(dx) / DRAG_CAP);
+          nxt.style.transition = "none";
+          nxt.style.transform = `translate3d(0, ${14 * (1 - p)}px, 0) scale(${0.95 + 0.05 * p})`;
+        }
       },
       onEnd(verdict) {
-        const card = shownCard();
-        if (card) {
-          card.style.transition = "";
-          card.style.transform = "";
-        }
         // Rating hidden (all-known / filter-empty end state) ⇒ swipe does
         // nothing.
         const commit = verdict !== null && deck.dataset.empty !== "true";
-        swallowFlip = commit;
-        if (!commit) return;
-        (verdict === "right" ? knownBtn : reviewBtn).click();
+        if (commit) {
+          // Leave the drag transform on the card: rate() → goTo() slides it off
+          // from the finger, so there's no snap-back-then-fly flicker. pendingExit
+          // just fixes the fling direction.
+          pendingExit = verdict as "left" | "right";
+          swallowFlip = true;
+          (verdict === "right" ? knownBtn : reviewBtn).click();
+          return;
+        }
+        // Sub-threshold / vetoed as a scroll: spring the cards back to rest.
+        swallowFlip = false;
+        springBack();
       },
     });
     signal.addEventListener("abort", cleanupSwipe, { once: true });
@@ -931,6 +1190,12 @@ const hasSections = sections.length > 0;
     // Shuffle toggle
     const shuffleBtn =
       deck.querySelector<HTMLButtonElement>("[data-fc-shuffle]");
+    // The confirmation glyph outlives the click handler — clear it on the page
+    // swap so it can't fire into a replaced deck (same shape as undoTimer).
+    let shuffleTimer: ReturnType<typeof setTimeout> | undefined;
+    signal.addEventListener("abort", () => clearTimeout(shuffleTimer), {
+      once: true,
+    });
     if (shuffleBtn) {
       // "Bland" is a one-shot action: each click reshuffles the current cards
       // into a fresh random order (not a sticky sorted/shuffled toggle).
@@ -941,6 +1206,13 @@ const hasSections = sections.length > 0;
         }
         pos = 0;
         show();
+        // Cross-fade the shuffle glyph to a check for a beat, so a one-shot
+        // action that changes off-screen order still confirms it landed.
+        shuffleBtn.dataset.shuffled = "true";
+        clearTimeout(shuffleTimer);
+        shuffleTimer = setTimeout(() => {
+          delete shuffleBtn.dataset.shuffled;
+        }, 1100);
       });
     }
 
@@ -975,7 +1247,7 @@ const hasSections = sections.length > 0;
           )
         )
           return;
-        const cur = cards.find((c) => !c.hidden);
+        const cur = currentCard();
         if (!cur) return;
         if (e.key === " " || e.key === "Enter") {
           // A focused button (the card itself or a control) already activates on
@@ -1012,6 +1284,6 @@ const hasSections = sections.length > 0;
 
     buildQueue();
     renderProgress();
-    show();
+    show({ instant: true });
   });
 </script>

@@ -75,7 +75,7 @@ for (const theme of THEMES) {
     await page.waitForLoadState("networkidle");
 
     const deck = page.locator(".flashcards");
-    const card = deck.locator("[data-fc-card]:not([hidden])");
+    const card = deck.locator("[data-fc-card][data-current]");
     // Clicking the card flips it (the card is itself the flip button); the CSS
     // 3D flip is a transition, disabled by the config's animations:"disabled",
     // so the back face settles immediately.

@@ -20,7 +20,7 @@ test.describe("flashcards keyboard after mouse clicks", () => {
     await expect(pos).toHaveText("2");
 
     await page.keyboard.press("Space");
-    await expect(deck.locator("[data-fc-card]:not([hidden])")).toHaveAttribute(
+    await expect(deck.locator("[data-fc-card][data-current]")).toHaveAttribute(
       "data-flipped",
       "true",
     );
@@ -35,7 +35,7 @@ test.describe("flashcards keyboard after mouse clicks", () => {
 
     await deck.locator("[data-fc-shuffle]").click();
     await page.keyboard.press("Space");
-    await expect(deck.locator("[data-fc-card]:not([hidden])")).toHaveAttribute(
+    await expect(deck.locator("[data-fc-card][data-current]")).toHaveAttribute(
       "data-flipped",
       "true",
     );
@@ -52,7 +52,7 @@ test.describe("flashcards keyboard after mouse clicks", () => {
     await expect(page.locator("main")).toBeFocused();
 
     await page.keyboard.press("ArrowRight");
-    const card = page.locator("[data-fc-card]:not([hidden])");
+    const card = page.locator("[data-fc-card][data-current]");
     await expect(card).toBeFocused();
     expect(await card.evaluate((el) => el.matches(":focus-visible"))).toBe(
       true,
@@ -65,7 +65,7 @@ test.describe("flashcards keyboard after mouse clicks", () => {
     await page.goto("/flashcards");
     await page.locator("main h1").click();
     await page.keyboard.press("Space");
-    const card = page.locator("[data-fc-card]:not([hidden])");
+    const card = page.locator("[data-fc-card][data-current]");
     // "true" proves a single flip: a double flip (our handler + a stray native
     // activation on the freshly-focused card) would land back on "false".
     await expect(card).toHaveAttribute("data-flipped", "true");
