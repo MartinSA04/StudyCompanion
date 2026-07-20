@@ -31,7 +31,13 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm test
+      # No `pnpm test` gate here: the full suite runs on every push in ci.yml
+      # (same commit, in parallel), and it includes release.test.ts — which
+      # checks the course-template lockfile against its pin. That check is red on
+      # the release commit by design (the lockfile sync is a separate post-tag
+      # commit), which would fail the deploy and, worse, not re-run on the
+      # lockfile-sync commit (outside this workflow's path filter), stranding the
+      # hub un-deployed. `pnpm hub:build` below is the real gate for the hub.
       - run: pnpm hub:build
       - uses: actions/upload-pages-artifact@v3
         with:
