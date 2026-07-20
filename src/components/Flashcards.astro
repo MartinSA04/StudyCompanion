@@ -363,10 +363,16 @@ const hasSections = sections.length > 0;
     position: relative;
     perspective: 1200px;
     /* The cards are absolutely stacked (below) and carry no flow height, so the
-       stage sets it — a little over the 200px content floor. */
-    min-height: 240px;
-    /* Let the cards peeking out below the top card show their rim. */
+       stage sets it — taller than the card so the card centres with room for the
+       peeked cards' rim above and below. */
+    min-height: 300px;
     margin-bottom: var(--space-3);
+    /* Clip the card that flies off on a rating/nav so it can't grow the document
+       (a horizontal scrollbar / page-stretch mid-swipe). `clip` — not `hidden` —
+       keeps it out of the scroll box without becoming a scroll container, and the
+       margin still lets the resting card's hover shadow and the peek rim show. */
+    overflow: clip;
+    overflow-clip-margin: 24px;
   }
   /* The deck is a small STACK: the current card on top, with the next card (and,
      deeper, the previous) already rendered behind it and nudged down, so a slow
@@ -377,7 +383,12 @@ const hasSections = sections.length > 0;
      declared here. */
   .fc-card {
     position: absolute;
+    /* inset:0 + a fixed height + margin:auto centres the card in the (taller)
+       stage, so it reads as a card floating on the page rather than a full-height
+       slab. The role transforms nudge from that centred rest position. */
     inset: 0;
+    height: 240px;
+    margin: auto;
     padding: 0;
     border: 0;
     background: none;
@@ -530,19 +541,37 @@ const hasSections = sections.length > 0;
     }
   }
 
-  /* Thumb-zone controls: on a phone the rating/nav row is FIXED to the bottom of
-     the viewport so the primary actions always sit under the thumb — sticky only
-     pinned once the page had scrolled far enough, leaving the row stranded
-     mid-screen on a short page. Full-bleed --bg fill + a top hairline lift it off
-     the card, and the safe-area inset clears the home indicator. The rating pair
-     grows to fill the bar (full-width targets); the nav arrows keep their size.
-     Targets grow to the 44px WCAG touch size — the 38px --control-h is a
-     pointer-scale token, below that bar. Desktop keeps the inline row untouched. */
+  /* Thumb-zone controls on a phone. The deck becomes a column that fills the
+     screen (so the card centres and the footer falls below the fold), and the
+     rating/nav row STICKS to the viewport bottom while the card is in view — the
+     primary actions sit under the thumb. Because it's sticky, not fixed, it rides
+     up out of the way when you scroll on to the footer, so the footer needs no
+     dead scroll-room beneath it (an earlier `position: fixed` did, and reserving
+     that room globally leaked padding onto every page). It no longer strands
+     mid-screen — the old failure mode — because the deck now always fills the
+     viewport. Full-bleed --bg fill + a top hairline + safe-area inset. Desktop
+     keeps the inline row untouched. */
   @media (max-width: 640px) {
+    .flashcards {
+      display: flex;
+      flex-direction: column;
+      /* Fill the viewport so the sticky bar has scroll range to pin against and
+         the footer starts just below the fold. dvh tracks the live viewport, so
+         the deck matches it (bar reliably pinned) without the overshoot that
+         leaves dead space under the footer at the end of the scroll. */
+      min-height: 100dvh;
+    }
+    /* The stage absorbs the column's slack, centring the card mid-screen; the
+       card keeps a modest, card-shaped height (centred by its margin:auto). */
+    .fc-stage {
+      flex: 1 1 auto;
+      min-height: 14rem;
+    }
+    .fc-card {
+      height: clamp(12rem, 34dvh, 16rem);
+    }
     .fc-controls {
-      position: fixed;
-      left: 0;
-      right: 0;
+      position: sticky;
       bottom: 0;
       z-index: 5;
       background: var(--bg);
@@ -550,23 +579,8 @@ const hasSections = sections.length > 0;
       padding: var(--space-3) var(--space-4);
       padding-bottom: calc(var(--space-3) + env(safe-area-inset-bottom));
     }
-    /* Reserve the fixed bar's footprint at the end of the deck so it never
-       covers the counter or the page's own footer. 72px ≈ 44px target + block
-       padding + hairline. */
-    .flashcards {
-      padding-bottom: calc(72px + env(safe-area-inset-bottom));
-    }
-    /* Give the card the room to sit CENTRED on the phone screen (not tucked
-       under the toolbar), which also pushes the page footer below the fold so it
-       stops competing with the deck for attention. The absolute cards fill this
-       taller stage (inset:0) and their faces centre the text, so the Q/A lands
-       mid-screen. dvh tracks the mobile browser's collapsing chrome; the value
-       clears the header + toolbar above and the fixed control bar below. */
-    .fc-stage {
-      min-height: calc(100dvh - 23rem);
-    }
     /* Full-width rating targets: the Øv/Kan pair fills the space between the
-       arrows, each button splitting it evenly. */
+       arrows, each button splitting it evenly, at the 44px WCAG touch size. */
     .fc-rate {
       flex: 1;
     }
@@ -576,13 +590,6 @@ const hasSections = sections.length > 0;
     .fc-btn,
     .fc-nav {
       min-height: 44px;
-    }
-    /* Keep focus/scrollIntoView targets clear of the fixed bar: tabbing to the
-       card must not tuck it behind the controls. 72px ≈ the bar's height;
-       over-padding merely scrolls a touch further. Scoped :global — only the
-       flashcards page has the bar. */
-    :global(html) {
-      scroll-padding-bottom: calc(72px + env(safe-area-inset-bottom));
     }
   }
 </style>

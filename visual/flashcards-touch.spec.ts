@@ -151,6 +151,55 @@ test.describe("flashcards touch — swipe parity + thumb zone", () => {
     );
   });
 
+  test("dragging a card doesn't stretch the page — the displaced card is clipped", async ({
+    page,
+  }) => {
+    await page.goto("/flashcards");
+    await ready(page);
+    const card = page.locator("[data-fc-card][data-current]");
+    const box = await card.boundingBox();
+    if (!box) throw new Error("no visible card to swipe");
+    const cx = box.x + box.width / 2;
+    const cy = box.y + box.height / 2;
+    // Drag the top card well to the right and HOLD: its displaced body (and, on
+    // release, the fly-off at translateX(118%)) must be clipped by the stage's
+    // `overflow: clip`, not grow the document into a horizontal scrollbar.
+    await page.mouse.move(cx, cy);
+    await page.mouse.down();
+    await page.mouse.move(cx + 200, cy, { steps: 6 });
+    const overflow = await page.evaluate(
+      () =>
+        document.documentElement.scrollWidth -
+        document.documentElement.clientWidth,
+    );
+    await page.mouse.up();
+    expect(overflow).toBeLessThanOrEqual(0);
+  });
+
+  test("scrolling to the footer lifts the sticky bar clear of it", async ({
+    page,
+  }) => {
+    // scroll-behavior:smooth (base.css) animates programmatic scrolls; reduce
+    // makes them instant so we measure the settled positions, not mid-animation.
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.goto("/flashcards");
+    await ready(page);
+    await page.evaluate(() =>
+      window.scrollTo(0, document.documentElement.scrollHeight),
+    );
+    const vh = page.viewportSize()!.height;
+    const fbox = await page.locator("footer.site-footer").boundingBox();
+    const bbox = await page.locator(".fc-controls").boundingBox();
+    expect(fbox).not.toBeNull();
+    expect(bbox).not.toBeNull();
+    // The whole footer is in view at the bottom of the scroll...
+    expect(fbox!.y + fbox!.height).toBeLessThanOrEqual(vh + 1);
+    // ...and the STICKY bar has released and ridden up ABOVE the footer — it is
+    // not a fixed overlay welded to the floor, so nothing covers the footer and
+    // no dead scroll-room is reserved beneath it.
+    expect(bbox!.y + bbox!.height).toBeLessThanOrEqual(fbox!.y + 1);
+  });
+
   test("the Kan button still works as a touch tap", async ({ page }) => {
     await page.goto("/flashcards");
     await ready(page);
@@ -194,53 +243,23 @@ test.describe("flashcards touch — swipe parity + thumb zone", () => {
     expect(afterId).not.toBe(firstId);
   });
 
-  test("the rating row is pinned to the bottom when the page scrolls", async ({
+  test("the rating bar is pinned to the phone's bottom edge at rest", async ({
     page,
   }) => {
     await page.goto("/flashcards");
     await ready(page);
-    // Force a short viewport so the page scrolls and the rating row's natural
-    // position sits well below the fold. Width stays under the component's 640px
-    // thumb-zone breakpoint.
-    await page.setViewportSize({ width: 393, height: 320 });
-    const max = await page.evaluate(
-      () => document.documentElement.scrollHeight - window.innerHeight,
-    );
-    expect(max).toBeGreaterThan(80);
-
-    await page.evaluate(() => window.scrollTo(0, 60));
-    const next = page.locator("[data-fc-next]");
-    const box = await next.boundingBox();
+    // The deck fills the phone screen, so the sticky bar pins to the viewport
+    // floor while the card is in view — the primary actions sit under the thumb
+    // with no scrolling needed. (It rides up only when you scroll on to the
+    // footer, verified above.) This is the fix for the old sticky bar that
+    // stranded mid-screen on a short deck.
     const vh = page.viewportSize()!.height;
-    expect(box).not.toBeNull();
-    // The fixed bar hugs the bottom of the visual viewport: its bottom edge is
-    // within the viewport and in thumb reach. The lower bound is loose to allow
-    // the row's own bottom padding (safe-area inset).
-    expect(box!.y + box!.height).toBeLessThanOrEqual(vh + 1);
-    expect(box!.y + box!.height).toBeGreaterThan(vh - 48);
-  });
-
-  test("the thumb bar stays pinned even scrolled to the very bottom — fixed, not sticky", async ({
-    page,
-  }) => {
-    await page.goto("/flashcards");
-    await ready(page);
-    // The deck fills the screen and the footer sits below it, so the page always
-    // scrolls. Scroll all the way down: a `position: sticky` bar releases here and
-    // rides up to its in-flow slot ABOVE the footer (leaving the viewport floor to
-    // the footer), while a `position: fixed` bar stays welded to the floor. This
-    // is the guarantee the maintainer wanted — the controls are always under the
-    // thumb, never stranded mid-screen.
-    await page.evaluate(() =>
-      window.scrollTo(0, document.documentElement.scrollHeight),
-    );
-    const box = await page.locator("[data-fc-next]").boundingBox();
-    const vh = page.viewportSize()!.height;
-    expect(box).not.toBeNull();
-    // Bottom edge welded to the viewport floor (allowing the row's own bottom
-    // padding). A sticky bar at max scroll would be well above this.
-    expect(box!.y + box!.height).toBeLessThanOrEqual(vh + 1);
-    expect(box!.y + box!.height).toBeGreaterThan(vh - 48);
+    const bbox = await page.locator(".fc-controls").boundingBox();
+    expect(bbox).not.toBeNull();
+    // Bottom edge hugging the viewport floor (loose lower bound for the row's own
+    // bottom padding / safe-area inset).
+    expect(bbox!.y + bbox!.height).toBeLessThanOrEqual(vh + 1);
+    expect(bbox!.y + bbox!.height).toBeGreaterThan(vh - 48);
   });
 
   test("the scrollbar gutter is reserved on the root element", async ({
