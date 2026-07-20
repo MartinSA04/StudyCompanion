@@ -63,30 +63,49 @@ const hasSections = sections.length > 0;
   <div class="fc-toolbar">
     {
       hasSections && (
-        <div
-          class="fc-section-chips"
-          role="group"
-          aria-label="Filtrer etter seksjon"
-        >
-          <button
-            type="button"
-            class="fc-chip active sc-press sc-chip"
-            data-fc-section=""
-            aria-pressed="true"
+        <>
+          {/* Two forms of the same section filter: a chip row on desktop, and a
+              native <select> on a phone — many sections would wrap the chips into
+              several rows and eat the screen, whereas the select stays one line
+              and opens the OS picker. CSS shows exactly one per breakpoint; the
+              script keeps both in sync. */}
+          <div
+            class="fc-section-chips"
+            role="group"
+            aria-label="Filtrer etter seksjon"
           >
-            Alle
-          </button>
-          {sections.map((s) => (
             <button
               type="button"
-              class="fc-chip sc-press sc-chip"
-              data-fc-section={s}
-              aria-pressed="false"
+              class="fc-chip active sc-press sc-chip"
+              data-fc-section=""
+              aria-pressed="true"
             >
-              {s}
+              Alle
             </button>
-          ))}
-        </div>
+            {sections.map((s) => (
+              <button
+                type="button"
+                class="fc-chip sc-press sc-chip"
+                data-fc-section={s}
+                aria-pressed="false"
+              >
+                {s}
+              </button>
+            ))}
+          </div>
+          <span class="fc-section-select-wrap">
+            <select
+              class="fc-section-select"
+              data-fc-section-select
+              aria-label="Filtrer etter seksjon"
+            >
+              <option value="">Alle</option>
+              {sections.map((s) => (
+                <option value={s}>{s}</option>
+              ))}
+            </select>
+          </span>
+        </>
       )
     }
     <div class="fc-toggles">
@@ -286,6 +305,58 @@ const hasSections = sections.length > 0;
     display: flex;
     flex-wrap: wrap;
     gap: var(--space-2);
+  }
+  /* The phone section picker (shown only ≤640px, below): the native <select>
+     stripped of its OS chrome and dressed as a .sc-chip — same borderless pill,
+     mono type, bg-elevated fill and hover wash — so it reads as one of the deck's
+     own filter controls, not a system widget. The list itself stays native (the
+     OS wheel — good touch UX). A wrapper draws the chevron, since a <select>
+     can't carry its own ::after. */
+  .fc-section-select-wrap {
+    display: none;
+    position: relative;
+    align-items: center;
+    min-width: 0;
+    max-width: 55vw;
+  }
+  .fc-section-select {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 100%;
+    /* Room on the right for the chevron the wrapper draws. */
+    padding: 0.35em 1.9em 0.35em 0.8em;
+    border: 0;
+    border-radius: var(--radius-pill);
+    background: var(--bg-elevated);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--muted);
+    text-overflow: ellipsis;
+    cursor: pointer;
+    transition:
+      color var(--dur-fast) var(--ease),
+      background-color var(--dur-fast) var(--ease);
+  }
+  .fc-section-select:hover {
+    color: var(--accent-ink);
+    background: var(--card-hover);
+  }
+  /* Chevron: a rotated corner in the muted ink, echoing the hover to accent. */
+  .fc-section-select-wrap::after {
+    content: "";
+    position: absolute;
+    right: 0.8em;
+    width: 0.42em;
+    height: 0.42em;
+    color: var(--muted);
+    border-right: 1.5px solid currentColor;
+    border-bottom: 1.5px solid currentColor;
+    transform: translateY(-25%) rotate(45deg);
+    pointer-events: none;
+    transition: color var(--dur-fast) var(--ease);
+  }
+  .fc-section-select-wrap:hover::after {
+    color: var(--accent-ink);
   }
   /* Chips are fully the shared .sc-chip (size, hover, selected state). */
   /* Shuffle chip: an icon + label that cross-fades to a check + "Blandet" for a
@@ -561,14 +632,25 @@ const hasSections = sections.length > 0;
          leaves dead space under the footer at the end of the scroll. */
       min-height: 100dvh;
     }
-    /* The stage absorbs the column's slack, centring the card mid-screen; the
-       card keeps a modest, card-shaped height (centred by its margin:auto). */
+    /* Swap the wrapping section chips for the one-line chip-styled picker. */
+    .fc-section-chips {
+      display: none;
+    }
+    .fc-section-select-wrap {
+      display: inline-flex;
+    }
+    /* The stage absorbs the column's slack; the card sits at the TOP of it (the
+       slack falls below), which lands the card near the middle of the SCREEN —
+       the header + title + toolbar above it already occupy roughly the top half,
+       so centring the card within the stage would push it too low. */
     .fc-stage {
       flex: 1 1 auto;
       min-height: 14rem;
     }
     .fc-card {
       height: clamp(12rem, 34dvh, 16rem);
+      margin-top: var(--space-4);
+      margin-bottom: auto;
     }
     .fc-controls {
       position: sticky;
@@ -1163,22 +1245,37 @@ const hasSections = sections.length > 0;
       }, 8000);
     });
 
-    // Section filter chips
+    // Section filter — a chip row (desktop) and a native <select> (phone) drive
+    // the same filter; apply keeps both reflecting the chosen section so a
+    // viewport change never shows a stale selection.
     const sectionChips = [
       ...deck.querySelectorAll<HTMLButtonElement>("[data-fc-section]"),
     ];
-    sectionChips.forEach((chip) => {
-      chip.addEventListener("click", () => {
-        filter.section = chip.dataset.fcSection ?? "";
-        sectionChips.forEach((c) => {
-          c.classList.toggle("active", c === chip);
-          c.setAttribute("aria-pressed", c === chip ? "true" : "false");
-        });
-        buildQueue();
-        pos = 0;
-        show();
+    const sectionSelect = deck.querySelector<HTMLSelectElement>(
+      "[data-fc-section-select]",
+    );
+    const applySectionFilter = (value: string) => {
+      filter.section = value;
+      sectionChips.forEach((c) => {
+        const on = (c.dataset.fcSection ?? "") === value;
+        c.classList.toggle("active", on);
+        c.setAttribute("aria-pressed", on ? "true" : "false");
       });
+      if (sectionSelect && sectionSelect.value !== value) {
+        sectionSelect.value = value;
+      }
+      buildQueue();
+      pos = 0;
+      show();
+    };
+    sectionChips.forEach((chip) => {
+      chip.addEventListener("click", () =>
+        applySectionFilter(chip.dataset.fcSection ?? ""),
+      );
     });
+    sectionSelect?.addEventListener("change", () =>
+      applySectionFilter(sectionSelect.value),
+    );
 
     // Unknown-only toggle
     const unknownBtn =

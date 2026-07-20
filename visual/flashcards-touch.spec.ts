@@ -200,6 +200,32 @@ test.describe("flashcards touch — swipe parity + thumb zone", () => {
     expect(bbox!.y + bbox!.height).toBeLessThanOrEqual(fbox!.y + 1);
   });
 
+  test("the section dropdown (phone) filters the deck to that section", async ({
+    page,
+  }) => {
+    await page.goto("/flashcards");
+    await ready(page);
+    const deck = page.locator(".flashcards");
+    const select = deck.locator("[data-fc-section-select]");
+    // The chip row is swapped for this native select ≤640px; it must be the
+    // visible control here and carry an option per section.
+    await expect(select).toBeVisible();
+    await expect(deck.locator(".fc-section-chips")).toBeHidden();
+    const total = deck.locator("[data-fc-total]");
+    const fullCount = Number(await total.textContent());
+
+    // Pick the first real section; the deck narrows to just its cards, and the
+    // card in view belongs to it.
+    const section = await select.locator("option").nth(1).getAttribute("value");
+    await select.selectOption(section);
+
+    await expect(deck.locator("[data-fc-card][data-current]")).toHaveAttribute(
+      "data-section",
+      section!,
+    );
+    expect(Number(await total.textContent())).toBeLessThan(fullCount);
+  });
+
   test("the Kan button still works as a touch tap", async ({ page }) => {
     await page.goto("/flashcards");
     await ready(page);
