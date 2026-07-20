@@ -7,6 +7,11 @@ import { faviconDataUri } from "../../src/lib/favicon.ts";
 // (cwd-independent) and puts the YAML in the module graph so `hub:dev`
 // hot-reloads it.
 import raw from "../courses.yaml?raw";
+import {
+  daysUntil,
+  formatExamCountdown,
+  EXAM_PAST_LABEL,
+} from "../../src/lib/countdown.ts";
 import "../../src/styles/fonts.css";
 import "../../src/styles/tokens.css";
 import "../../src/styles/base.css";
@@ -23,15 +28,42 @@ type HubCourse = {
   url: string;
   term: string;
   note?: string;
+  /** Hand-mirrored from the course repo's exam.date (see courses.yaml). */
+  examDate?: string;
 };
 const courses = parse(raw) as HubCourse[];
 
-// Group by term, groups in file order of first appearance — no sort logic.
+// A tile's live countdown: the same phrase the course header shows, computed
+// at build time and re-derived client-side (script below). A past exam yields a
+// null pill (hidden) — a completed course shouldn't advertise a stale date.
+const countdownFor = (c: HubCourse) => {
+  if (!c.examDate) return null;
+  const date = new Date(c.examDate);
+  if (Number.isNaN(date.getTime())) return null;
+  const days = daysUntil(date);
+  return {
+    iso: date.toISOString(),
+    days,
+    phrase: days < 0 ? EXAM_PAST_LABEL : formatExamCountdown(days),
+  };
+};
+
+// Group by term, groups in file order of first appearance. Within a term, tiles
+// sort by soonest exam (F11) — the multi-course triage glance "which exam is
+// closest?" — with undated courses last, keeping their file order.
 const groups: { term: string; courses: HubCourse[] }[] = [];
 for (const c of courses) {
   const g = groups.find((g) => g.term === c.term);
   if (g) g.courses.push(c);
   else groups.push({ term: c.term, courses: [c] });
+}
+for (const g of groups) {
+  g.courses.sort((a, b) => {
+    if (!a.examDate && !b.examDate) return 0;
+    if (!a.examDate) return 1;
+    if (!b.examDate) return -1;
+    return a.examDate.localeCompare(b.examDate);
+  });
 }
 // "H2026" → "Høst 2026", "V2026" → "Vår 2026" (term shape is CI-tested).
 const termLabel = (t: string) =>
@@ -125,19 +157,44 @@ const themeKey = "sc:theme:hub";
           <section class="hub-term">
             <h2 class="hub-term-label sc-kicker">{termLabel(g.term)}</h2>
             <ul class="hub-list">
-              {g.courses.map((c) => (
-                <li>
-                  <a class="hub-tile sc-press sc-tile sc-lift" href={c.url}>
-                    <span class="hub-code sc-kicker">{c.code}</span>
-                    <span class="hub-title">{c.title}</span>
-                    {c.note && <span class="hub-note">{c.note}</span>}
-                  </a>
-                </li>
-              ))}
+              {g.courses.map((c) => {
+                const cd = countdownFor(c);
+                return (
+                  <li>
+                    <a class="hub-tile sc-press sc-tile sc-lift" href={c.url}>
+                      <span class="hub-tile-head">
+                        <span class="hub-code sc-kicker">{c.code}</span>
+                        {cd && (
+                          <time
+                            class="sc-countdown hub-countdown"
+                            datetime={c.examDate}
+                            data-exam-countdown={cd.iso}
+                            data-past={cd.days < 0}
+                            data-countdown-hide-past
+                            hidden={cd.days < 0}
+                          >
+                            {cd.phrase}
+                          </time>
+                        )}
+                      </span>
+                      <span class="hub-title">{c.title}</span>
+                      {c.note && <span class="hub-note">{c.note}</span>}
+                    </a>
+                  </li>
+                );
+              })}
             </ul>
           </section>
         ))
       }
+      <script>
+        import { onPage } from "../../src/lib/pageLifecycle.ts";
+        import { refreshExamCountdowns } from "../../src/lib/examCountdown.ts";
+        // Tile countdowns SSR a build-time snapshot; re-derive per load against
+        // the viewer's clock (and hide any that have since passed) — the same
+        // contract the course header's pill uses.
+        onPage(() => refreshExamCountdowns());
+      </script>
       <footer class="hub-foot">
         <a href="https://github.com/MartinSA04/StudyCompanion"
           >StudyCompanion på GitHub</a
@@ -189,10 +246,22 @@ const themeKey = "sc:theme:hub";
     text-decoration: none;
     color: var(--fg);
   }
+  /* Code on the left, the exam countdown pill (when present) opposite it — the
+     tile's "which exam is closest" glance without opening the course. */
+  .hub-tile-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);
+  }
   /* Mono uppercase recipe from .sc-kicker; --accent-ink for AA on the panel
      fill in both themes (same reasoning as the flashcard section kicker). */
   .hub-code {
     color: var(--accent-ink);
+  }
+  /* The pill is fully the shared .sc-countdown; keep it from stretching the row. */
+  .hub-countdown {
+    flex: none;
   }
   .hub-title {
     font-size: var(--text-lg);

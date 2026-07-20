@@ -1,25 +1,36 @@
 # Course hub data (kurs.martinsundal.no) — one entry per course site.
-# File order is display order; keep the newest semester first.
+# File order within a term is a fallback; the hub sorts a term's tiles by
+# examDate (soonest first), undated last.
+#
+# examDate MIRRORS each course repo's own exam.date by hand (there is no build
+# link between the two), so it can go stale if a course moves its exam — the
+# tile's countdown auto-hides once the date passes, which bounds the risk to a
+# stale FUTURE date. Keep it in sync when you bump a course's exam.
 - code: FY2045
   title: Kvantemekanikk I
   url: https://kvante.martinsundal.no
   term: H2026
+  examDate: "2026-12-15"
 - code: TDT4120
   title: Algoritmer og datastrukturer
   url: https://algdat.martinsundal.no
   term: H2026
+  examDate: "2026-12-09"
 - code: TFE4146
   title: Halvlederkomponenter
   url: https://halvleder.martinsundal.no
   term: H2026
+  examDate: "2026-11-21"
 - code: TFY4220
   title: Faste stoffers fysikk
   url: https://fastestoffer.martinsundal.no
   term: H2026
+  examDate: "2026-12-17"
 - code: TFY4345
   title: Klassisk mekanikk
   url: https://klasmek.martinsundal.no
   term: H2026
+  examDate: "2026-11-24"
 - code: TFY4195
   title: Optikk
   url: https://optikk.martinsundal.no

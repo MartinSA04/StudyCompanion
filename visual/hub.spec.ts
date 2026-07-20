@@ -25,6 +25,9 @@ for (const theme of THEMES) {
     await page.waitForLoadState("networkidle");
     await expect(page).toHaveScreenshot(`hub-${theme}.png`, {
       fullPage: true,
+      // Tile exam countdowns SSR a live "om N dager" that drifts every day, so
+      // mask the pills — the tile ORDER (sorted by exam date) stays asserted.
+      mask: [page.locator("[data-exam-countdown]")],
     });
   });
 }
