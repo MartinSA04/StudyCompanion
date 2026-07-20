@@ -21,7 +21,7 @@ exam:
   # reintroduce the UTC-midnight print bug lib/dates.ts guards against.
   time: "09:00"
   durationMinutes: 240
-  format: 4t skriftlig
+  format: Skriftlig
   aids: Godkjent kalkulator + formelsamling
   # Link the OFFICIAL exam formula sheet. Prefer a university-hosted PDF; if none
   # exists, vendor the PDF in public/ and link that (e.g. "/formelark.pdf").

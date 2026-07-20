@@ -287,12 +287,14 @@ export const courseSchema = z.strictObject({
           "Utvalget under er de mest relevante settene. Eldre eksamener finnes i det fullstendige arkivet.",
         ),
       /** Muted link to exam.authorityUrl rendered on every exam-facts surface. */
-      examAuthorityNote: z
-        .string()
-        .default("Offisiell eksamensinformasjon finnes i Studentweb"),
+      examAuthorityNote: z.string().default("Offisiell eksamensinfo"),
       /** Heading for the dated-coursework agenda block on the overview. */
       deadlinesLabel: z.string().default("Frister"),
-      /** Lede prefix on the overview agenda: "Neste frist: …". */
+      /**
+       * DEPRECATED (unused since the almanac-leaf agenda replaced the "Neste
+       * frist: …" lede; the next deadline is now marked in the list itself).
+       * Kept because removing a ui key is a breaking schema change.
+       */
       nextDeadlineLabel: z.string().default("Neste frist"),
       courseLabel: z.string().default("Emneside"),
       tocLabel: z.string().default("Innhold"),

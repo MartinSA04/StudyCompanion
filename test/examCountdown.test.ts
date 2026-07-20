@@ -1,6 +1,9 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { refreshExamCountdowns } from "../src/lib/examCountdown.ts";
+import {
+  refreshExamCountdowns,
+  refreshDeadlineNext,
+} from "../src/lib/examCountdown.ts";
 import {
   daysUntil,
   formatExamCountdown,
@@ -124,4 +127,93 @@ test("refreshExamCountdowns: an unparseable date is skipped", () => {
   refreshExamCountdowns(fakeDoc([el]));
   assert.equal(el.dataset.past, undefined);
   assert.equal(el.textContent, "");
+});
+
+/**
+ * `refreshDeadlineNext` owns the agenda's next-marker: after the hide-pass
+ * above has hidden past rows, the first VISIBLE row in each
+ * [data-deadline-list] carries data-next (the enlarged leaf) and shows its
+ * countdown pill; every other row loses both. Same stand-in approach — the
+ * helper only reads `.hidden`, toggles `.dataset.next`/pill `.hidden`, and
+ * queries rows/pills by attribute.
+ */
+type FakePill = { hidden: boolean };
+type FakeRow = {
+  dataset: { next?: string };
+  hidden: boolean;
+  querySelector(sel: string): FakePill | null;
+};
+type FakeList = { querySelectorAll(sel: string): FakeRow[] };
+
+function makeRow(opts: { hidden?: boolean; next?: boolean } = {}): FakeRow & {
+  pill: FakePill;
+} {
+  const pill: FakePill = { hidden: !opts.next };
+  return {
+    dataset: opts.next ? { next: "" } : {},
+    hidden: opts.hidden ?? false,
+    querySelector: () => pill,
+    pill,
+  };
+}
+
+function fakeListDoc(lists: FakeRow[][]): Document {
+  const wrapped: FakeList[] = lists.map((rows) => ({
+    querySelectorAll: () => rows,
+  }));
+  return { querySelectorAll: () => wrapped } as unknown as Document;
+}
+
+test("refreshDeadlineNext: the SSR state (row 1 next, pill shown) is kept when row 1 is visible", () => {
+  const rows = [makeRow({ next: true }), makeRow(), makeRow()];
+  refreshDeadlineNext(fakeListDoc([rows]));
+  assert.equal(rows[0].dataset.next, "");
+  assert.equal(rows[0].pill.hidden, false);
+  assert.equal(rows[1].dataset.next, undefined);
+  assert.equal(rows[1].pill.hidden, true);
+  assert.equal(rows[2].dataset.next, undefined);
+  assert.equal(rows[2].pill.hidden, true);
+});
+
+test("refreshDeadlineNext: a hidden first row hands next + pill to the second", () => {
+  const rows = [makeRow({ next: true, hidden: true }), makeRow(), makeRow()];
+  refreshDeadlineNext(fakeListDoc([rows]));
+  assert.equal(rows[0].dataset.next, undefined);
+  assert.equal(rows[0].pill.hidden, true);
+  assert.equal(rows[1].dataset.next, "");
+  assert.equal(rows[1].pill.hidden, false);
+  assert.equal(rows[2].dataset.next, undefined);
+  assert.equal(rows[2].pill.hidden, true);
+});
+
+test("refreshDeadlineNext: all rows hidden leaves no next-marker at all", () => {
+  const rows = [
+    makeRow({ next: true, hidden: true }),
+    makeRow({ hidden: true }),
+  ];
+  refreshDeadlineNext(fakeListDoc([rows]));
+  assert.equal(rows[0].dataset.next, undefined);
+  assert.equal(rows[0].pill.hidden, true);
+  assert.equal(rows[1].dataset.next, undefined);
+  assert.equal(rows[1].pill.hidden, true);
+});
+
+test("refreshDeadlineNext: lists are independent — each keeps its own next", () => {
+  const a = [makeRow({ next: true, hidden: true }), makeRow()];
+  const b = [makeRow({ next: true }), makeRow()];
+  refreshDeadlineNext(fakeListDoc([a, b]));
+  assert.equal(a[1].dataset.next, "");
+  assert.equal(a[1].pill.hidden, false);
+  assert.equal(b[0].dataset.next, "");
+  assert.equal(b[0].pill.hidden, false);
+});
+
+test("refreshDeadlineNext: a row without a pill is still markable", () => {
+  const bare: FakeRow = {
+    dataset: {},
+    hidden: false,
+    querySelector: () => null,
+  };
+  refreshDeadlineNext(fakeListDoc([[bare]]));
+  assert.equal(bare.dataset.next, "");
 });

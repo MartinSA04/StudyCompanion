@@ -6,7 +6,7 @@ import FormulaSheet from "../components/FormulaSheet.astro";
 import Glossary from "../components/Glossary.astro";
 import Flashcards from "../components/Flashcards.astro";
 import ExamList from "../components/ExamList.astro";
-import ExamSummary from "../components/ExamSummary.astro";
+import ExamCard from "../components/ExamCard.astro";
 import Icon from "../components/Icon.astro";
 import PageToc from "../components/PageToc.astro";
 import ImportanceTag from "../components/ImportanceTag.astro";
@@ -423,8 +423,10 @@ const seo = {
         <header class="tool-head">
           <h1>{course.ui.examsLabel}</h1>
         </header>
+        {/* Same card as the overview; the kicker is omitted because the
+            page h1 above already says "Eksamen". */}
         {course.exam && (
-          <ExamSummary
+          <ExamCard
             exam={course.exam}
             language={course.language}
             authorityNote={course.ui.examAuthorityNote}
