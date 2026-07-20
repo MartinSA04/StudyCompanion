@@ -657,6 +657,19 @@ const hasTools = toolNav.some((t) => t.show);
         <button class="sidebar-close sc-icon-btn sc-press" type="button" aria-label="Lukk meny">
           <Icon name="x" size={18} />
         </button>
+        {
+          /* "Up" to the reader's course hub: meta-navigation OUT of this
+             course, so it wears the .nav-section mono-meta vocabulary (not a
+             .nav-link row, which would read as a page of the course) and sits
+             above everything the course owns. Same tab, since it's navigation
+             rather than an external resource. */
+          course.hubUrl && (
+            <a class="sidebar-hub sc-press" href={course.hubUrl}>
+              <Icon name="chevron-left" size={13} />
+              {ui.hubLinkLabel}
+            </a>
+          )
+        }
         <a
           class={`nav-link sc-press sc-lift${active === "top" ? " active" : ""}`}
           href="/"

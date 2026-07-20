@@ -31,6 +31,10 @@ exam:
 # footer), distinct from the free-form `links` list below.
 courseUrl: "https://example.com/emne/DEMO101"
 
+# The reader's course-hub site: renders the sidebar "up" link ("Alle emner")
+# above Oversikt. Just a URL by design; the hub owns the live course list.
+hubUrl: "https://example.com/hub"
+
 # Provider for the Course JSON-LD (explicit, never derived from a URL host) +
 # a social handle for the Twitter card. Both optional/additive.
 institution: "Example University"

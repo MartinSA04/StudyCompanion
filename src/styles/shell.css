@@ -184,6 +184,28 @@
 .sidebar-close {
   display: none;
 }
+/* "Up" link to the course hub (only when course.hubUrl is set). Wears the
+   .nav-section mono-meta vocabulary rather than a .nav-link row: it navigates
+   OUT of the course, so it must not read as one of the course's own pages.
+   Quiet at rest (muted, like the section labels), accent on hover so it still
+   declares itself a link. */
+.sidebar-hub {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--gap-1);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking);
+  color: var(--muted);
+  text-decoration: none;
+  margin-bottom: var(--gap-3);
+  padding: var(--gap-1);
+  border-radius: var(--radius-xs);
+}
+.sidebar-hub:hover {
+  color: var(--accent-ink);
+}
 .nav-section {
   font-family: var(--font-mono);
   font-size: var(--text-xs);

@@ -48,7 +48,10 @@ Author under `content/` only. **[`course-template/content/`](course-template/con
 > issue link (→ `${repoUrl}/issues/new`) when `repoUrl` is set. A module page's
 > freshness line (`ui.updatedLabel` + its `updated` date) and its "Foreslå
 > endring" edit link sit in a row just **above** the footer separator, reading
-> as page metadata rather than site chrome.
+> as page metadata rather than site chrome. When `hubUrl` is set, the sidebar
+> gets a quiet "up" link (`ui.hubLinkLabel`, default "Alle emner") above
+> Oversikt, back to the reader's course-hub site; the hub owns the live course
+> list, so no sibling-course data is ever baked into a pinned build.
 
 ### Widgets (available in every MDX section — no imports needed)
 

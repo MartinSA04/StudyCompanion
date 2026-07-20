@@ -156,6 +156,15 @@ export const courseSchema = z.strictObject({
   courseUrl: z.url().optional(),
 
   /**
+   * URL of the reader's course-hub site (the directory of all their study
+   * guides). When set, the sidebar gets an "up" link above «Oversikt» back to
+   * that hub. Deliberately just a URL: the hub itself owns the course list
+   * (live, redeployed on push), so no sibling-course data is ever baked into a
+   * pinned course build where it would go stale.
+   */
+  hubUrl: z.url().optional(),
+
+  /**
    * Institution / provider name (e.g. "NTNU"), used as the schema.org `provider`
    * on the overview's `Course` JSON-LD. Explicit, not derived from a URL
    * host — omit it and no provider is emitted (no guessing).
@@ -297,6 +306,8 @@ export const courseSchema = z.strictObject({
        */
       nextDeadlineLabel: z.string().default("Neste frist"),
       courseLabel: z.string().default("Emneside"),
+      /** Sidebar "up" link to the course hub (only rendered when `hubUrl` is set). */
+      hubLinkLabel: z.string().default("Alle emner"),
       tocLabel: z.string().default("Innhold"),
       editPageLabel: z.string().default("Foreslå endring"),
       /**

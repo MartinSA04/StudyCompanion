@@ -32,6 +32,11 @@ accentDark: "#4385be" # DARK mode — a lighter shade so links stay legible on t
 # Canonical university course page — rendered in the hero + footer. Set it.
 courseUrl: "https://example.com/emne/CODE101"
 
+# Your course-hub site (the directory of all your study guides) → a quiet
+# sidebar "up" link (ui.hubLinkLabel, default "Alle emner") above Oversikt.
+# Just a URL: the hub owns the live course list, nothing is baked in here.
+# hubUrl: "https://you.github.io/hub"
+
 # Institution / provider name → the `provider` on the overview Course JSON-LD
 # (explicit, never guessed from a URL). Omit to emit no provider.
 institution: "Example University"
