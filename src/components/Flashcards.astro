@@ -882,6 +882,12 @@ const hasSections = sections.length > 0;
     const roleOpacity = { current: "1", next: "1", prev: "0.55" } as const;
     type Role = "current" | "next" | "prev";
 
+    // Cards mid-fly-off (goTo → settle). They keep their own fling transform and
+    // must not be re-targeted while airborne: layout() skips them, and nextCard()
+    // won't hand a still-flying card to a drag. Scoped per deck (onPage re-runs on
+    // each page swap), so it can't retain cards from a torn-down deck.
+    const inFlight = new Set<HTMLElement>();
+
     const currentCard = () =>
       cards.find((c) => c.dataset.current === "true") ?? null;
     const nextCard = () => {
@@ -889,7 +895,10 @@ const hasSections = sections.length > 0;
       if (len < 2) return null;
       const idx = queue[(pos + 1) % len];
       return (
-        cards.find((c) => Number(c.dataset.index) === idx && !c.hidden) ?? null
+        cards.find(
+          (c) =>
+            Number(c.dataset.index) === idx && !c.hidden && !inFlight.has(c),
+        ) ?? null
       );
     };
 
@@ -943,9 +952,9 @@ const hasSections = sections.length > 0;
       return null;
     };
 
-    // Assign every card its stack role. `except` leaves one card untouched (the
-    // outgoing card, mid-fly-off); `snap` is `true` for all, or a set of cards
-    // to position without animating.
+    // Assign every card its stack role. In-flight cards (and the optional
+    // `except`) are left untouched so a fly-off isn't re-targeted mid-air; `snap`
+    // is `true` for all, or a set of cards to position without animating.
     const layout = (
       opts: {
         except?: HTMLElement | null;
@@ -953,7 +962,7 @@ const hasSections = sections.length > 0;
       } = {},
     ) => {
       cards.forEach((c) => {
-        if (c === opts.except) return;
+        if (c === opts.except || inFlight.has(c)) return;
         const snap = opts.snap === true || (opts.snap?.has(c) ?? false);
         applyRole(c, roleFor(Number(c.dataset.index)), snap);
       });
@@ -965,9 +974,13 @@ const hasSections = sections.length > 0;
     // Counters, announcement and empty-state copy — everything that isn't the
     // card geometry (layout() owns that).
     const postShow = () => {
+      // Capture before the reset below: the empty-state announcement (further
+      // down) also needs to suppress the initial paint, and firstPaint is already
+      // false by the time that branch runs.
+      const wasFirstPaint = firstPaint;
       const isEmpty = queue[pos] === undefined;
       deck.dataset.empty = isEmpty ? "true" : "false";
-      if (!firstPaint && !isEmpty) {
+      if (!wasFirstPaint && !isEmpty) {
         const cur = currentCard();
         if (cur) announce(cur);
       }
@@ -986,15 +999,19 @@ const hasSections = sections.length > 0;
           scope.length > 0 &&
           scope.every((c) => (levels[c.dataset.fcId!] ?? 0) >= 1);
         emptyBox.dataset.complete = String(allKnown);
-        if (allKnown) {
-          emptyTitle.textContent = `Alle ${scope.length} kort er markert som kan.`;
-          emptyHint.textContent =
-            "Slå av «Kun ukjente» for å bla gjennom alle, eller nullstill og øv på nytt.";
-        } else {
-          emptyTitle.textContent = "Ingen kort matcher filteret.";
-          emptyHint.textContent =
-            "Velg en annen seksjon, eller slå av «Kun ukjente».";
-        }
+        const title = allKnown
+          ? `Alle ${scope.length} kort er markert som kan.`
+          : "Ingen kort matcher filteret.";
+        const hint = allKnown
+          ? "Slå av «Kun ukjente» for å bla gjennom alle, eller nullstill og øv på nytt."
+          : "Velg en annen seksjon, eller slå av «Kun ukjente».";
+        emptyTitle.textContent = title;
+        emptyHint.textContent = hint;
+        // Reaching the empty state only swaps a data-attr and this copy — focus
+        // doesn't move — so without mirroring it into the live region AT hears
+        // nothing (WCAG 4.1.3). Skip the SSR first paint, which never lands empty
+        // (filter state isn't persisted, so the deck always opens on all cards).
+        if (!wasFirstPaint) liveEl.textContent = `${title} ${hint}`;
       }
     };
 
@@ -1048,7 +1065,9 @@ const hasSections = sections.length > 0;
       }
       // Fly the outgoing card off the top of the stack. It keeps whatever
       // transform a drag left on it, so a committed swipe continues from the
-      // finger rather than snapping to centre first.
+      // finger rather than snapping to centre first. Mark it in-flight so a
+      // second advance or a drag mid-flight can't re-target it.
+      inFlight.add(outgoing);
       const sign = dir === "right" ? 1 : -1;
       outgoing.style.transition =
         "transform calc(var(--dur) * 1.3) var(--ease), opacity calc(var(--dur) * 1.3) var(--ease)";
@@ -1070,17 +1089,22 @@ const hasSections = sections.length > 0;
       const settle = () => {
         if (settled) return;
         settled = true;
+        inFlight.delete(outgoing);
         outgoing.style.opacity = "";
         outgoing.style.zIndex = "";
         applyRole(outgoing, roleFor(Number(outgoing.dataset.index)), true);
       };
-      outgoing.addEventListener(
-        "transitionend",
-        (e) => {
-          if ((e as TransitionEvent).propertyName === "transform") settle();
-        },
-        { once: true },
-      );
+      // The inline transition animates transform AND opacity over the same
+      // duration, and the opacity transitionend can fire first — a plain
+      // { once:true } listener would be consumed by it and never settle on the
+      // transform. Self-remove only once the transform end arrives; the 500ms
+      // net still covers a hidden tab throttling transitionend away.
+      const onEnd = (e: TransitionEvent) => {
+        if (e.propertyName !== "transform") return;
+        outgoing.removeEventListener("transitionend", onEnd);
+        settle();
+      };
+      outgoing.addEventListener("transitionend", onEnd);
       setTimeout(settle, 500);
     };
 
