@@ -49,20 +49,32 @@ const countdownFor = (c: HubCourse) => {
 };
 
 // Group by term, groups in file order of first appearance. Within a term, tiles
-// sort by soonest exam (F11) — the multi-course triage glance "which exam is
-// closest?" — with undated courses last, keeping their file order.
+// sort by soonest UPCOMING exam (F11) — the multi-course triage glance "which
+// exam is closest?" — then undated courses in file order, then past-at-build
+// exams last (a passed exam's pill auto-hides, so pinning it above by its
+// smallest date would be backwards). Past-below-undated must match the client
+// script below, which appends a tile to the END of its term list once the
+// viewer's clock passes its exam — the same tier the next build would give it,
+// so SSR and hydrated order never disagree.
 const groups: { term: string; courses: HubCourse[] }[] = [];
 for (const c of courses) {
   const g = groups.find((g) => g.term === c.term);
   if (g) g.courses.push(c);
   else groups.push({ term: c.term, courses: [c] });
 }
+const rank = (c: HubCourse) => {
+  if (!c.examDate) return 1;
+  const date = new Date(c.examDate);
+  if (Number.isNaN(date.getTime())) return 1;
+  return daysUntil(date) >= 0 ? 0 : 2;
+};
 for (const g of groups) {
   g.courses.sort((a, b) => {
-    if (!a.examDate && !b.examDate) return 0;
-    if (!a.examDate) return 1;
-    if (!b.examDate) return -1;
-    return a.examDate.localeCompare(b.examDate);
+    const ra = rank(a);
+    const rb = rank(b);
+    if (ra !== rb) return ra - rb;
+    if (ra !== 0) return 0;
+    return a.examDate!.localeCompare(b.examDate!);
   });
 }
 // "H2026" → "Høst 2026", "V2026" → "Vår 2026" (term shape is CI-tested).
@@ -192,8 +204,25 @@ const themeKey = "sc:theme:hub";
         import { refreshExamCountdowns } from "../../src/lib/examCountdown.ts";
         // Tile countdowns SSR a build-time snapshot; re-derive per load against
         // the viewer's clock (and hide any that have since passed) — the same
-        // contract the course header's pill uses.
-        onPage(() => refreshExamCountdowns());
+        // contract the course header's pill uses. onPage fires on load/swap, not
+        // on an interval, so a single post-refresh pass is enough.
+        onPage(() => {
+          refreshExamCountdowns();
+          // The build-time comparator already sorts past-at-build exams to the
+          // end of their term; the static page may not rebuild for days, so once
+          // refresh has flagged a tile's exam past (data-past) move that tile to
+          // the end of its term list too, preserving relative order — the same
+          // tier a rebuild would give it, so this is a no-op unless an exam
+          // slipped past between builds. F11's "which exam is closest?" order
+          // must survive that gap.
+          for (const list of document.querySelectorAll(".hub-list")) {
+            for (const li of list.querySelectorAll(
+              ':scope > li:has([data-exam-countdown][data-past="true"])',
+            )) {
+              list.append(li);
+            }
+          }
+        });
       </script>
       <footer class="hub-foot">
         <a href="https://github.com/MartinSA04/StudyCompanion"
