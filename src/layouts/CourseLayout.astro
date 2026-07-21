@@ -845,7 +845,10 @@ const hasTools = toolNav.some((t) => t.show);
         readProgress,
         writeProgress,
       } from "../lib/progress.ts";
-      import { refreshExamCountdowns } from "../lib/examCountdown.ts";
+      import {
+        refreshExamCountdowns,
+        refreshDeadlineNext,
+      } from "../lib/examCountdown.ts";
 
       // ---- Reading progress (per course, localStorage) ----
       // Stored as an array of section slugs, keyed off <body data-progress-key>
@@ -1109,8 +1112,11 @@ const hasTools = toolNav.some((t) => t.show);
         paintDoneBtn(doc);
         paintOverview(doc);
         // The countdown phrase is baked at build time too, so recompute it on
-        // the incoming doc to avoid flashing a stale "om N dager" for a frame.
+        // the incoming doc to avoid flashing a stale "om N dager" for a frame,
+        // then re-derive the deadline agenda's next-marker/empty-card state
+        // (paired sequence — next-pass reads the hidden flags refresh writes).
         refreshExamCountdowns(doc);
+        refreshDeadlineNext(doc);
       });
     </script>
   </body>

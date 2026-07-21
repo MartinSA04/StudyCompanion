@@ -49,8 +49,11 @@ export function refreshExamCountdowns(doc: Document = document): void {
  * row is stamped data-next (the enlarged leaf) at build. Once the hide-pass
  * above has hidden rows whose dates slipped past the viewer's clock, this
  * re-derives that state: within each [data-deadline-list], the first VISIBLE
- * row carries data-next and shows its pill; every other row loses both. Run it
- * AFTER refreshExamCountdowns — it reads the `hidden` flags that pass writes.
+ * row carries data-next and shows its pill; every other row loses both. When
+ * NO row survives (a stale build viewed after every deadline passed), the
+ * enclosing .card is hidden so its heading doesn't orphan over an empty list.
+ * Run it AFTER refreshExamCountdowns — it reads the `hidden` flags that pass
+ * writes (the property, still true even where CSS had defeated the visual hide).
  */
 export function refreshDeadlineNext(doc: Document = document): void {
   for (const list of doc.querySelectorAll<HTMLElement>(
@@ -70,5 +73,11 @@ export function refreshDeadlineNext(doc: Document = document): void {
       const pill = row.querySelector<HTMLElement>("[data-deadline-pill]");
       if (pill) pill.hidden = !isNext;
     }
+    // Recomputed every pass (two-way): the card re-shows if a row is ever
+    // visible again. closest() no-ops safely on a page that renders the list
+    // without a .card wrapper. The overview (src/pages/index.astro) is the only
+    // renderer today.
+    const card = list.closest?.(".card") as HTMLElement | null;
+    if (card) card.hidden = !nextFound;
   }
 }

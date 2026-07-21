@@ -138,12 +138,16 @@ test("refreshExamCountdowns: an unparseable date is skipped", () => {
  * queries rows/pills by attribute.
  */
 type FakePill = { hidden: boolean };
+type FakeCard = { hidden: boolean };
 type FakeRow = {
   dataset: { next?: string };
   hidden: boolean;
   querySelector(sel: string): FakePill | null;
 };
-type FakeList = { querySelectorAll(sel: string): FakeRow[] };
+type FakeList = {
+  querySelectorAll(sel: string): FakeRow[];
+  closest(sel: string): FakeCard | null;
+};
 
 function makeRow(opts: { hidden?: boolean; next?: boolean } = {}): FakeRow & {
   pill: FakePill;
@@ -160,8 +164,22 @@ function makeRow(opts: { hidden?: boolean; next?: boolean } = {}): FakeRow & {
 function fakeListDoc(lists: FakeRow[][]): Document {
   const wrapped: FakeList[] = lists.map((rows) => ({
     querySelectorAll: () => rows,
+    closest: () => null,
   }));
   return { querySelectorAll: () => wrapped } as unknown as Document;
+}
+
+/** One list wrapped in a .card, so the empty-card fallback can be exercised. */
+function fakeCardDoc(rows: FakeRow[]): { doc: Document; card: FakeCard } {
+  const card: FakeCard = { hidden: false };
+  const list: FakeList = {
+    querySelectorAll: () => rows,
+    closest: () => card,
+  };
+  return {
+    doc: { querySelectorAll: () => [list] } as unknown as Document,
+    card,
+  };
 }
 
 test("refreshDeadlineNext: the SSR state (row 1 next, pill shown) is kept when row 1 is visible", () => {
@@ -186,16 +204,41 @@ test("refreshDeadlineNext: a hidden first row hands next + pill to the second", 
   assert.equal(rows[2].pill.hidden, true);
 });
 
-test("refreshDeadlineNext: all rows hidden leaves no next-marker at all", () => {
+test("refreshDeadlineNext: all rows hidden leaves no next-marker and hides the card", () => {
   const rows = [
     makeRow({ next: true, hidden: true }),
     makeRow({ hidden: true }),
   ];
-  refreshDeadlineNext(fakeListDoc([rows]));
+  const { doc, card } = fakeCardDoc(rows);
+  refreshDeadlineNext(doc);
   assert.equal(rows[0].dataset.next, undefined);
   assert.equal(rows[0].pill.hidden, true);
   assert.equal(rows[1].dataset.next, undefined);
   assert.equal(rows[1].pill.hidden, true);
+  // No row survives — the enclosing card is hidden so its heading doesn't
+  // orphan over an empty list.
+  assert.equal(card.hidden, true);
+});
+
+test("refreshDeadlineNext: a surviving visible row leaves the card shown", () => {
+  const rows = [makeRow({ next: true, hidden: true }), makeRow()];
+  const { doc, card } = fakeCardDoc(rows);
+  refreshDeadlineNext(doc);
+  assert.equal(rows[1].dataset.next, "");
+  assert.equal(card.hidden, false);
+});
+
+test("refreshDeadlineNext: the card re-shows once a row becomes visible again", () => {
+  // Card visibility is recomputed every pass (two-way): a stale build that
+  // first hid the card recovers if a later pass finds a visible row.
+  const rows = [makeRow({ hidden: true })];
+  const { doc, card } = fakeCardDoc(rows);
+  refreshDeadlineNext(doc);
+  assert.equal(card.hidden, true);
+  rows[0].hidden = false;
+  refreshDeadlineNext(doc);
+  assert.equal(card.hidden, false);
+  assert.equal(rows[0].dataset.next, "");
 });
 
 test("refreshDeadlineNext: lists are independent — each keeps its own next", () => {

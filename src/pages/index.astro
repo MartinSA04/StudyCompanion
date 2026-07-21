@@ -282,6 +282,11 @@ const jsonLd = [
     column-gap: var(--space-4);
     align-items: start;
   }
+  /* The refresh pass toggles [hidden] on past rows; restate it since
+     `display:grid` wins. */
+  .deadline-row[hidden] {
+    display: none;
+  }
   .deadline-leaf {
     display: flex;
     flex-direction: column;
