@@ -143,6 +143,7 @@ test("ui string overrides default to the current Norwegian chrome", () => {
   assert.equal(parsed.ui.deadlinesLabel, "Frister");
   assert.equal(parsed.ui.nextDeadlineLabel, "Neste frist");
   assert.equal(parsed.ui.examAuthorityNote, "Offisiell eksamensinfo");
+  assert.equal(parsed.ui.hubLinkLabel, "Alle emner");
   assert.equal(parsed.ui.footerDisclaimer, "Merk at siden kan inneholde feil.");
   assert.equal(parsed.ui.reportIssueLabel, "Meld fra om eventuelle feil her.");
   // The GitHub edit→PR flow reads as a change proposal, not a raw file edit.
