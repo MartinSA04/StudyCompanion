@@ -93,6 +93,28 @@ test("print forces Shiki code blocks to black-on-white ink economy", async ({
 });
 
 /**
+ * The page-meta row (freshness line + "Foreslå endring" edit link) is on-screen
+ * chrome, not article content — the edit link is a dead affordance on paper. The
+ * @media print block hides it alongside the site-footer (they were one element
+ * before the v3.3.0 footer-to-page-meta split, and the footer already printed
+ * hidden). Assert .page-meta resolves to display:none under print emulation so a
+ * regression that drops it from the hide list re-exposes the dead link on paper.
+ */
+test("print hides the page-meta row (freshness + edit link)", async ({
+  page,
+}) => {
+  await page.goto("/eksempler");
+  await page.waitForLoadState("networkidle");
+
+  const meta = page.locator(".page-meta").first();
+  // Baseline: the row IS shown on screen (edit link is a live affordance there).
+  await expect(meta).toBeVisible();
+
+  await page.emulateMedia({ media: "print" });
+  expect(await meta.evaluate((n) => getComputedStyle(n).display)).toBe("none");
+});
+
+/**
  * Screen reserves a stable scrollbar gutter (base.css) so the centered column
  * never shifts between scrolling and non-scrolling pages; paper has no
  * scrollbar, so the print block must release it or the column prints with a
