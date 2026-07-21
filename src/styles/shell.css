@@ -1007,10 +1007,13 @@ summary,
   }
 }
 
-/* ====== view transitions (Astro ClientRouter) ====== */
+/* ====== view transitions (Astro ClientRouter + ThemeToggle) ====== */
 /* Retime the root cross-fade to a quick, editorial pace. The chrome is near-
    identical page to page, so cross-fading the whole root reads as the content
-   changing on a stable surface. Astro skips the animation under reduced-motion. */
+   changing on a stable surface. The theme toggle rides the same machinery
+   (its data-theme flip runs inside document.startViewTransition), so the swap
+   inherits this exact pace. Astro skips the animation under reduced-motion;
+   the toggle guards itself with the same media query. */
 @media (prefers-reduced-motion: no-preference) {
   ::view-transition-old(root),
   ::view-transition-new(root) {

@@ -73,51 +73,57 @@ import Icon from "./Icon.astro";
     syncPressed();
     document.addEventListener("sc:themechange", syncPressed, { signal });
 
-    // Shared across every click on the page (and every toggle button), so the
-    // cleanup listener below is registered once instead of piling one up per
-    // click on the page-lifetime `signal`.
-    let settle: ReturnType<typeof setTimeout> | undefined;
-    signal.addEventListener(
-      "abort",
-      () => {
-        clearTimeout(settle);
-        root.classList.remove("theme-transitioning");
-      },
-      { once: true },
-    );
-
     toggles.forEach((btn) => {
       const key = btn.dataset.storageKey;
       btn.addEventListener(
         "click",
         () => {
-          const next =
-            root.getAttribute("data-theme") === "dark" ? "light" : "dark";
-          // Ease the swap as one coherent event (background/color/border via
-          // the html.theme-transitioning rule) instead of an instant snap: flag
-          // it before the flip, force a flush so the transition engages, then
-          // clear the flag once the eased properties have settled. Cleared
-          // early on navigation too, so the class never leaks onto the next
-          // page's document.
-          root.classList.add("theme-transitioning");
-          void root.offsetHeight;
-          root.setAttribute("data-theme", next);
-          try {
-            if (key) localStorage.setItem(key, next);
-          } catch {
-            /* private mode / storage disabled — fall through, no persistence */
+          const flip = () => {
+            // Read the LIVE attribute at apply time, not click time: the view
+            // transition invokes this callback a frame later, and two clicks
+            // landing inside that frame would otherwise both compute the same
+            // target and collapse into a single toggle.
+            const next =
+              root.getAttribute("data-theme") === "dark" ? "light" : "dark";
+            root.setAttribute("data-theme", next);
+            try {
+              if (key) localStorage.setItem(key, next);
+            } catch {
+              /* private mode / storage disabled — fall through, no persistence */
+            }
+            // Let canvas simulations (and any other listeners — including this
+            // component's own syncPressed above) repaint with the new theme's
+            // CSS custom properties. Dispatched inside the flip so listeners
+            // always read FINAL token values — the cross-fade below animates
+            // snapshots, never the live DOM.
+            document.dispatchEvent(
+              new CustomEvent("sc:themechange", { detail: next }),
+            );
+          };
+          // Ease the swap as ONE compositor cross-fade of the whole page via a
+          // same-document view transition — the same machinery (and the same
+          // ::view-transition (root) retiming in shell.css) that ClientRouter
+          // navigations ride. One snapshot pair, one style recalc: no element
+          // can lag another. A per-element `transition: color` is NOT a
+          // substitute: WebKit runs an inheriting element's transition against
+          // its parent's currently-interpolating value, compounding one full
+          // ease per inheritance hop below the nearest colour-setter — deep
+          // text (topbar brand, hero h1, list labels) held the old ink and
+          // late-snapped at ~2x the duration on iOS while own-colour elements
+          // finished on time. No API support / reduced motion -> instant flip,
+          // matching the OS-flip path in CourseLayout's no-flash script.
+          if (
+            document.startViewTransition &&
+            !matchMedia("(prefers-reduced-motion: reduce)").matches
+          ) {
+            // A rapid re-toggle (or a concurrent ClientRouter navigation)
+            // skips the active transition — the flip callback still commits.
+            // Observe the rejected ready promise so a skip never surfaces as
+            // an unhandled-rejection console error.
+            document.startViewTransition(flip).ready.catch(() => {});
+          } else {
+            flip();
           }
-          // Let canvas simulations (and any other listeners — including this
-          // component's own syncPressed above) repaint with the new theme's
-          // CSS custom properties.
-          document.dispatchEvent(
-            new CustomEvent("sc:themechange", { detail: next }),
-          );
-          clearTimeout(settle);
-          settle = window.setTimeout(
-            () => root.classList.remove("theme-transitioning"),
-            250,
-          );
         },
         { signal },
       );

@@ -322,9 +322,13 @@ Feel: restrained at rest, tactile on touch.
 - One easing: cubic-bezier(0.32, 0.72, 0, 1); durations 120ms (state),
   200ms (surface), and a 1.8s one-shot (--dur-flash) for deep-link arrival
   flashes (sc-target-flash). prefers-reduced-motion zeroes all three tokens
-  globally. The theme flip eases as one coordinated event: a transient
-  html.theme-transitioning class carries the transition; nothing transitions
-  theme colors at rest.
+  globally. The theme flip eases as one coordinated event: the data-theme
+  flip runs inside a same-document view transition (one compositor cross-fade
+  of the whole page, riding the same ::view-transition (root) retiming as
+  ClientRouter navigations); nothing transitions theme colors at rest, and no
+  element carries a colour transition for the swap — on WebKit a per-element
+  `transition: color` compounds one full ease per inheritance hop, so deep
+  text late-snaps at ~2x the duration.
 - **The Lift-Shadow Exception.** The vocabulary is otherwise transform/opacity
   only (compositor-cheap); .sc-lift's hover transition is the one bounded
   exception, additionally transitioning box-shadow (a paint cost) so the

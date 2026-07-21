@@ -70,29 +70,13 @@ body {
   overflow-wrap: break-word;
 }
 
-/* Theme-swap coherence: body easing its own background/color while every
-   panel, border and icon snapped instantly produced a staggered paper-swap.
-   ThemeToggle adds this class to <html> around the data-theme flip and
-   removes it ~250ms later, so the whole swap eases as ONE event; the rest of
-   the time, every element's own hover/press micro-transitions are untouched.
-   `transition` is a shorthand and this selector's specificity (plus
-   !important) beats every component's own single-class transition rule
-   outright, so the list below also carries transform/opacity/box-shadow —
-   the sub-transitions .sc-press's dip, .sc-lift's rise, the copy icon
-   cross-fade and .progressfill's fill all rely on — so the swap window eases
-   colour without silently snapping those interactions for its ~250ms. */
-html.theme-transitioning *,
-html.theme-transitioning *::before,
-html.theme-transitioning *::after {
-  transition:
-    background-color var(--dur) var(--ease),
-    color var(--dur) var(--ease),
-    border-color var(--dur) var(--ease),
-    fill var(--dur) var(--ease),
-    transform var(--dur) var(--ease),
-    opacity var(--dur) var(--ease),
-    box-shadow var(--dur) var(--ease) !important;
-}
+/* Theme-swap coherence lives in ThemeToggle.astro: the data-theme flip runs
+   inside a same-document view transition (one compositor cross-fade of the
+   whole page, retimed by the ::view-transition rules in shell.css). There is
+   deliberately NO per-element colour transition for the swap — WebKit runs an
+   inheriting element's transition against its parent's currently-interpolating
+   value, so a universal `transition: color` compounds one full ease per
+   inheritance hop and deep text late-snaps at ~2x the duration on iOS. */
 
 ::selection {
   background: var(--selection);
@@ -171,8 +155,7 @@ figcaption {
    NOT cleared — it's narrower than the strip, so it flows past the note. Inert
    when no note is floated (no other right floats exist), so pages without a
    <Sidenote> are unaffected. */
-.prose
-  > :not(p, ul, ol, blockquote, h2, h3, h4, hr, .sidenote, script, style) {
+.prose > :not(p, ul, ol, blockquote, h2, h3, h4, hr, .sidenote, script, style) {
   clear: right;
 }
 
