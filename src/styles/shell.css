@@ -1007,10 +1007,11 @@ summary,
   }
 }
 
-/* ====== view transitions (Astro ClientRouter + ThemeToggle) ======
+/* ====== view transitions (Astro ClientRouter navigations) ======
    The root-fade retiming (single opaque-backed snapshot, 180ms, var(--ease))
    lives in base.css so the hub — which imports base but not this shell —
-   gets the identical swap/navigation fade. */
+   gets the identical navigation fade. The theme toggle does NOT ride this:
+   its flip is deliberately instant (see ThemeToggle.astro). */
 
 @media print {
   /* Hide chrome and interactive-only affordances — only the article prints. */

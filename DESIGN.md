@@ -322,13 +322,15 @@ Feel: restrained at rest, tactile on touch.
 - One easing: cubic-bezier(0.32, 0.72, 0, 1); durations 120ms (state),
   200ms (surface), and a 1.8s one-shot (--dur-flash) for deep-link arrival
   flashes (sc-target-flash). prefers-reduced-motion zeroes all three tokens
-  globally. The theme flip eases as one coordinated event: the data-theme
-  flip runs inside a same-document view transition (one compositor cross-fade
-  of the whole page, riding the same ::view-transition (root) retiming as
-  ClientRouter navigations); nothing transitions theme colors at rest, and no
-  element carries a colour transition for the swap — on WebKit a per-element
-  `transition: color` compounds one full ease per inheritance hop, so deep
-  text late-snaps at ~2x the duration.
+  globally. The theme flip is deliberately INSTANT — no element carries a
+  colour transition for the swap and it does not ride a view transition.
+  Both animated forms were tried and reverted (2026-07): WebKit compounds
+  per-element inherited-colour eases into a per-hop staircase (deep text
+  late-snaps at ~2x the duration), and it gates view-transition fade
+  presentation on the main thread, which the flip's own full-tree recalc
+  saturates — the fade steps on iPhone no matter its shape. Instant is the
+  synchronized, jank-free form; ClientRouter navigations keep their 180ms
+  single-snapshot fade (base.css).
 - **The Lift-Shadow Exception.** The vocabulary is otherwise transform/opacity
   only (compositor-cheap); .sc-lift's hover transition is the one bounded
   exception, additionally transitioning box-shadow (a paint cost) so the

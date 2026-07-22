@@ -70,25 +70,21 @@ body {
   overflow-wrap: break-word;
 }
 
-/* Theme-swap coherence lives in ThemeToggle.astro: the data-theme flip runs
-   inside a same-document view transition, retimed below. There is
-   deliberately NO per-element colour transition for the swap — WebKit runs an
-   inheriting element's transition against its parent's currently-interpolating
-   value, so a universal `transition: color` compounds one full ease per
-   inheritance hop and deep text late-snaps at ~2x the duration on iOS.
+/* The THEME flip is deliberately instant and carries NO transition of any
+   kind — ThemeToggle.astro documents the two reverted attempts (WebKit
+   compounds per-element inherited-colour eases into a staircase, and gates
+   view-transition fade presentation on the main thread the flip itself
+   saturates). Do not re-add a colour transition or a view transition to the
+   swap; it stays synchronized precisely because nothing eases.
 
-   The retiming lives HERE (not shell.css) because the hub imports base.css
-   but not the course shell — both surfaces share the ThemeToggle and
-   ClientRouter, so both need the same fade. The UA default is a plus-lighter
-   cross-fade of BOTH snapshots inside an isolation:isolate image-pair — an
-   offscreen blend pass of two full-viewport layers on every frame, which
-   early WebKit view-transition rendering runs visibly below full rate on
-   iPhone. Restyle to the cheap equivalent: hold the OLD snapshot static and
-   opaque beneath and fade only the NEW one in on top (the later sibling,
-   already on top), normal blending, no isolation — one translucent layer per
-   frame. Visually identical for the same-layout theme swap (plus-lighter
-   only prevents the mid-fade dip when BOTH layers are translucent) and a
-   clean fade-through for navigations. */
+   The block below retimes ClientRouter NAVIGATION fades only. It lives HERE
+   (not shell.css) because the hub imports base.css but not the course shell.
+   The UA default is a plus-lighter cross-fade of BOTH snapshots inside an
+   isolation:isolate image-pair — an offscreen blend pass of two
+   full-viewport layers on every frame. Restyle to the cheap equivalent: hold
+   the OLD snapshot static and opaque beneath and fade only the NEW one in on
+   top (the later sibling, already on top), normal blending, no isolation —
+   one translucent layer per frame, a clean fade-through for navigations. */
 @keyframes sc-vt-fade-in {
   from {
     opacity: 0;
