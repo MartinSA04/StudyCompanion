@@ -5,6 +5,13 @@ thin files, a `content/` folder with an annotated `course.yaml` and one worked
 example section per archetype, and a `public/` with a minimal canvas simulation —
 everything a course needs and nothing more.
 
+The bundled `LICENSE` is **CC BY 4.0** (the canonical legalcode, kept verbatim —
+GitHub only auto-detects it unmodified): the convention for course repos here,
+since what they hold is educational writing, not code. It becomes YOUR new
+repo's license, so swap the file if your course needs different terms. The
+framework itself stays MIT (the repo-root LICENSE); this file licenses only the
+content repo copied from here.
+
 ## Create a course from it
 
 ```bash
