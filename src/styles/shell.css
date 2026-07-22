@@ -1008,17 +1008,44 @@ summary,
 }
 
 /* ====== view transitions (Astro ClientRouter + ThemeToggle) ====== */
-/* Retime the root cross-fade to a quick, editorial pace. The chrome is near-
-   identical page to page, so cross-fading the whole root reads as the content
+/* Retime the root fade to a quick, editorial pace. The chrome is near-
+   identical page to page, so fading the whole root reads as the content
    changing on a stable surface. The theme toggle rides the same machinery
    (its data-theme flip runs inside document.startViewTransition), so the swap
    inherits this exact pace. Astro skips the animation under reduced-motion;
-   the toggle guards itself with the same media query. */
+   the toggle guards itself with the same media query.
+   The UA default is a plus-lighter cross-fade of BOTH snapshots inside an
+   isolation:isolate image-pair — an offscreen blend pass of two full-viewport
+   layers on every frame, which early WebKit view-transition rendering runs
+   visibly below full rate on iPhone. Restyle to the cheap equivalent: hold the
+   OLD snapshot static and opaque beneath and fade only the NEW one in on top
+   (it is the later sibling, already on top), normal blending, no isolation —
+   one translucent layer per frame. Visually identical for the same-layout
+   theme swap (plus-lighter only prevents the mid-fade dip when BOTH layers
+   are translucent) and a clean fade-through for navigations. */
+@keyframes sc-vt-fade-in {
+  from {
+    opacity: 0;
+  }
+}
 @media (prefers-reduced-motion: no-preference) {
   ::view-transition-old(root),
   ::view-transition-new(root) {
-    animation-duration: 180ms;
-    animation-timing-function: var(--ease);
+    mix-blend-mode: normal;
+  }
+  ::view-transition-old(root) {
+    animation: none;
+  }
+  /* The `animation` shorthand resets animation-name, which is the load-bearing
+     part: the UA applies plus-lighter via a SECOND animation
+     (-ua-mix-blend-mode-plus-lighter) on this pseudo, so only replacing the
+     whole name list actually removes the blend — a bare mix-blend-mode
+     declaration loses to that animation while it runs. */
+  ::view-transition-new(root) {
+    animation: sc-vt-fade-in 180ms var(--ease);
+  }
+  ::view-transition-image-pair(root) {
+    isolation: auto;
   }
 }
 
