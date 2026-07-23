@@ -130,3 +130,95 @@ test("print releases the reserved scrollbar gutter", async ({ page }) => {
     ),
   ).toBe("auto");
 });
+
+/**
+ * The flashcard deck is inherently interactive, and on paper its stage shows one
+ * card's FRONT only (the back is a backface-hidden 3D flip) — so an un-hidden deck
+ * prints a lone answerless question wrapped in dead controls (section filter, Snu,
+ * Øv/Kan, nav arrows, "1 / 4", keyboard hint). The @media print block drops the
+ * whole widget; the page still prints its heading/intro, and this is deliberately
+ * not a print-all-cards feature. Assert the deck root resolves to display:none
+ * under print so a regression that re-exposes it (dead chrome + answerless card)
+ * fails here.
+ */
+test("print hides the whole flashcard deck", async ({ page }) => {
+  await page.goto("/flashcards");
+  await page.waitForLoadState("networkidle");
+
+  const deck = page.locator(".flashcards").first();
+  // Baseline: the interactive deck IS shown on screen.
+  await expect(deck).toBeVisible();
+
+  await page.emulateMedia({ media: "print" });
+  expect(await deck.evaluate((n) => getComputedStyle(n).display)).toBe("none");
+});
+
+/**
+ * The glossary's live-search box (.gloss-controls) is a dead affordance on paper,
+ * so the @media print block hides it alongside the chrome — but the term list
+ * itself is real reference content that must still print. Assert under print that
+ * .gloss-controls resolves to display:none WHILE the glossary list still renders
+ * (its .gloss-row stays a display:grid definition row, not none), so a regression
+ * that hides the whole widget — or re-exposes the search box — fails here.
+ */
+test("print hides the glossary search box but keeps the term list", async ({
+  page,
+}) => {
+  await page.goto("/begreper");
+  await page.waitForLoadState("networkidle");
+
+  const controls = page.locator(".gloss-controls").first();
+  const row = page.locator(".gloss-row").first();
+  // Baseline: both the search box and the terms are shown on screen.
+  await expect(controls).toBeVisible();
+  await expect(row).toBeVisible();
+
+  await page.emulateMedia({ media: "print" });
+  expect(await controls.evaluate((n) => getComputedStyle(n).display)).toBe(
+    "none",
+  );
+  // The list content survives — its rows still render.
+  expect(await row.evaluate((n) => getComputedStyle(n).display)).not.toBe(
+    "none",
+  );
+});
+
+/**
+ * Simulation and Stepper transport/scrub apparatus are dead affordances on
+ * paper, but their stages print as a snapshot figure of the current state —
+ * hide only the controls, keep the stage. Assert both on /simulering so a
+ * regression that re-exposes the controls (or drops the stages) fails here.
+ */
+test("print hides sim/stepper controls but keeps their stages", async ({
+  page,
+}) => {
+  await page.goto("/simulering");
+  await page.waitForLoadState("networkidle");
+
+  const simControls = page.locator(".sim-controls").first();
+  const stepControls = page.locator(".stepper-controls").first();
+  // Both widgets lazy-mount on scroll — bring them into view and wait for the
+  // stepper's data-ready (its body is display:none until the module boots).
+  await simControls.scrollIntoViewIfNeeded();
+  await page.locator(".stepper").first().scrollIntoViewIfNeeded();
+  await page.locator(".stepper[data-ready]").first().waitFor();
+  // Baseline: the interactive controls ARE shown on screen.
+  await expect(simControls).toBeVisible();
+  await expect(stepControls).toBeVisible();
+
+  await page.emulateMedia({ media: "print" });
+  for (const controls of [simControls, stepControls]) {
+    expect(await controls.evaluate((n) => getComputedStyle(n).display)).toBe(
+      "none",
+    );
+  }
+  // The stages survive as printed snapshots of the current state.
+  for (const sel of [".sim-stage", ".stepper-stage"]) {
+    expect(
+      await page
+        .locator(sel)
+        .first()
+        .evaluate((n) => getComputedStyle(n).display),
+    ).not.toBe("none");
+  }
+});

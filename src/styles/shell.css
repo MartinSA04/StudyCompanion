@@ -1026,7 +1026,20 @@ summary,
   .done-btn,
   .code-copy,
   .fs-copy,
-  .fs-controls {
+  .fs-controls,
+  .gloss-controls,
+  .sim-controls,
+  .stepper-controls {
+    display: none !important;
+  }
+  /* Drop the whole flashcard deck. It's inherently interactive, and on paper the
+     stage shows a single card's FRONT only (the back is a backface-hidden 3D
+     flip) — so an un-hidden deck prints one answerless question wrapped in dead
+     controls (section filter, Snu, Øv/Kan, nav arrows, "1 / 4", keyboard hint).
+     The page still prints its heading and intro; this is deliberately not a
+     print-all-cards feature. The glossary above only loses its live-search box
+     (.gloss-controls, hidden with the chrome); its term list still prints. */
+  .flashcards {
     display: none !important;
   }
   .layout {
