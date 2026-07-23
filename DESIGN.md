@@ -322,15 +322,19 @@ Feel: restrained at rest, tactile on touch.
 - One easing: cubic-bezier(0.32, 0.72, 0, 1); durations 120ms (state),
   200ms (surface), and a 1.8s one-shot (--dur-flash) for deep-link arrival
   flashes (sc-target-flash). prefers-reduced-motion zeroes all three tokens
-  globally. The theme flip is deliberately INSTANT — no element carries a
-  colour transition for the swap and it does not ride a view transition.
-  Both animated forms were tried and reverted (2026-07): WebKit compounds
-  per-element inherited-colour eases into a per-hop staircase (deep text
-  late-snaps at ~2x the duration), and it gates view-transition fade
-  presentation on the main thread, which the flip's own full-tree recalc
-  saturates — the fade steps on iPhone no matter its shape. Instant is the
-  synchronized, jank-free form; ClientRouter navigations keep their 180ms
-  single-snapshot fade (base.css).
+  globally. The theme flip is deliberately INSTANT — the swap itself rides no
+  view transition and no eased colour. Both animated forms were tried and
+  reverted (2026-07): WebKit compounds per-element inherited-colour eases into
+  a per-hop staircase (deep text late-snaps at ~2x the duration), and it gates
+  view-transition fade presentation on the main thread, which the flip's own
+  full-tree recalc saturates — the fade steps on iPhone no matter its shape.
+  The resting controls still carry their hover-feel colour eases (--dur-fast),
+  though, so on the flip they would ease alone ~120ms behind the already-snapped
+  page; ThemeToggle adds a `.theme-snap` class to `<html>` for exactly one frame
+  around the swap and a base.css rule zeroes every transition while it is
+  present (hub included), so the whole tree snaps in one recalc. The class is
+  gone by the next frame, leaving hover eases untouched at rest. ClientRouter
+  navigations keep their 180ms single-snapshot fade (base.css).
 - **The Lift-Shadow Exception.** The vocabulary is otherwise transform/opacity
   only (compositor-cheap); .sc-lift's hover transition is the one bounded
   exception, additionally transitioning box-shadow (a paint cost) so the

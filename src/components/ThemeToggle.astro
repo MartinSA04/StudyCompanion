@@ -73,6 +73,10 @@ import Icon from "./Icon.astro";
     syncPressed();
     document.addEventListener("sc:themechange", syncPressed, { signal });
 
+    // Pending .theme-snap removal (a double-rAF handle). Shared across every
+    // toggle so a rapid double-toggle re-arms one timer instead of stacking.
+    let snapRaf = 0;
+
     toggles.forEach((btn) => {
       const key = btn.dataset.storageKey;
       btn.addEventListener(
@@ -88,11 +92,29 @@ import Icon from "./Icon.astro";
           // presentation on the main thread, which the flip's own full-tree
           // recalc is saturating at that exact moment (verified with
           // compositor-output capture under a synthetic main-thread block).
-          // The flip stays synchronized by construction: nothing carries a
-          // colour transition, so every element repaints in the same recalc.
+          //
+          // The swap itself carries no transition, but the resting controls
+          // (.sc-lift/.sc-icon-btn/.sc-pill/.sc-chip/.sc-btn/.sc-summary/
+          // .code-copy) DO hold standing colour/background eases for their
+          // hover feel, so on the flip they would ease alone ~120ms behind the
+          // already-snapped page (tiles visibly lag). Suppress them for exactly
+          // one frame: add .theme-snap to <html> (a base.css rule zeroes every
+          // transition while present, hub included) around the setAttribute,
+          // then drop it after the flip has painted (double rAF — the class
+          // lives ~1 frame, so hover eases stay intact at rest). Cancel and
+          // re-arm the pending removal on a rapid double-toggle rather than
+          // stacking timers.
+          if (snapRaf) cancelAnimationFrame(snapRaf);
+          root.classList.add("theme-snap");
           const next =
             root.getAttribute("data-theme") === "dark" ? "light" : "dark";
           root.setAttribute("data-theme", next);
+          snapRaf = requestAnimationFrame(() => {
+            snapRaf = requestAnimationFrame(() => {
+              root.classList.remove("theme-snap");
+              snapRaf = 0;
+            });
+          });
           try {
             if (key) localStorage.setItem(key, next);
           } catch {

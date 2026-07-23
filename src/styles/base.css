@@ -70,14 +70,30 @@ body {
   overflow-wrap: break-word;
 }
 
-/* The THEME flip is deliberately instant and carries NO transition of any
-   kind — ThemeToggle.astro documents the two reverted attempts (WebKit
-   compounds per-element inherited-colour eases into a staircase, and gates
+/* The THEME flip is deliberately instant and rides NO transition of its own —
+   ThemeToggle.astro documents the two reverted attempts (WebKit compounds
+   per-element inherited-colour eases into a staircase, and gates
    view-transition fade presentation on the main thread the flip itself
    saturates). Do not re-add a colour transition or a view transition to the
-   swap; it stays synchronized precisely because nothing eases.
+   swap.
 
-   The block below retimes ClientRouter NAVIGATION fades only. It lives HERE
+   But the resting controls DO carry standing colour/background eases for their
+   hover feel (--dur-fast, primitives.css + .code-copy below), so on the swap
+   they would ease alone ~120ms behind the already-snapped page — tiles visibly
+   lag. ThemeToggle adds .theme-snap to <html> for exactly one frame around the
+   setAttribute; the rule below zeroes every transition while it is present, so
+   the whole tree snaps in one recalc, then the class is dropped once the flip
+   has painted. It lives HERE (not shell.css) because the hub imports base.css
+   but not the course shell, and the hub uses the same ThemeToggle. The class is
+   gone by the next frame, so hover eases are untouched at rest. */
+html.theme-snap,
+html.theme-snap *,
+html.theme-snap *::before,
+html.theme-snap *::after {
+  transition: none !important;
+}
+
+/* The block below retimes ClientRouter NAVIGATION fades only. It lives HERE
    (not shell.css) because the hub imports base.css but not the course shell.
    The UA default is a plus-lighter cross-fade of BOTH snapshots inside an
    isolation:isolate image-pair — an offscreen blend pass of two
