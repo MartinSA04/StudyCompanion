@@ -3,6 +3,7 @@ import { parse } from "yaml";
 import { ClientRouter } from "astro:transitions";
 import ThemeToggle from "../../src/components/ThemeToggle.astro";
 import { faviconDataUri } from "../../src/lib/favicon.ts";
+import { contrastText } from "../../src/lib/color.ts";
 // Vite resolves `?raw` relative to this source file at bundle time
 // (cwd-independent) and puts the YAML in the module graph so `hub:dev`
 // hot-reloads it.
@@ -85,10 +86,24 @@ const description =
   "Interaktive studieguider med flashcards, quiz og formelsamling.";
 
 const themeKey = "sc:theme:hub";
+
+// Per-theme brand accent — the hub has no course.accent, so it pins its own
+// pair and derives the on-accent text exactly as CourseLayout does for a course
+// (contrastText + tokens.css switching --accent / --accent-contrast per theme).
+// Light stays the companion blue (also the favicon); dark lifts to Flexoki
+// blue-400 so the countdown pill's ink-on-accent clears AA — the shared #205ea6
+// reads only 2.93:1 against ink in dark. Without these vars tokens.css falls
+// back to the light accent in both themes.
+const accentLight = "#205ea6";
+const accentDark = "#4385be";
+const accentVars =
+  `--accent-light: ${accentLight}; --accent-dark: ${accentDark}; ` +
+  `--accent-contrast-light: ${contrastText(accentLight)}; ` +
+  `--accent-contrast-dark: ${contrastText(accentDark)};`;
 ---
 
 <!doctype html>
-<html lang="nb">
+<html lang="nb" style={accentVars}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
