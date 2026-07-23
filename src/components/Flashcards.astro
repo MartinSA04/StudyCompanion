@@ -1173,11 +1173,22 @@ const hasSections = sections.length > 0;
     // per gesture (and the capture handler only acts on pointer clicks, detail
     // > 0), so it can neither leak onto a later tap nor eat a keyboard flip.
     let swallowFlip = false;
+    // Largest |dx| the active drag reached, reset per gesture in onEnd. Below
+    // the commit threshold a MOUSE release still synthesises a trailing click;
+    // we swallow it only when the pointer travelled past a tap's slop, so a
+    // moved-but-uncommitted drag springs back without that click un-flipping the
+    // card, while a near-still tap keeps flip-on-release. (Touch mostly
+    // suppresses the compat click past its own slop; should one slip through
+    // just past TAP_SLOP, swallowing it is the same drag-not-tap outcome.)
+    let dragMax = 0;
+    // Travel under this (px) is a tap, not a drag.
+    const TAP_SLOP = 10;
     // How far the top card may follow the finger before release — enough travel
     // to slide it clear and preview the next card rising behind it.
     const DRAG_CAP = SWIPE_THRESHOLD * 2;
     const cleanupSwipe = attachSwipe(stage, {
       onMove(dx) {
+        dragMax = Math.max(dragMax, Math.abs(dx));
         // prefers-reduced-motion: no follow transform at all — the verdict
         // still commits on release.
         if (prefersReduced()) return;
@@ -1201,6 +1212,8 @@ const hasSections = sections.length > 0;
         // Rating hidden (all-known / filter-empty end state) ⇒ swipe does
         // nothing.
         const commit = verdict !== null && deck.dataset.empty !== "true";
+        const moved = dragMax;
+        dragMax = 0;
         if (commit) {
           // Leave the drag transform on the card: rate() → goTo() slides it off
           // from the finger, so there's no snap-back-then-fly flicker. pendingExit
@@ -1210,8 +1223,11 @@ const hasSections = sections.length > 0;
           (verdict === "right" ? knownBtn : reviewBtn).click();
           return;
         }
-        // Sub-threshold / vetoed as a scroll: spring the cards back to rest.
-        swallowFlip = false;
+        // Sub-threshold / vetoed as a scroll: spring the cards back to rest, and
+        // swallow the mouse's trailing click when the pointer actually moved
+        // (past TAP_SLOP) — a spring-back must not ride that click into an
+        // un-flip. A near-still tap leaves swallowFlip false so it still flips.
+        swallowFlip = moved > TAP_SLOP;
         springBack();
       },
     });
