@@ -11,25 +11,28 @@ import { formatDate } from "../src/lib/dates.ts";
  * `daysUntil` counts CALENDAR days (exam Y/M/D in UTC vs. now's Y/M/D in the
  * viewer's zone), so it stays "i dag" through exam morning rather than flipping
  * to "i morgen" just past local midnight. Schema dates are UTC-midnight, hence
- * the `Date.UTC` constructions below.
+ * `utc()` for them — but `now` is read in the viewer's own zone, hence
+ * `local()`, keeping these assertions true in any process timezone.
  */
 const utc = (y: number, m: number, d: number, h = 0) =>
   new Date(Date.UTC(y, m - 1, d, h));
+const local = (y: number, m: number, d: number, h = 0) =>
+  new Date(y, m - 1, d, h);
 
 test("daysUntil: same calendar day → 0", () => {
-  assert.equal(daysUntil(utc(2026, 6, 15), utc(2026, 6, 15, 6)), 0);
+  assert.equal(daysUntil(utc(2026, 6, 15), local(2026, 6, 15, 6)), 0);
 });
 
 test("daysUntil: the next calendar day → 1", () => {
-  assert.equal(daysUntil(utc(2026, 6, 16), utc(2026, 6, 15, 23)), 1);
+  assert.equal(daysUntil(utc(2026, 6, 16), local(2026, 6, 15, 23)), 1);
 });
 
 test("daysUntil: a past exam is negative", () => {
-  assert.equal(daysUntil(utc(2026, 6, 14), utc(2026, 6, 15)), -1);
+  assert.equal(daysUntil(utc(2026, 6, 14), local(2026, 6, 15)), -1);
 });
 
 test("daysUntil spans a week correctly", () => {
-  assert.equal(daysUntil(utc(2026, 6, 22), utc(2026, 6, 15)), 7);
+  assert.equal(daysUntil(utc(2026, 6, 22), local(2026, 6, 15)), 7);
 });
 
 test("formatExamCountdown phrases the 0/1/n boundaries", () => {

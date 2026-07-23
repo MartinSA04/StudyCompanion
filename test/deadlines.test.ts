@@ -10,6 +10,8 @@ import { upcomingDeadlines } from "../src/lib/deadlines.ts";
  */
 const utc = (y: number, m: number, d: number, h = 0) =>
   new Date(Date.UTC(y, m - 1, d, h));
+const local = (y: number, m: number, d: number, h = 0) =>
+  new Date(y, m - 1, d, h);
 const titles = (ds: { title: string }[]) => ds.map((d) => d.title);
 
 test("upcomingDeadlines: empty in, empty out", () => {
@@ -17,7 +19,7 @@ test("upcomingDeadlines: empty in, empty out", () => {
 });
 
 test("upcomingDeadlines: all-past deadlines are dropped", () => {
-  const now = utc(2026, 6, 15);
+  const now = local(2026, 6, 15);
   const ds = [
     { title: "yesterday", date: utc(2026, 6, 14) },
     { title: "new year", date: utc(2026, 1, 1) },
@@ -26,7 +28,7 @@ test("upcomingDeadlines: all-past deadlines are dropped", () => {
 });
 
 test("upcomingDeadlines: sorts ascending by date, leaving the input untouched", () => {
-  const now = utc(2026, 6, 15);
+  const now = local(2026, 6, 15);
   const ds = [
     { title: "late", date: utc(2026, 9, 1) },
     { title: "soon", date: utc(2026, 6, 20) },
@@ -38,9 +40,9 @@ test("upcomingDeadlines: sorts ascending by date, leaving the input untouched", 
 });
 
 test("upcomingDeadlines: a deadline landing TODAY is still upcoming (same-day boundary)", () => {
-  // Evening of the 15th in the viewer's zone; the deadline is the 15th at
+  // Morning of the 15th in the viewer's zone; the deadline is the 15th at
   // UTC-midnight — daysUntil is 0, so it stays listed rather than dropping.
-  const now = utc(2026, 6, 15, 6);
+  const now = local(2026, 6, 15, 6);
   const ds = [
     { title: "today", date: utc(2026, 6, 15) },
     { title: "tomorrow", date: utc(2026, 6, 16) },
