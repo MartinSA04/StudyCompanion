@@ -4,7 +4,7 @@
 # This is the heart of a course. Every field below is documented; the OPTIONAL
 # blocks ship filled with tiny working examples so the template builds and shows
 # each shape — replace them with your course's data (or delete blocks you don't
-# need). See ../AUTHORING.md for the full guide.
+# need). See AUTHORING.md in the framework repo for the full guide.
 # ─────────────────────────────────────────────────────────────────────────────
 
 schemaVersion: 3 # MUST equal the framework's SCHEMA_VERSION (the build checks it).
