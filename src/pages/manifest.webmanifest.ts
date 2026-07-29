@@ -15,6 +15,12 @@ const BG = THEME_COLOR_LIGHT;
 export async function GET(_context: APIContext): Promise<Response> {
   const { course } = await loadCourse();
   const manifest = {
+    // Stable app identity, independent of start_url. Without `id` a browser keys
+    // the installed app to start_url, so ever changing that would register as a
+    // brand-new app rather than an update to this one. Each course is its own
+    // origin, so "/" is already unique. Ignored by iOS, which does not install
+    // from the manifest at all.
+    id: "/",
     name: `${course.code} ${course.title}`,
     short_name: course.code,
     description: course.subtitle ?? course.title,

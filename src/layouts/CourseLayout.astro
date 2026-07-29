@@ -15,6 +15,7 @@ import {
 } from "../lib/color.ts";
 import { THEME_COLOR_LIGHT, THEME_COLOR_DARK } from "../lib/themeColor.ts";
 import { faviconDataUri, OG_WIDTH, OG_HEIGHT } from "../lib/favicon.ts";
+import { STARTUP_IMAGES } from "../lib/startupImages.ts";
 import { ogLocale, canonicalPathname, warnMissingSiteOnce } from "../lib/seo.ts";
 import { formatDate } from "../lib/dates.ts";
 import { groupBySection } from "../lib/groupBySection.ts";
@@ -362,6 +363,21 @@ const hasTools = toolNav.some((t) => t.show);
         since Safari 15, so it was a file and a link tag nothing read. */}
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    {/* iOS launch images. Verbose by necessity: WebKit has no manifest-driven
+        splash, and an image is ignored unless its media query matches the launch
+        window exactly, so it is one tag per device class per orientation. The
+        table generating these also generates the build's render list, so a tag
+        can't outlive its file. Highly repetitive, so it gzips to a few hundred
+        bytes. */}
+    {
+      STARTUP_IMAGES.map((s) => (
+        <link
+          rel="apple-touch-startup-image"
+          media={s.media}
+          href={`/${s.name}`}
+        />
+      ))
+    }
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta
