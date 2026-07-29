@@ -4,6 +4,14 @@ dist-hub
 .astro
 .pnpm-store
 
+# The scaffold ships NO lockfile: its `study-companion` pin is a git tag, which
+# pnpm resolves against the remote, so the lockfile could only ever be generated
+# AFTER the release tag was pushed — one commit behind the tag it belongs to.
+# Ignored here at the root and NOT in course-template/.gitignore, which is copied
+# verbatim into every new course repo, where the author's own lockfile must stay
+# committed (their deploy.yml installs --frozen-lockfile).
+course-template/pnpm-lock.yaml
+
 # Playwright visual-regression output (baselines under visual/*-snapshots/ stay)
 test-results
 playwright-report

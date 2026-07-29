@@ -45,22 +45,25 @@ test("MIGRATIONS.md has an entry for every version up to the current one", () =>
   }
 });
 
-// The tag-push guard cannot check the lockfile: pnpm resolves the
-// `github:…#vX.Y.Z` pin against the REMOTE, so `pnpm install --lockfile-only`
-// in the template only succeeds once the tag is pushed. The lockfile sync
-// therefore trails the tag by one commit, so this deliberately FAILS on the
-// release commit itself and stays red until the post-tag-push sync lands —
-// that transient red is the enforcement that the sync actually happened.
-test("course-template lockfile specifier matches its study-companion pin", () => {
+// The template pin and the framework version move together in ONE release
+// commit, so this is checkable at that commit rather than after it: a release
+// that bumps package.json but forgets `course-template/package.json` fails here
+// immediately. It also holds between releases, because the version only ever
+// changes in a dedicated `chore(release)` commit.
+//
+// This replaced a lockfile-vs-pin check that could not be satisfied at the
+// release commit at all: pnpm resolves the `github:…#vX.Y.Z` pin against the
+// REMOTE, so the template lockfile could only be regenerated once the tag was
+// pushed, always landing one commit behind the tag. The template now ships no
+// lockfile (see .gitignore), which is what makes a one-commit release possible.
+test("course-template pins the framework version this tree declares", () => {
   const pin = JSON.parse(
     readFileSync(root + "course-template/package.json", "utf8"),
-  ).dependencies["study-companion"];
-  const lock = readFileSync(root + "course-template/pnpm-lock.yaml", "utf8");
-  const m = /^ {6}study-companion:\n {8}specifier: (.+)$/m.exec(lock);
-  assert.ok(m, "could not find study-companion specifier in pnpm-lock.yaml");
+  ).dependencies["study-companion"] as string;
+  const { version } = JSON.parse(readFileSync(root + "package.json", "utf8"));
   assert.equal(
-    m![1],
-    pin,
-    `lockfile specifier ${m![1]} does not match package.json pin ${pin}`,
+    pin.slice(pin.indexOf("#") + 1),
+    `v${version}`,
+    `course-template pins ${pin}, but this tree is version ${version}`,
   );
 });

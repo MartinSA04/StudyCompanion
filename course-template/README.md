@@ -21,23 +21,20 @@ pnpm install
 pnpm dev
 ```
 
+The template ships **no `pnpm-lock.yaml`** — the `pnpm install` above generates
+yours. **Commit it**: the bundled `.github/workflows/deploy.yml` installs with
+`--frozen-lockfile`, so your first deploy fails without it.
+
 Once the course exists, REPLACE this file with a short course README (title,
 live URL, "built on StudyCompanion, content only", run-locally, license line —
 copy the shape from any existing course repo). This starter doc describes the
 template, not your course, and reads stale the moment the repo is real.
 
-Copy from the repo's **main** branch — the `degit` path above takes HEAD by
-default. Don't copy the template out of a release-tag checkout: a tag's committed
-`pnpm-lock.yaml` always records the *previous* release by construction (the
-lockfile is regenerated only after the tag is pushed), so it would start you on a
-stale lockfile.
-
 Then:
 
 1. Edit `package.json` → set `name` and pin the framework tag. Use the **newest**
    `vX.Y.Z` tag, and keep it current — bump it to pick up new widgets and fixes.
-   The committed `pnpm-lock.yaml` is pinned to the template's tag; after you
-   change the pin, run `pnpm install` to update it.
+   Re-run `pnpm install` after changing the pin, and commit the updated lockfile.
 2. Set `site` in `astro.config.mjs` to your public origin (needed for the
    canonical link, social cards and the sitemap).
 3. Edit `content/course.yaml` → identity, accent, `courseUrl`, `institution`,
