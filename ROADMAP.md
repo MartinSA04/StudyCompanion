@@ -18,12 +18,12 @@ demand-driven items. This is a _menu_, not a commitment.
 Built on demand — each is genuinely useful but was held back as too heavy for
 the value at the time, or waiting on a real consumer that needs it.
 
-- **Auto-generated OG share image** — `minor`, **L**. A build-time, per-page
-  branded 1200×630 PNG (accent ground, the `>_` mark, course `code`, page title)
-  via `satori` + a rasterizer, wired to `og:image`/`twitter:image`. Would upgrade
-  today's interim square-icon `summary` card to `summary_large_image`. Big
-  dependency + effort; could ship opt-in first (`course.yaml` `seo.ogImage:
-  true`).
+- **Per-page TEXT on the OG share image** — `minor`, **M**. The 1200×630 card
+  itself now ships (accent ground + the `>_` mark, `summary_large_image`, one card
+  per site); what is left is the per-page half: the course `code` and the page
+  title rendered onto it. Needs `satori`, because typesetting through `sharp`
+  means librsvg + fontconfig and glyph metrics that vary with whichever fonts the
+  build machine has. Could ship opt-in first (`course.yaml` `seo.ogImage: true`).
 - **Offline reading via service worker** — `minor`, **L**. An **opt-in** precache
   service worker (`course.yaml` `features.offline`) caching the static shell +
   visited pages (Cache-First for fonts/CSS/KaTeX, Stale-While-Revalidate for

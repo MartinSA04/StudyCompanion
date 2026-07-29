@@ -44,8 +44,8 @@ Then:
    the key.
 4. Replace the example sections under `content/sections/` with your modules.
 5. Drop your figures, sims and any vendored exam PDFs into `public/`. No favicon
-   file is needed — the favicon and all app icons are generated from the course
-   `accent`/`accentDark`.
+   file is needed — the favicon, all app icons and the 1200×630 share card are
+   generated from the course `accent`.
 
 ## Local framework development
 

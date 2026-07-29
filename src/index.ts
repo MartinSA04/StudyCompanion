@@ -2,7 +2,7 @@ import type { AstroIntegration } from "astro";
 import { fileURLToPath } from "node:url";
 import { join } from "node:path";
 import { readFileSync } from "node:fs";
-import { writeFile, readdir, stat, unlink } from "node:fs/promises";
+import { readdir, stat, unlink } from "node:fs/promises";
 import { parse as parseYaml } from "yaml";
 import mdx from "@astrojs/mdx";
 import remarkMath from "remark-math";
@@ -41,7 +41,6 @@ function rehypePagefindIgnoreKatex() {
   };
   return (tree: HastNode) => walk(tree);
 }
-import { maskIconSvg } from "./lib/favicon.ts";
 import { rasterizeIcons, COURSE_ICONS } from "./lib/rasterizeIcons.ts";
 
 // This package's root (parent of src/ or dist/). Used to let the dev server
@@ -64,65 +63,53 @@ const nativeImport = new Function("specifier", "return import(specifier)") as (
 ) => Promise<any>;
 
 /**
- * Generate the per-course raster app icons + Safari pinned-tab mask into the
- * static output at build. The mask SVG needs nothing; the PNGs load
- * `sharp` — declared as this package's own optionalDependency, matching
+ * Generate the per-course raster icon set into the static output at build. These
+ * load `sharp` — declared as this package's own optionalDependency, matching
  * Astro's supported range, so it resolves by NAME under every package manager
  * (including pnpm's unhoisted store) — through the same guarded dynamic
  * import as Pagefind below. A missing or failing sharp FAILS the build: the
  * prerendered manifest + apple-touch-icon/og:image tags already reference
  * these PNGs, so skipping would ship 404 icons and a broken install contract.
- * The icons are accent-tinted from the course's own `accent`/`accentDark`.
+ * Every file is a field of the course's own `accent` with the `>_` mark knocked
+ * out of it.
  *
- *   /apple-touch-icon.png   180×180 (iOS home screen; opaque)
- *   /icon-192.png /icon-512.png   manifest "any" (transparent rounded mark)
- *   /icon-maskable-512.png   manifest "maskable" (full-bleed ground)
- *   /safari-pinned-tab.svg   monochrome silhouette, tinted via the link `color`
+ *   /apple-touch-icon.png   180×180 (iOS home screen; full-bleed, opaque)
+ *   /icon-192.png /icon-512.png   manifest "any" (rounded, transparent margin)
+ *   /icon-maskable-512.png   manifest "maskable" (full-bleed, mark inside the
+ *                            80% safe circle)
+ *   /og-image.png   1200×630 Open Graph / Twitter card
  */
 async function generateAppIcons(
   root: URL,
   outDir: string,
   logger: { info: (m: string) => void; warn: (m: string) => void },
 ): Promise<void> {
-  // The pinned-tab mask is a plain string write — no rasterizer needed, so do
-  // it first and unconditionally (Safari mask works even if sharp is missing).
-  try {
-    await writeFile(join(outDir, "safari-pinned-tab.svg"), maskIconSvg());
-  } catch (err) {
-    logger.warn(
-      `Skipped mask-icon: ${err instanceof Error ? err.message : String(err)}`,
-    );
-  }
-
-  // Read just the accent(s) from course.yaml — a shallow read (defaults to the
+  // Read just the accent from course.yaml — a shallow read (defaults to the
   // schema default) so icon generation never depends on full schema parsing.
   let accent = "#205ea6"; // courseSchema's accent default
-  let accentDark: string | undefined;
   try {
     const yamlText = readFileSync(
       join(fileURLToPath(root), "content/course.yaml"),
       "utf8",
     );
-    const data = parseYaml(yamlText) as
-      | { accent?: unknown; accentDark?: unknown }
-      | undefined;
+    const data = parseYaml(yamlText) as { accent?: unknown } | undefined;
     if (data?.accent) accent = String(data.accent);
-    if (data?.accentDark) accentDark = String(data.accentDark);
   } catch {
     /* fall back to the default accent */
   }
-  // Dark-surface accent: the mark's ground is near-black, like the favicon link.
-  const markAccent = accentDark ?? accent;
 
+  // The light-mode `accent`, not `accentDark`. accentDark exists to lift the
+  // accent for legibility ON a dark page ground; here the accent IS the ground,
+  // so the truer brand hue is the right one — and it matches the tab favicon.
   try {
     await rasterizeIcons({
-      accent: markAccent,
+      accent,
       outDir,
       targets: COURSE_ICONS,
       importSharp: () => nativeImport("sharp"),
     });
     logger.info(
-      "Generated app icons (apple-touch-icon, icon-192/512, maskable)",
+      "Generated app icons (apple-touch-icon, icon-192/512, maskable, og-image)",
     );
   } catch (err) {
     // Hard failure, never warn-and-skip: the manifest.webmanifest and the
@@ -311,11 +298,10 @@ export default function studyCompanion(
       "astro:build:done": async ({ dir, logger }) => {
         const outDir = fileURLToPath(dir);
 
-        // Per-course raster app icons + pinned-tab mask. Independent of
-        // the Pagefind step. Raster icon generation hard-fails the build if
-        // sharp can't run (the manifest and icon tags already reference the
-        // PNGs, so a skip would ship 404 icons); only the pinned-tab mask SVG
-        // is warn-and-skip.
+        // Per-course raster icon set. Independent of the Pagefind step, and
+        // hard-fails the build if sharp can't run: the manifest and the
+        // icon/og:image tags already reference these PNGs, so a skip would ship
+        // 404s rather than a degraded-but-working site.
         if (projectRoot) {
           await generateAppIcons(projectRoot, outDir, logger);
         }

@@ -14,7 +14,7 @@ import {
   ACCENT_WEAK_MIX,
 } from "../lib/color.ts";
 import { THEME_COLOR_LIGHT, THEME_COLOR_DARK } from "../lib/themeColor.ts";
-import { faviconDataUri } from "../lib/favicon.ts";
+import { faviconDataUri, OG_WIDTH, OG_HEIGHT } from "../lib/favicon.ts";
 import { ogLocale, canonicalPathname, warnMissingSiteOnce } from "../lib/seo.ts";
 import { formatDate } from "../lib/dates.ts";
 import { groupBySection } from "../lib/groupBySection.ts";
@@ -299,9 +299,11 @@ const metaDescription =
 const ogType = seo?.ogType ?? "website";
 const siteName = `${course.code} ${course.title}`;
 const locale = ogLocale(course.language);
-// Interim social-card image: the build-time raster app icon. A square
-// logo → a `summary` Twitter card; a 1200×630 `summary_large_image` is deferred.
-const ogImage = site ? new URL("/icon-512.png", site).href : null;
+// The build-time 1200×630 accent card (lib/favicon.ts `ogCardSvg`), NOT one of
+// the square app icons: those carry a transparent margin, so a client would
+// composite the mark on whatever ground it liked. Mark only, no per-page text;
+// the `satori` text card stays on ROADMAP (see the ogCardSvg note).
+const ogImage = site ? new URL("/og-image.png", site).href : null;
 const twitterHandle = course.seo?.twitter
   ? course.seo.twitter.startsWith("@")
     ? course.seo.twitter
@@ -330,10 +332,11 @@ const hasTools = toolNav.some((t) => t.show);
       name="viewport"
       content="width=device-width, initial-scale=1, viewport-fit=cover"
     />
-    {/* The `>_` mark, tinted to this course's accent so each tab is
-        identifiable. Uses the dark-surface accent since the mark's ground is
-        near-black; inlined per render, so no per-course favicon file. */}
-    <link rel="icon" type="image/svg+xml" href={faviconDataUri(accentDark)} />
+    {/* The `>_` mark knocked out of this course's accent, so each tab is
+        identifiable. The light-mode `accent`, matching the app icons: the accent
+        is the tile's own ground here, not ink on a dark one, so it needs no
+        dark-surface lift. Inlined per render, so no per-course favicon file. */}
+    <link rel="icon" type="image/svg+xml" href={faviconDataUri(course.accent)} />
     <title>{title}</title>
     <meta name="description" content={metaDescription} />
     {course.author && <meta name="author" content={course.author} />}
@@ -353,12 +356,12 @@ const hasTools = toolNav.some((t) => t.show);
     <meta name="color-scheme" content="light dark" />
     <meta name="format-detection" content="telephone=no" />
 
-    {/* Installable PWA + Apple home-screen. The raster icons
-        and pinned-tab mask are emitted per-course at build (astro:build:done);
-        the manifest is an injected endpoint. */}
+    {/* Installable PWA + Apple home-screen. The raster icons are emitted
+        per-course at build (astro:build:done); the manifest is an injected
+        endpoint. No `rel="mask-icon"`: Safari has ignored the pinned-tab mask
+        since Safari 15, so it was a file and a link tag nothing read. */}
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
-    <link rel="mask-icon" href="/safari-pinned-tab.svg" color={accentDark} />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta
@@ -378,15 +381,17 @@ const hasTools = toolNav.some((t) => t.show);
     {canonicalUrl && <meta property="og:url" content={canonicalUrl} />}
     {ogImage && <meta property="og:image" content={ogImage} />}
     {ogImage && <meta property="og:image:type" content="image/png" />}
-    {ogImage && <meta property="og:image:width" content="512" />}
-    {ogImage && <meta property="og:image:height" content="512" />}
+    {ogImage && <meta property="og:image:width" content={String(OG_WIDTH)} />}
+    {ogImage && <meta property="og:image:height" content={String(OG_HEIGHT)} />}
     {ogImage && <meta property="og:image:alt" content={siteName} />}
     {
       ogType === "article" && seo?.modifiedTime && (
         <meta property="article:modified_time" content={seo.modifiedTime} />
       )
     }
-    <meta name="twitter:card" content="summary" />
+    {/* `summary_large_image`, not `summary`: a 1200×630 image in a `summary`
+        card is centre-cropped back to a square, which would waste the card. */}
+    <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={ogTitle} />
     <meta name="twitter:description" content={metaDescription} />
     {ogImage && <meta name="twitter:image" content={ogImage} />}
