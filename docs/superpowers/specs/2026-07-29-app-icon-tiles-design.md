@@ -104,8 +104,8 @@ its own `ogCardSvg(accent)` rather than a resized tile.
 
 ## 3 · Open Graph card
 
-`og-image.png` at **1200×630** — accent ground, mark centred at **20% of the
-card width** (240 px), opaque — wired to `og:image` / `twitter:image` in both
+`og-image.png` at **1200×630** — accent ground, mark centred at **26% of the
+card width**, opaque — wired to `og:image` / `twitter:image` in both
 `CourseLayout.astro` and `hub/pages/index.astro`, with the accompanying
 `og:image:width`/`height` corrected and `twitter:card` raised from `summary` to
 **`summary_large_image`** (a 1200×630 image in a `summary` card gets
@@ -138,9 +138,19 @@ The header brand mark (`CourseLayout.astro:591`) **keeps its frame**. It has the
 room the icon doesn't, so the framed `[>_]` stays the full lockup and the icon
 is the compressed mark. No visual-snapshot churn.
 
-`faviconDataUri(accentDark)` → `faviconDataUri(accent)` in
-`CourseLayout.astro:336`, so the tab icon and the home-screen icon are the same
-artwork rather than two different tints.
+Every target moves to the light-mode `accent`: `faviconDataUri(accentDark)` →
+`faviconDataUri(course.accent)` in `CourseLayout.astro`, and `generateAppIcons`
+drops its `markAccent = accentDark ?? accent`. `accentDark` exists to lift the
+accent for legibility _on_ a dark page ground; once the accent IS the ground it
+needs no lift, so the truer brand hue is correct and the tab icon and the app
+icon become the same artwork.
+
+### Adjusted during implementation
+
+The OG mark started at 20% of the card width, per the figure above, and looked
+like a placeholder dropped into empty space once rendered — an unfurl draws this
+at roughly 500 px and the mark carries the whole frame with no text beside it.
+Raised to 26% after looking at the built PNG.
 
 ## Testing
 

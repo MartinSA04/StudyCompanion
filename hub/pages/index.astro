@@ -2,7 +2,7 @@
 import { parse } from "yaml";
 import { ClientRouter } from "astro:transitions";
 import ThemeToggle from "../../src/components/ThemeToggle.astro";
-import { faviconDataUri } from "../../src/lib/favicon.ts";
+import { faviconDataUri, OG_WIDTH, OG_HEIGHT } from "../../src/lib/favicon.ts";
 import { contrastText } from "../../src/lib/color.ts";
 import { THEME_COLOR_LIGHT } from "../../src/lib/themeColor.ts";
 import {
@@ -101,7 +101,7 @@ const themeKey = "sc:theme:hub";
 const HUB_TITLE = "Studieguider — Martin Sundal";
 const AUTHOR_NAME = "Martin Sundal";
 const canonical = new URL("/", Astro.site).href;
-const ogImage = new URL("/icon-512.png", Astro.site).href;
+const ogImage = new URL("/og-image.png", Astro.site).href;
 const author = { name: AUTHOR_NAME, id: authorId(canonical) };
 const hubLd = hubCollectionLd({
   name: "Studieguider",
@@ -165,10 +165,10 @@ const accentVars =
     <meta property="og:url" content={canonical} />
     <meta property="og:image" content={ogImage} />
     <meta property="og:image:type" content="image/png" />
-    <meta property="og:image:width" content="512" />
-    <meta property="og:image:height" content="512" />
+    <meta property="og:image:width" content={String(OG_WIDTH)} />
+    <meta property="og:image:height" content={String(OG_HEIGHT)} />
     <meta property="og:image:alt" content="Studieguider" />
-    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={HUB_TITLE} />
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={ogImage} />

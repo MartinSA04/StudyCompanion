@@ -89,7 +89,7 @@ jobs:
       - name: Assert build:done artifacts shipped
         run: |
           dist="$RUNNER_TEMP/fixture/dist"
-          for f in apple-touch-icon.png icon-192.png icon-512.png icon-maskable-512.png safari-pinned-tab.svg; do
+          for f in apple-touch-icon.png icon-192.png icon-512.png icon-maskable-512.png og-image.png; do
             [ -s "$dist/$f" ] || { echo "missing build:done icon: $f"; exit 1; }
           done
           [ -s "$dist/pagefind/pagefind-entry.json" ] || { echo "missing/empty Pagefind index"; exit 1; }
