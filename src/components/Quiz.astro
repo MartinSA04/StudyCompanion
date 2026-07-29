@@ -13,6 +13,9 @@ interface Props {
 }
 const { question, options, answer, explanation } = Astro.props;
 import { renderMathString } from "../lib/katex.ts";
+import { stripInline } from "../lib/seo.ts";
+import { quizLd, serializeLd } from "../lib/jsonLd.ts";
+import { loadCourse } from "../lib/loadCourse.ts";
 import Icon from "./Icon.astro";
 
 // Build-time guard: an out-of-range/fractional answer would ship a quiz no
@@ -23,7 +26,28 @@ if (!Number.isInteger(answer) || answer < 0 || answer >= options.length) {
       `which is not an index into its ${options.length} options (0–${options.length - 1}).`,
   );
 }
+
+// Google's "practice problems" rich result, emitted inline beside the form.
+// Component-level rather than page-level because a <Quiz> lives inside an MDX
+// body rendered through <Content />, where page frontmatter can't see it —
+// see lib/jsonLd.ts. Course context follows the <FormulaRef>/<Term> precedent
+// of reading the collection from a component.
+const { course } = await loadCourse();
+const ld = quizLd({
+  question: stripInline(question),
+  options: options.map(stripInline),
+  answer,
+  explanation: explanation ? stripInline(explanation) : undefined,
+  about: {
+    code: course.code,
+    title: course.title,
+    url: course.courseUrl,
+    provider: course.institution,
+  },
+});
 ---
+
+<script type="application/ld+json" set:html={serializeLd(ld)} is:inline />
 
 <form class="quiz sc-panel" data-answer={answer}>
   <fieldset>
