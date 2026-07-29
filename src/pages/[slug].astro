@@ -18,7 +18,10 @@ import {
   breadcrumbList,
   learningResourceLd,
   definedTermSetLd,
+  flashcardQuizLd,
+  guideId,
 } from "../lib/jsonLd.ts";
+import { courseGraph } from "../lib/courseGraph.ts";
 import { slugify } from "../lib/slug.ts";
 import { mdxComponents } from "../mdx-components.ts";
 import {
@@ -166,7 +169,8 @@ if (props.kind === "section") {
 // pages are `website`s. Every page gets a breadcrumb; the glossary also gets a
 // DefinedTermSet. Absolute URLs resolve against `site` (relative without it).
 const abs = (p: string) => absoluteUrl(p, Astro.site);
-const overviewCrumb = { name: "Oversikt", url: abs("/") };
+const graph = courseGraph(course, Astro.site);
+const overviewCrumb = { name: "Oversikt", url: graph.overviewUrl };
 const pageUrl = abs(`/${active}`);
 
 let seoDescription = course.subtitle
@@ -179,7 +183,10 @@ const jsonLd: Record<string, unknown>[] = [];
 
 if (props.kind === "section") {
   const d = props.entry.data;
-  seoDescription = d.summary ?? `${d.title} — ${course.title}`;
+  // `summary` is REQUIRED as of SCHEMA_VERSION 4 precisely so this is always a
+  // real, distinct sentence rather than "<Title> — <Course title>" boilerplate
+  // repeated across every module.
+  seoDescription = d.summary;
   ogType = "article";
   modifiedTime = d.updated?.toISOString();
   noindex = d.noindex;
@@ -190,13 +197,24 @@ if (props.kind === "section") {
       url: pageUrl,
       inLanguage: course.language,
       dateModified: modifiedTime,
-      isPartOf: { name: `${course.code} ${course.title}`, url: abs("/") },
+      learningResourceType: "Study guide",
+      about: graph.course,
+      author: graph.author,
+      partOfGuideId: guideId(graph.overviewUrl),
     }),
     breadcrumbList([overviewCrumb, { name: d.title, url: pageUrl }]),
   );
 } else {
-  // Tool pages: a localized stock description from the page's own label.
-  seoDescription = `${pageTitle} — ${course.title}`;
+  // Tool pages: a per-page description from the `ui` layer, so the four of them
+  // don't share one boilerplate string. The phrase describes the PAGE; the
+  // course half is appended here.
+  const toolDesc = {
+    formulas: course.ui.formulaSheetMetaDesc,
+    glossary: course.ui.glossaryMetaDesc,
+    flashcards: course.ui.flashcardsMetaDesc,
+    exams: course.ui.examsMetaDesc,
+  }[props.kind];
+  seoDescription = `${toolDesc} — ${course.code} ${course.title}`;
   jsonLd.push(
     breadcrumbList([overviewCrumb, { name: pageTitle, url: pageUrl }]),
   );
@@ -211,6 +229,26 @@ if (props.kind === "section") {
           definition: stripInline(g.definition),
           id: slugify(g.term),
         })),
+      }),
+    );
+  }
+  if (props.kind === "flashcards" && flashcards.length) {
+    // Google's practice-problem rich result. Stripped of KaTeX/inline HTML —
+    // structured data is plain text (see lib/jsonLd.ts).
+    jsonLd.push(
+      flashcardQuizLd({
+        url: pageUrl,
+        inLanguage: course.language,
+        about: graph.course,
+        cards: flashcards.map((c) => ({
+          front: stripInline(c.front),
+          back: stripInline(c.back),
+        })),
+        onTruncate: (kept, total) =>
+          console.info(
+            `[study-companion] flashcard JSON-LD capped at ${kept} of ${total} ` +
+              `cards (FLASHCARD_LD_LIMIT) — the full deck still renders.`,
+          ),
       }),
     );
   }

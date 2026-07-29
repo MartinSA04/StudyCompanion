@@ -106,3 +106,36 @@ are pruned), and flashcard ratings by a content hash of the card. Both get a
 one-time automatic client migration on first visit — the stored record is
 rewritten in the new shape — so readers keep their progress and ratings, and
 renumbering sections no longer shifts done-marks between modules.
+
+---
+
+## SCHEMA_VERSION 4 — section `summary` is required
+
+The per-section `summary` moves from optional to **required**.
+
+It was always the module's `<meta name="description">`, its Open Graph
+description and its JSON-LD `description`. When it was absent the page fell back
+to `"<Title> — <Course title>"`, so a guide with fifteen summary-less modules
+shipped fifteen near-identical meta descriptions — duplicate-description warnings
+in Search Console, and nothing for a search engine to build a snippet from.
+Making it required removes the fallback rather than papering over it.
+
+In the same release, structured data changes shape — **no content change**:
+
+- The overview no longer declares the site to be a `Course` with the university
+  as its `provider`. It is now a `LearningResource` (a study guide) `about` a
+  `Course`, and `institution` names the provider of **that** referenced course.
+  A study guide is about a course; it is not the course, and the old markup
+  asserted an institutional authorship the footer disclaimer denies.
+- `<Quiz>` and the flashcards page emit schema.org `Quiz` structured data
+  (Google's "practice problems" rich result).
+
+Migrate:
+
+1. Give every `content/sections/*.mdx` a `summary:` line. **The build fails
+   until you do**, naming the file. Write one sentence for a reader deciding
+   whether to open the module — it is what search results will show.
+2. Optionally set `author:` (and `authorUrl:`) in `content/course.yaml` to
+   populate the JSON-LD `author` and `<meta name="author">`. Omit them and no
+   author is emitted, the same no-guessing rule `institution` follows.
+3. Set `schemaVersion: 4` in `content/course.yaml`.

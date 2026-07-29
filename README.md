@@ -160,9 +160,35 @@ course instead: `pnpm --dir ../course dev`.
 
 A standalone one-pager listing every course site, deployed to GitHub Pages
 from this repo (`.github/workflows/pages.yml`, pushes to `main`). It is a
-second tiny Astro build — `astro.config.hub.mjs`, `srcDir: hub/`, no
+second tiny Astro build — `astro.config.hub.mjs`, `srcDir: hub/`, no course
 integration — whose page imports the framework's own `src/styles/*` and
 `ThemeToggle`, so it tracks the design system with zero copied CSS. Courses
 live in `hub/courses.yaml` (code/title/url/term, plus an optional `note`
 surfaced as a tile note — e.g. "Vedlikeholdes ikke lenger" for a frozen course;
 file order is display order). `pnpm hub:dev` to work on it locally.
+
+The hub carries the same SEO surface a course site does: canonical, Open Graph
+and Twitter tags, `robots.txt`, `sitemap.xml`, and a `CollectionPage` +
+`ItemList` of every guide. Its one build hook (`hub-icons`) rasterizes the `>_`
+mark via the shared `src/lib/rasterizeIcons.ts`, because `og:image` needs a real
+file — the page's own favicon is a data URI, which crawlers cannot fetch.
+
+## SEO & structured data
+
+Every page emits canonical/Open Graph/Twitter tags and schema.org JSON-LD, all
+derived from `course.yaml` + section frontmatter (`src/lib/seo.ts`,
+`src/lib/jsonLd.ts`, `src/lib/courseGraph.ts`). Absolute-URL features need
+`site` in the course's `astro.config.mjs`; without it they degrade to a single
+DEV warning rather than emitting unusable relative URLs.
+
+**A guide is `about` a course; it is not the course.** The overview is a
+`LearningResource`, and `institution` names the `provider` of the referenced
+`Course` — never of this site. Claiming otherwise would assert an institutional
+authorship the footer disclaimer denies. Modules are `LearningResource`s linked
+to the guide by a stable `@id` (`<site>/#guide`), with `<site>/#author` doing
+the same for `author`, so the per-page fragments form one connected graph.
+
+`<Quiz>` and the flashcards page emit schema.org `Quiz` (Google's "practice
+problems" rich result); the glossary emits a `DefinedTermSet`; every page gets a
+`BreadcrumbList`. The flashcard deck is capped at `FLASHCARD_LD_LIMIT` (100)
+questions, logged when it truncates.

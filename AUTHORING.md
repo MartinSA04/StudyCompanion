@@ -103,7 +103,9 @@ section in `course-template/content/sections/`.
 rather than re-deriving. Usually `importance: useful` or `extra`.
 
 **Section frontmatter** is the contract — `order` (the source of truth for
-sequence, not the filename), `title`, `importance`, optional `summary`, `tag`
+sequence, not the filename), `title`, `summary` (**required**: it is the
+module's meta description and its search-result snippet — write one sentence for
+a reader deciding whether to open it), `importance`, optional `tag`
 (a single kicker label on the overview tile — e.g. "Uke 3"; renders nowhere
 else), `num`, `part`, `updated`, plus `draft: true` (hide the module from
 **production** builds while you draft it — still visible in `astro dev`) and
@@ -222,7 +224,7 @@ Keep `run(input)` deterministic for a given input (shuffle re-calls
 - **Strict schema.** `course.yaml` is validated against a strict schema: an
   unknown or misspelled top-level or nested key **fails the build** naming the
   key. `course.yaml` also requires `schemaVersion` (no default) — set it to the
-  framework's `SCHEMA_VERSION` (currently **3**); a mismatch fails the build with
+  framework's `SCHEMA_VERSION` (currently **4**); a mismatch fails the build with
   a migrate/bump-the-pin message (see `MIGRATIONS.md`).
 
 ---
@@ -265,8 +267,9 @@ not ad-hoc `links[]` entries:
 
 The polish bar is **library-grade**. A module is done when:
 
-- [ ] **Frontmatter complete** — `order`, `title`, `importance` (+ `summary` where
-      it helps the sidebar/overview).
+- [ ] **Frontmatter complete** — `order`, `title`, `summary`, `importance`. The
+      `summary` is what search results and social shares show; a vague one costs
+      real clicks.
 - [ ] **Goals + recap** — has `<LearningGoals>` and at least one `<KeyTakeaways>`
       bullet (concept/method modules).
 - [ ] **All math renders** — no raw `$…$` leaking; results that are *the point* are

@@ -28,8 +28,18 @@ export async function GET(context: APIContext): Promise<Response> {
 
   const { sections, tools } = await loadCourse();
 
+  // The overview's freshness is the freshest module it links to: it has no
+  // `updated` of its own, and a guide whose newest module moved yesterday is a
+  // page worth recrawling. Indexed sections only — a noindexed or draft
+  // module's date must not leak a signal about a page that isn't in the map.
+  const newest = sections
+    .filter((s) => !s.data.noindex && s.data.updated)
+    .reduce<
+      Date | undefined
+    >((max, s) => (!max || s.data.updated! > max ? s.data.updated! : max), undefined);
+
   const urls: { loc: string; lastmod?: string }[] = [
-    { loc: new URL("/", site).href },
+    { loc: new URL("/", site).href, lastmod: newest?.toISOString() },
   ];
   for (const s of sections) {
     if (s.data.noindex) continue; // out of search, out of the sitemap

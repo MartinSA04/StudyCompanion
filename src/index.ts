@@ -41,7 +41,8 @@ function rehypePagefindIgnoreKatex() {
   };
   return (tree: HastNode) => walk(tree);
 }
-import { faviconSvg, maskIconSvg, GROUND } from "./lib/favicon.ts";
+import { maskIconSvg } from "./lib/favicon.ts";
+import { rasterizeIcons, COURSE_ICONS } from "./lib/rasterizeIcons.ts";
 
 // This package's root (parent of src/ or dist/). Used to let the dev server
 // serve assets that live alongside the framework — see the fs.allow note below.
@@ -114,26 +115,12 @@ async function generateAppIcons(
   const markAccent = accentDark ?? accent;
 
   try {
-    const sharpMod = await nativeImport("sharp");
-    const sharp = sharpMod.default ?? sharpMod;
-
-    // Render the mark at a generous fixed size, then resize down per target.
-    const svg = Buffer.from(
-      faviconSvg(markAccent).replace("<svg ", '<svg width="512" height="512" '),
-    );
-    const png = (size: number, opaque: boolean): Promise<Buffer> => {
-      let img = sharp(svg, { density: 512 }).resize(size, size);
-      if (opaque) img = img.flatten({ background: GROUND });
-      return img.png().toBuffer();
-    };
-
-    await writeFile(join(outDir, "apple-touch-icon.png"), await png(180, true));
-    await writeFile(join(outDir, "icon-192.png"), await png(192, false));
-    await writeFile(join(outDir, "icon-512.png"), await png(512, false));
-    await writeFile(
-      join(outDir, "icon-maskable-512.png"),
-      await png(512, true),
-    );
+    await rasterizeIcons({
+      accent: markAccent,
+      outDir,
+      targets: COURSE_ICONS,
+      importSharp: () => nativeImport("sharp"),
+    });
     logger.info(
       "Generated app icons (apple-touch-icon, icon-192/512, maskable)",
     );

@@ -1,4 +1,4 @@
-schemaVersion: 3
+schemaVersion: 4
 code: DEMO101
 title: Demokurs
 subtitle: Kitchen-sink for study-companion
@@ -35,9 +35,13 @@ courseUrl: "https://example.com/emne/DEMO101"
 # above Oversikt. Just a URL by design; the hub owns the live course list.
 hubUrl: "https://example.com/hub"
 
-# Provider for the Course JSON-LD (explicit, never derived from a URL host) +
-# a social handle for the Twitter card. Both optional/additive.
+# Provider of the OFFICIAL course this guide is about — the JSON-LD puts it on
+# the referenced Course, never on this site (explicit, never derived from a URL
+# host). `author` drives the JSON-LD author + <meta name="author">. A social
+# handle for the Twitter card. All optional/additive.
 institution: "Example University"
+author: "Ola Nordmann"
+authorUrl: "https://example.com/ola"
 seo:
   twitter: "@studycompanion"
 

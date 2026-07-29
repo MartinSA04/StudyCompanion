@@ -8,7 +8,7 @@ import { z } from "zod";
  *
  * SemVer mapping (see CLAUDE.md): breaking schema change => MAJOR release.
  */
-export const SCHEMA_VERSION = 3;
+export const SCHEMA_VERSION = 4;
 
 /** A single exam paper / past-exam reference (rendered by <ExamList>). */
 const examPaperSchema = z.strictObject({
@@ -166,10 +166,26 @@ export const courseSchema = z.strictObject({
 
   /**
    * Institution / provider name (e.g. "NTNU"), used as the schema.org `provider`
-   * on the overview's `Course` JSON-LD. Explicit, not derived from a URL
-   * host — omit it and no provider is emitted (no guessing).
+   * of the OFFICIAL course this guide is `about`. Explicit, not derived from a
+   * URL host — omit it and no provider is emitted (no guessing).
+   *
+   * Note the claim it makes: the provider sits on the referenced course, never
+   * on this site. A study guide is `about` a course; it is not the course, and
+   * naming the institution as ITS provider would assert an institutional
+   * authorship the footer disclaimer explicitly denies. See lib/jsonLd.ts.
    */
   institution: z.string().optional(),
+
+  /**
+   * Who wrote this guide. Drives the schema.org `author` on every page's
+   * JSON-LD (via a shared `@id`, so the graph connects) and
+   * `<meta name="author">`. Explicit only — omit it and no author is emitted,
+   * the same no-guessing rule `institution` follows.
+   */
+  author: z.string().optional(),
+
+  /** Optional URL identifying `author` (personal site, GitHub profile, …). */
+  authorUrl: z.url().optional(),
 
   links: z
     .array(
@@ -322,6 +338,31 @@ export const courseSchema = z.strictObject({
        */
       footerDisclaimer: z.string().default("Merk at siden kan inneholde feil."),
       updatedLabel: z.string().default("Oppdatert"),
+
+      /**
+       * `<meta name="description">` for the four tool pages, each composed as
+       * `"<phrase> — <code> <title>"`. They exist because the tool pages
+       * otherwise shared one `"<Label> — <Course title>"` boilerplate, giving
+       * four pages per site the same duplicate description. Phrase the override
+       * to describe the PAGE, not the course; the course half is appended.
+       *
+       * Unlike the other `ui` strings these carry NO terminal punctuation — a
+       * full stop immediately before the appended " — …" reads as a typo.
+       */
+      formulaSheetMetaDesc: z
+        .string()
+        .default("Alle formler og symboler fra emnet samlet på én søkbar side"),
+      glossaryMetaDesc: z
+        .string()
+        .default("Alle sentrale begreper fra emnet, forklart og søkbare"),
+      flashcardsMetaDesc: z
+        .string()
+        .default(
+          "Øv med flashcards på sentrale begreper og resultater fra emnet",
+        ),
+      examsMetaDesc: z
+        .string()
+        .default("Tidligere eksamensoppgaver med løsningsforslag"),
     })
     .prefault({}),
 });
@@ -335,7 +376,15 @@ export const sectionSchema = z.strictObject({
    */
   num: z.string().optional(),
   title: z.string(),
-  summary: z.string().optional(),
+  /**
+   * One-sentence description of the module. REQUIRED (SCHEMA_VERSION 4): it is
+   * the module's `<meta name="description">`, its Open Graph description and
+   * its JSON-LD `description`, so an absent one meant every module shipped the
+   * same `"<Title> — <Course title>"` boilerplate — duplicate meta descriptions
+   * across a whole guide, and nothing for a search engine to build a snippet
+   * from. Write it for a reader deciding whether to open the module.
+   */
+  summary: z.string(),
   importance: z.enum(["core", "useful", "extra"]).default("useful"),
   /**
    * Short kicker label shown on the module's overview tile (e.g. a week or
