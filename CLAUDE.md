@@ -7,13 +7,14 @@ This is study-companion: an Astro 6 integration + component library for course s
 - The integration (src/index.ts) injects the page routes and sets up MDX+KaTeX.
 - Schemas live in src/schema.ts; bump SCHEMA_VERSION + MIGRATIONS.md on breaking changes.
 - SemVer: breaking schema=major, new field/widget=minor, fix=patch. Tag every release vX.Y.Z.
-- On every release: bump `package.json` version, then update the framework pin to
-  the newest tag in `course-template/` (and regenerate `course-template/pnpm-lock.yaml`
-  so the committed lockfile matches the new pin — `pnpm install --lockfile-only`
-  in the template; this regen necessarily happens after the tag push, so the
-  tagged tree always carries the previous template lockfile — copy the template
-  from main, not a tag) AND every consuming course repo (except any marked FROZEN
-  below). Keep all non-frozen course pins in lockstep with the latest tag.
+- A release is ONE commit: bump `package.json` version and the framework pin in
+  `course-template/package.json` together, then tag it. `test/release.test.ts`
+  asserts the two agree, so a forgotten template repin fails at that commit; CI
+  and release-guard are both green at the tag. The template ships no lockfile
+  (see `.gitignore`) — that is what makes the single commit possible, so don't
+  reintroduce one.
+- After tagging, bump the pin in every consuming course repo (except any marked
+  FROZEN below). Keep all non-frozen course pins in lockstep with the latest tag.
   Consuming repos:
   - optics — `~/School/TFY4195/companion` — **FROZEN**: course is complete; do NOT
     bump its pin, apply schema migrations, or edit content (stays on v1.4.0 /
