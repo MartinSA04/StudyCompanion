@@ -97,26 +97,32 @@ test("an unknown key on a nested strict object is rejected", () => {
   assert.equal(result.success, false);
 });
 
+/** Every required section key, so a case can add just the one it exercises. */
+const minimalSection = { order: 1, title: "M", summary: "En modul." };
+
+test("section summary is REQUIRED (v4 migration)", () => {
+  // The whole point of the v4 break: without it, every module fell back to the
+  // same "<Title> — <Course title>" meta description.
+  const { summary, ...withoutSummary } = minimalSection;
+  assert.equal(sectionSchema.safeParse(withoutSummary).success, false);
+  assert.equal(sectionSchema.parse(minimalSection).summary, "En modul.");
+});
+
 test("section takes a scalar `tag`, not a `tags` array (v3 migration)", () => {
-  const ok = sectionSchema.parse({ order: 1, title: "M", tag: "Uke 3" });
+  const ok = sectionSchema.parse({ ...minimalSection, tag: "Uke 3" });
   assert.equal(ok.tag, "Uke 3");
   // The old plural `tags: [...]` key is gone — passing it now fails.
   const legacy = sectionSchema.safeParse({
-    order: 1,
-    title: "M",
+    ...minimalSection,
     tags: ["Uke 3"],
   });
   assert.equal(legacy.success, false);
 });
 
 test("section importance defaults to useful and enforces its enum", () => {
+  assert.equal(sectionSchema.parse(minimalSection).importance, "useful");
   assert.equal(
-    sectionSchema.parse({ order: 1, title: "M" }).importance,
-    "useful",
-  );
-  assert.equal(
-    sectionSchema.safeParse({ order: 1, title: "M", importance: "vital" })
-      .success,
+    sectionSchema.safeParse({ ...minimalSection, importance: "vital" }).success,
     false,
   );
 });
@@ -222,12 +228,12 @@ test("features defaults apply when the block is omitted (prefault)", () => {
 });
 
 test("section draft/noindex default to false and coerce when set", () => {
-  const def = sectionSchema.parse({ order: 1, title: "M" });
+  const def = sectionSchema.parse(minimalSection);
   assert.equal(def.draft, false);
   assert.equal(def.noindex, false);
   const set = sectionSchema.parse({
+    ...minimalSection,
     order: 2,
-    title: "M",
     draft: true,
     noindex: true,
   });

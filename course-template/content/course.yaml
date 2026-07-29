@@ -7,7 +7,7 @@
 # need). See AUTHORING.md in the framework repo for the full guide.
 # ─────────────────────────────────────────────────────────────────────────────
 
-schemaVersion: 3 # MUST equal the framework's SCHEMA_VERSION (the build checks it).
+schemaVersion: 4 # MUST equal the framework's SCHEMA_VERSION (the build checks it).
 
 # ── Identity (required) ──────────────────────────────────────────────────────
 code: CODE101 # Course code, e.g. "TFY4195".
