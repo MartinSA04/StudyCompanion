@@ -187,7 +187,18 @@
   --gap-11: 80px;
 
   --gutter: var(--gap-6); /* page horizontal padding */
-  --topbar-h: 74px; /* actual sticky topbar height; derives the sidebar offset + heading scroll-margin, so it must match what .topbar renders */
+  /* The installed app's top safe-area inset, as one token every consumer reads.
+     `viewport-fit=cover` + `apple-mobile-web-app-status-bar-style` put the
+     standalone web view at y=0, under the status bar / Dynamic Island; this is
+     the band iOS reserves there (0 in a browser tab and on every desktop, so
+     each `var(--safe-top)` below is a no-op outside the installed app). Routed
+     through a token rather than inlining `env()` at each site because `env()`
+     cannot be emulated in a headless browser — visual/safe-area.spec.ts
+     overrides this to prove the chrome still tracks it. */
+  --safe-top: env(safe-area-inset-top, 0px);
+  --topbar-h: calc(
+    74px + var(--safe-top)
+  ); /* actual sticky topbar height; derives the sidebar offset + heading scroll-margin, so it must match what .topbar renders — including the standalone inset .topbar-inner reserves */
   --control-h: 38px; /* header buttons / page-link min height */
 
   /* --- Motion --- */

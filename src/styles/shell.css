@@ -947,7 +947,13 @@
    nothing hides there. `env(safe-area-inset-*)` is 0 on devices without a
    cutout (and in headless Chrome), so `max(token, env)` is a no-op everywhere
    except a notched phone in standalone/landscape — zero desktop regression. */
+/* The top inset is ADDED, not `max()`d: the status bar / Dynamic Island band is
+   reserved space the bar has to sit below, not a minimum padding it can absorb.
+   The padding is inside .topbar, so its blur + hairline still cover the band
+   rather than letting content scroll through it. --topbar-h includes the same
+   inset, keeping the sidebar dock and heading scroll-margins honest. */
 .topbar-inner {
+  padding-top: calc(var(--gap-3) + var(--safe-top));
   padding-left: max(var(--gap-6), env(safe-area-inset-left));
   padding-right: max(var(--gap-6), env(safe-area-inset-right));
 }
