@@ -4,6 +4,12 @@ import { ClientRouter } from "astro:transitions";
 import ThemeToggle from "../../src/components/ThemeToggle.astro";
 import { faviconDataUri } from "../../src/lib/favicon.ts";
 import { contrastText } from "../../src/lib/color.ts";
+import { THEME_COLOR_LIGHT } from "../../src/lib/themeColor.ts";
+import {
+  hubCollectionLd,
+  authorId,
+  serializeLd,
+} from "../../src/lib/jsonLd.ts";
 // Vite resolves `?raw` relative to this source file at bundle time
 // (cwd-independent) and puts the YAML in the module graph so `hub:dev`
 // hot-reloads it.
@@ -87,6 +93,28 @@ const description =
 
 const themeKey = "sc:theme:hub";
 
+// ---- SEO / social / structured data ----
+// The hub is the front door to all six guides, so it carries the same head
+// surface a course site does. Absolute URLs resolve against `site` in
+// astro.config.hub.mjs, which is always set for this build (unlike a course,
+// where `site` is the consumer's to configure) — so no degradation path here.
+const HUB_TITLE = "Studieguider — Martin Sundal";
+const AUTHOR_NAME = "Martin Sundal";
+const canonical = new URL("/", Astro.site).href;
+const ogImage = new URL("/icon-512.png", Astro.site).href;
+const author = { name: AUTHOR_NAME, id: authorId(canonical) };
+const hubLd = hubCollectionLd({
+  name: "Studieguider",
+  description,
+  url: canonical,
+  inLanguage: "nb",
+  author,
+  // File order, not the exam-sorted display order: the ItemList states WHICH
+  // guides exist, and a list whose positions churn with the calendar is a
+  // worse signal than a stable one.
+  courses: courses.map((c) => ({ code: c.code, title: c.title, url: c.url })),
+});
+
 // Per-theme brand accent — the hub has no course.accent, so it pins its own
 // pair and derives the on-accent text exactly as CourseLayout does for a course
 // (contrastText + tokens.css switching --accent / --accent-contrast per theme).
@@ -107,9 +135,55 @@ const accentVars =
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Studieguider — Martin Sundal</title>
+    <title>{HUB_TITLE}</title>
     <meta name="description" content={description} />
+    <meta name="author" content={AUTHOR_NAME} />
+    <link rel="canonical" href={canonical} />
+
+    {
+      /* Chrome/native-control theming, trimmed from CourseLayout: one
+        un-mediaed theme-color owned by the theme script above (tokens.css has
+        no prefers-color-scheme fallback, so a media-keyed dark meta would paint
+        dark chrome on a light page for a no-JS dark-OS reader). */
+    }
+    <meta name="theme-color" content={THEME_COLOR_LIGHT} />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="generator" content="study-companion" />
+
+    {
+      /* The data-URI favicon stays (instant, no request); the rastered PNG from
+        the hub-icons build hook is what crawlers and iOS can actually fetch. */
+    }
     <link rel="icon" href={faviconDataUri("#205ea6")} />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={HUB_TITLE} />
+    <meta property="og:description" content={description} />
+    <meta property="og:site_name" content="Studieguider" />
+    <meta property="og:locale" content="nb_NO" />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="512" />
+    <meta property="og:image:height" content="512" />
+    <meta property="og:image:alt" content="Studieguider" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content={HUB_TITLE} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+
+    {
+      /* CollectionPage listing every guide. The ItemList's items are OFF-SITE,
+        so this wins no carousel (those need same-site items) — its job is
+        binding the hub and the six guides into one entity graph, via an author
+        @id the course sites share. */
+    }
+    <script
+      type="application/ld+json"
+      set:html={serializeLd(hubLd)}
+      is:inline
+    />
     <script is:inline define:vars={{ themeKey }}>
       // No-flash theme init — trimmed from CourseLayout (single page: no
       // view-transition swaps to re-apply across). An explicit stored choice
