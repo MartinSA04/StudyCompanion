@@ -24,6 +24,38 @@ test("the hub link shows in a browser tab", async ({ page }) => {
   await expect(hub).toHaveAttribute("href", /^https?:\/\//);
 });
 
+test("every launch image the head declares actually ships", async ({
+  page,
+  request,
+}) => {
+  await page.goto("/oversikt");
+  const hrefs = await page
+    .locator('link[rel="apple-touch-startup-image"]')
+    .evaluateAll((els) =>
+      els.map((e) => (e as HTMLLinkElement).getAttribute("href")!),
+    );
+  expect(hrefs.length, "no launch images declared").toBeGreaterThan(0);
+
+  // A tag pointing at a file the build didn't render is invisible in testing and
+  // shows as a blank launch on the device — exactly what these prevent.
+  const missing: string[] = [];
+  for (const href of hrefs) {
+    const res = await request.get(href);
+    if (res.status() !== 200) missing.push(`${href} → ${res.status()}`);
+  }
+  expect(missing, "declared but not served").toEqual([]);
+});
+
+test("the manifest declares a stable id", async ({ request }) => {
+  const res = await request.get("/manifest.webmanifest");
+  expect(res.status()).toBe(200);
+  const manifest = await res.json();
+  // Without `id`, identity falls back to start_url, so changing start_url would
+  // register as a different app rather than an update to this one.
+  expect(manifest.id).toBe("/");
+  expect(manifest.display).toBe("standalone");
+});
+
 test("the shipped CSS hides the hub link in standalone, and nothing else", async ({
   page,
 }) => {

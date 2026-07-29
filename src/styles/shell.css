@@ -881,6 +881,10 @@
     background: var(--bg-elevated);
     border-right: 1px solid var(--border);
     z-index: 60;
+    /* The drawer is its own scroll container (overflow-y: auto above), so
+       contain the chain: reaching the end of a long nav must not hand the
+       remaining momentum to the article behind the open drawer. */
+    overscroll-behavior: contain;
     transform: translateX(-100%);
     /* transform alone leaves the closed drawer focusable and in the a11y tree
        (toggleMenu only inerts elements OUTSIDE the drawer, and only while open),
@@ -912,8 +916,10 @@
     position: absolute;
     top: max(var(--gap-4), env(safe-area-inset-top));
     right: var(--gap-4);
-    width: 40px;
-    height: 40px;
+    /* Sizes off the token like the rest of the chrome, so it picks up the 44px
+       touch floor instead of sitting at a magic 40px under it. */
+    width: var(--control-h);
+    height: var(--control-h);
   }
   /* Topbar space is at a premium once the nav collapses to a drawer — keep only
      the essentials (menu, brand, search, theme). Progress still reads from the
@@ -979,6 +985,22 @@
   /* Comfortable touch targets on the nav rows. */
   .nav-link {
     min-height: 44px;
+  }
+}
+
+/* Touch ergonomics. Keyed on the POINTER, not the viewport: a 44px floor is
+   about fingers, and a narrow desktop window is still driven by a mouse, where
+   38px is the deliberate marginalia density DESIGN.md calls for. Both
+   directions are asserted in visual/touch-targets.spec.ts.
+
+   Apple's HIG and Material both put the minimum tap target at 44px. The nav
+   rows already honoured it (min-height above), so the icon controls were the
+   inconsistency rather than a considered choice. One token covers the whole
+   family: topbar buttons, the theme toggle, stepper controls, search palette
+   rows and the flashcard buttons all size off --control-h. */
+@media (pointer: coarse) {
+  :root {
+    --control-h: 44px;
   }
 }
 

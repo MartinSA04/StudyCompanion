@@ -2,11 +2,13 @@ import { writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import {
   ogCardSvg,
+  splashSvg,
   tileSvg,
   OG_WIDTH,
   OG_HEIGHT,
   type TileVariant,
 } from "./favicon.ts";
+import { STARTUP_IMAGES } from "./startupImages.ts";
 
 /**
  * Rasterize the `>_` mark into the PNG icon set, on a ground of `accent`.
@@ -34,8 +36,16 @@ export interface IconTarget {
   name: string;
   width: number;
   height: number;
-  /** How the mark is framed. "og-card" is the only non-square framing. */
-  framing: TileVariant | "og-card";
+  /** How the mark is framed. "og-card" and "splash" are the non-square framings. */
+  framing: TileVariant | "og-card" | "splash";
+  /**
+   * Supersample 2× before downsampling to `width`/`height`. Worth it for small
+   * tiles, where the corner radius and the mark's round caps land on a
+   * downsampled edge. Skipped for launch images: they are already up to
+   * 2048×2732, so doubling them costs tens of MB of intermediate bitmap to
+   * antialias one small centred mark. Defaults to true.
+   */
+  supersample?: boolean;
   /**
    * Flatten so no alpha channel ships — iOS rejects transparency on a home
    * screen icon. A `bleed`/`og-card` ground already covers its canvas, so this
@@ -82,11 +92,22 @@ export const COURSE_ICONS: IconTarget[] = [
     framing: "og-card",
     opaque: true,
   },
+  // iOS launch images. Generated from the same table CourseLayout reads for its
+  // link tags, so a tag can never point at a file the build didn't render.
+  ...STARTUP_IMAGES.map((s) => ({
+    name: s.name,
+    width: s.width,
+    height: s.height,
+    framing: "splash" as const,
+    opaque: true,
+    supersample: false,
+  })),
 ];
 
 /**
  * What the hub needs: the Open Graph card plus an iOS bookmark icon. No manifest
- * icons — the hub is a one-pager, not an installable app.
+ * icons and no launch images — the hub is a one-pager, not an installable app
+ * (it sets neither a manifest nor `apple-mobile-web-app-capable`).
  */
 export const HUB_ICONS: IconTarget[] = [
   {
@@ -115,6 +136,9 @@ export const HUB_ICONS: IconTarget[] = [
  */
 const SUPERSAMPLE_DPI = 144;
 
+/** librsvg's baseline DPI: renders the SVG at exactly its declared px size. */
+const BASE_DPI = 72;
+
 export async function rasterizeIcons(opts: {
   accent: string;
   outDir: string;
@@ -130,18 +154,28 @@ export async function rasterizeIcons(opts: {
     const source =
       t.framing === "og-card"
         ? ogCardSvg(opts.accent)
-        : tileSvg(opts.accent, t.framing);
+        : t.framing === "splash"
+          ? splashSvg(opts.accent, t.width, t.height)
+          : tileSvg(opts.accent, t.framing);
     // Declare the render size on the SVG itself so librsvg rasterizes at the
     // right scale; the viewBox alone would render at its user-unit size.
     const svg = Buffer.from(
       source.replace("<svg ", `<svg width="${t.width}" height="${t.height}" `),
     );
-    let img = sharp(svg, { density: SUPERSAMPLE_DPI }).resize(
-      t.width,
-      t.height,
-    );
+    const density = t.supersample === false ? BASE_DPI : SUPERSAMPLE_DPI;
+    let img = sharp(svg, { density }).resize(t.width, t.height);
     if (t.opaque) img = img.flatten({ background: opts.accent });
-    await writeFile(join(opts.outDir, t.name), await img.png().toBuffer());
+    // Max zlib on a flat two-colour field. Measured on the largest launch image
+    // (2048×2732): 84 kB at the default level, 24 kB at level 9, for +14ms.
+    //
+    // `palette: true` reaches 8 kB and was REJECTED: quantization costs ~435ms
+    // per image against 56ms, which turned the demo build from 4.1s into 11.9s.
+    // That 8s lands in every consumer's CI on every deploy, forever, to save
+    // ~200 kB of static assets a device fetches at most one of. Wrong trade.
+    await writeFile(
+      join(opts.outDir, t.name),
+      await img.png({ compressionLevel: 9 }).toBuffer(),
+    );
     written.push(t.name);
   }
   return written;

@@ -59,6 +59,14 @@ export const OG_HEIGHT = 630;
  */
 const OG_MARK_WIDTH_RATIO = 0.26;
 
+/**
+ * The launch-image mark spans 22% of the window's SHORT edge. A smaller share
+ * than the OG card's: a splash is glanced at for a few hundred milliseconds
+ * behind the app's own first paint, so it should read as a tinted ground with a
+ * mark on it, not as a logo presentation.
+ */
+const SPLASH_MARK_RATIO = 0.22;
+
 /** How a tile frames its accent ground. */
 export type TileVariant =
   /** Edge to edge, no baked radius — iOS and Android supply the mask. */
@@ -114,6 +122,26 @@ export function ogCardSvg(accent: string): string {
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${OG_WIDTH} ${OG_HEIGHT}" role="img" aria-label="study-companion">` +
     `<rect width="${OG_WIDTH}" height="${OG_HEIGHT}" fill="${accent}"/>` +
     markGroup(contrastText(accent), scale, OG_WIDTH / 2, OG_HEIGHT / 2) +
+    `</svg>`
+  );
+}
+
+/**
+ * An iOS launch image at an exact device window size: the same accent field with
+ * the mark centred, so tapping the icon leads into the app through one colour
+ * instead of a blank screen. The mark is sized off the SHORT edge so it reads
+ * the same on a 320px phone and a 1366px iPad, portrait or landscape.
+ */
+export function splashSvg(
+  accent: string,
+  width: number,
+  height: number,
+): string {
+  const scale = (Math.min(width, height) * SPLASH_MARK_RATIO) / MARK.w;
+  return (
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" role="img" aria-label="study-companion">` +
+    `<rect width="${width}" height="${height}" fill="${accent}"/>` +
+    markGroup(contrastText(accent), scale, width / 2, height / 2) +
     `</svg>`
   );
 }
