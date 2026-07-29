@@ -41,9 +41,10 @@ Then:
 2. Set `site` in `astro.config.mjs` to your public origin (needed for the
    canonical link, social cards and the sitemap).
 3. Edit `content/course.yaml` → identity, accent, `courseUrl`, `institution`,
-   exam, formulas, glossary. Keep `schemaVersion` equal to the framework's
-   `SCHEMA_VERSION` (currently **3**); a mismatch fails the build. The schema is
-   strict — an unknown or misspelled key fails the build naming the key.
+   `author`, exam, formulas, glossary. Keep `schemaVersion` equal to the
+   framework's `SCHEMA_VERSION` (currently **4**); a mismatch fails the build.
+   The schema is strict — an unknown or misspelled key fails the build naming
+   the key.
 4. Replace the example sections under `content/sections/` with your modules.
 5. Drop your figures, sims and any vendored exam PDFs into `public/`. No favicon
    file is needed — the favicon and all app icons are generated from the course

@@ -29,8 +29,9 @@ numbering, external references), and the **per-section definition-of-done**.
 
 1. Fill `content/course.yaml` (identity, accent, `courseUrl`, exam, formulas,
    glossary). Keep `schemaVersion` at the framework's `SCHEMA_VERSION` (currently
-   **3**). Both `course.yaml` and section frontmatter use a **strict** schema, so
-   a typo'd key fails the build naming the key.
+   **4**). Both `course.yaml` and section frontmatter use a **strict** schema, so
+   a typo'd key fails the build naming the key. Every section needs a `summary`
+   (required since v4) — it is the module's meta description and search snippet.
 2. Outline sections by `order` (and optional `part`), one file per module.
 3. Draft each module against an archetype (see `AUTHORING.md` / the example
    sections in this template). Wire cross-refs: `<Term>`, `<FormulaRef>`,
