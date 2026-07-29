@@ -17,7 +17,7 @@ gaps remain:
    exactly the content Google's Education Q&A rich result (`schema.org/Quiz`)
    exists for, and neither emits any.
 3. **The structured data misrepresents authorship.** `src/pages/index.astro`
-   declares the site *is* an NTNU `Course`, with NTNU as `provider`, while the
+   declares the site _is_ an NTNU `Course`, with NTNU as `provider`, while the
    visible footer disclaims exactly that authority.
 
 Plus one content-quality issue: sections without a `summary` fall back to
@@ -47,14 +47,19 @@ it, and a small inline integration in `astro.config.hub.mjs` calls it with the
 hub's own `#205ea6` to emit `icon-512.png` + `apple-touch-icon.png`. No hub
 manifest: that is PWA surface, not SEO.
 
-**JSON-LD**, two blocks:
+**JSON-LD**, one block. The `Person` is embedded rather than split into a second
+top-level script: a bare `{"@id"}` reference needs a node that defines it, and a
+standalone node would have to restate `@context` to be valid on its own. The
+shared `@id` still joins it to each course site's author.
 
 ```jsonc
 { "@context": "https://schema.org", "@type": "CollectionPage",
   "@id": "https://kurs.martinsundal.no/#page",
   "name": "Studieguider", "description": "…", "inLanguage": "nb",
   "url": "https://kurs.martinsundal.no/",
-  "author": { "@id": "https://kurs.martinsundal.no/#author" },
+  "author": { "@type": "Person",
+              "@id": "https://kurs.martinsundal.no/#author",
+              "name": "Martin Sundal" },
   "mainEntity": {
     "@type": "ItemList",
     "numberOfItems": 6,
@@ -66,8 +71,6 @@ manifest: that is PWA surface, not SEO.
                   "url": "https://algdat.martinsundal.no",
                   "about": { "@type": "Course", "name": "Algoritmer og datastrukturer",
                              "courseCode": "TDT4120" } } } ] } }
-{ "@context": "https://schema.org", "@type": "Person",
-  "@id": "https://kurs.martinsundal.no/#author", "name": "Martin Sundal" }
 ```
 
 Known limitation, accepted: an `ItemList` whose items are **off-site** URLs will
@@ -78,7 +81,7 @@ course sites into one graph.
 ## 2 · Honest entity modelling
 
 `courseLd` is replaced by **`studyGuideLd`**: the overview becomes a
-`LearningResource` *about* the course, rather than claiming to be it.
+`LearningResource` _about_ the course, rather than claiming to be it.
 
 ```jsonc
 { "@type": "LearningResource",
@@ -92,7 +95,7 @@ course sites into one graph.
              "provider": { "@type": "Organization", "name": "NTNU" } } }
 ```
 
-The `provider` claim moves onto the *referenced* course, where it is true, and
+The `provider` claim moves onto the _referenced_ course, where it is true, and
 off the site itself. A `courseRef()` helper builds that inner object and is
 shared with the per-section markup.
 
@@ -166,14 +169,15 @@ The `d.summary ?? …` fallback in `[slug].astro` collapses to `d.summary`.
 **Tool pages** get distinct descriptions instead of the shared
 `"<Label> — <Course title>"` boilerplate, via four new `ui` keys carrying
 Norwegian defaults (the established override pattern), composed as
-`"<phrase> — <code> <title>"`:
+`"<phrase> — <code> <title>"`. The phrases carry no terminal full stop: one
+immediately before the appended `" — …"` reads as a typo.
 
-| key                        | default                                                     |
-| -------------------------- | ----------------------------------------------------------- |
-| `formulaSheetMetaDesc`     | `Alle formler og symboler fra emnet samlet på én søkbar side.` |
-| `glossaryMetaDesc`         | `Alle sentrale begreper fra emnet, forklart og søkbare.`      |
-| `flashcardsMetaDesc`       | `Øv med flashcards på sentrale begreper og resultater fra emnet.` |
-| `examsMetaDesc`            | `Tidligere eksamensoppgaver med løsningsforslag.`             |
+| key                    | default                                                          |
+| ---------------------- | ---------------------------------------------------------------- |
+| `formulaSheetMetaDesc` | `Alle formler og symboler fra emnet samlet på én søkbar side`     |
+| `glossaryMetaDesc`     | `Alle sentrale begreper fra emnet, forklart og søkbare`           |
+| `flashcardsMetaDesc`   | `Øv med flashcards på sentrale begreper og resultater fra emnet`  |
+| `examsMetaDesc`        | `Tidligere eksamensoppgaver med løsningsforslag`                  |
 
 ## 5 · Smaller fixes
 

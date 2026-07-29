@@ -30,9 +30,10 @@ the value at the time, or waiting on a real consumer that needs it.
   pages), registered in production only, no network beacons. Hand-rolled to keep
   deps lean. A revision guide is exactly what a student wants offline.
 - **Long-tail Apple/social polish** — `patch`. The cheap head wins already
-  shipped; still open: generated `apple-touch-startup-image` splash screens,
-  `@media (display-mode: standalone)` chrome tweaks, `<meta name="author">`.
-  Pull individually as demand appears.
+  shipped (`<meta name="author">` landed with the v4 SEO tranche); still open:
+  generated `apple-touch-startup-image` splash screens and
+  `@media (display-mode: standalone)` chrome tweaks. Pull individually as
+  demand appears.
 
 ## Speculative (only if a consumer needs them)
 
