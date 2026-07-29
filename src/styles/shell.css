@@ -982,6 +982,20 @@
   }
 }
 
+/* Installed app only. `course.hubUrl` points at a DIFFERENT origin than the
+   guide, so it falls outside the PWA scope: tapping it hands the URL to an
+   in-app browser sheet rather than navigating the app, which reads as the app
+   breaking. Hidden here rather than made same-origin, because an installed
+   guide IS one course — the hub is a website you reach from a browser, where
+   this link still shows. Deliberately narrow: only this one link, so an
+   installed reader keeps the whole course nav (asserted in
+   visual/standalone.spec.ts). */
+@media (display-mode: standalone) {
+  .sidebar-hub {
+    display: none;
+  }
+}
+
 /* Drop the grey iOS tap-flash on interactive chrome — every one of these has
    its own hover/active/focus feedback already. */
 a,
