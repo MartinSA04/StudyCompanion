@@ -8,8 +8,9 @@ import { validateXrefs } from "../lib/xref.ts";
 import { daysUntil, formatExamCountdown } from "../lib/countdown.ts";
 import { upcomingDeadlines } from "../lib/deadlines.ts";
 import { dateLeaf } from "../lib/dates.ts";
-import { absoluteUrl, truncateDescription } from "../lib/seo.ts";
-import { courseLd } from "../lib/jsonLd.ts";
+import { truncateDescription } from "../lib/seo.ts";
+import { studyGuideLd } from "../lib/jsonLd.ts";
+import { courseGraph } from "../lib/courseGraph.ts";
 import { readFileSync } from "node:fs";
 import {
   sectionNav,
@@ -78,7 +79,7 @@ const tileGroups = partGroups(tiles);
 const deadlines = upcomingDeadlines(course.deadlines);
 
 // ---- SEO + structured data ----
-const overviewUrl = absoluteUrl("/", Astro.site);
+const graph = courseGraph(course, Astro.site);
 const seo = {
   description: truncateDescription(
     course.subtitle ? `${course.title} — ${course.subtitle}` : course.title,
@@ -86,16 +87,15 @@ const seo = {
   ogType: "website" as const,
 };
 const jsonLd = [
-  courseLd({
+  studyGuideLd({
     code: course.code,
     title: course.title,
     description: seo.description,
-    url: overviewUrl,
+    url: graph.overviewUrl,
     inLanguage: course.language,
-    // Explicit provider only — never guessed from a URL host (see schema).
-    provider: course.institution
-      ? { name: course.institution, url: course.courseUrl }
-      : undefined,
+    // A guide ABOUT the course, not the course — see lib/jsonLd.ts.
+    course: graph.course,
+    author: graph.author,
   }),
 ];
 ---
