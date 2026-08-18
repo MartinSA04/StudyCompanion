@@ -232,6 +232,7 @@ if (src.startsWith("/") && !src.startsWith("//")) {
     lazyMountAll,
     onThemeChange,
     setRangePct,
+    trackProgrammaticValue,
     type CodeBlockController,
   } from "../lib/simRuntime";
   import { onPage } from "../lib/pageLifecycle.ts";
@@ -294,6 +295,7 @@ if (src.startsWith("/") && !src.startsWith("//")) {
               el.classList.add("sc-range");
               setRangePct(el);
               el.addEventListener("input", () => setRangePct(el), { signal });
+              trackProgrammaticValue(el);
             });
         } catch (err) {
           // The module LOADED but crashed in init(): a course-code bug, not a

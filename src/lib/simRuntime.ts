@@ -146,3 +146,37 @@ export function setRangePct(el: HTMLInputElement | null): void {
   const span = (Number(el.max) || 0) - min || 1;
   el.style.setProperty("--pct", `${((Number(el.value) - min) / span) * 100}%`);
 }
+
+/**
+ * Repaint the `--pct` fill when a slider's value is assigned in code, not just
+ * dragged. Setting `el.value` fires no `input` event, so a sim that moves its
+ * own sliders — preset buttons, a mode switch that adopts new defaults — left
+ * the WebKit fill frozen at the old value while the thumb jumped to the new
+ * one. Firefox hid the bug: `::-moz-range-progress` tracks the value natively
+ * and ignores `--pct`.
+ *
+ * Patching the instance's `value` accessor (delegating to the prototype's) is
+ * what makes this invisible to course code: a sim keeps writing `el.value = x`
+ * with no framework call to remember. Idempotent, and scoped to the element —
+ * `HTMLInputElement.prototype` is left alone.
+ */
+export function trackProgrammaticValue(el: HTMLInputElement | null): void {
+  if (!el || Object.prototype.hasOwnProperty.call(el, "value")) return;
+  const desc = Object.getOwnPropertyDescriptor(
+    HTMLInputElement.prototype,
+    "value",
+  );
+  if (!desc?.get || !desc.set) return;
+  const { get, set } = desc;
+  Object.defineProperty(el, "value", {
+    configurable: true,
+    enumerable: desc.enumerable,
+    get() {
+      return get.call(this);
+    },
+    set(v: string) {
+      set.call(this, v);
+      setRangePct(this as HTMLInputElement);
+    },
+  });
+}
