@@ -1,6 +1,7 @@
 import type { Course } from "../schema.ts";
 import { absoluteUrl } from "./seo.ts";
 import { authorId, type AuthorOpts, type CourseRefOpts } from "./jsonLd.ts";
+import { plain } from "./text.ts";
 
 /**
  * The three things every page's JSON-LD needs from `course.yaml`: the overview
@@ -27,7 +28,9 @@ export function courseGraph(course: Course, site?: URL | string): CourseGraph {
     overviewUrl,
     course: {
       code: course.code,
-      title: course.title,
+      // Structured data, so the on-screen wrapping hints come out (lib/text.ts):
+      // a crawler must see the course spelled the way it is spelled.
+      title: plain(course.title),
       // The institution provides the COURSE, never this guide — see jsonLd.ts.
       url: course.courseUrl,
       provider: course.institution,

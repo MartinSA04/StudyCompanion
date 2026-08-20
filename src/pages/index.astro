@@ -11,6 +11,7 @@ import { dateLeaf } from "../lib/dates.ts";
 import { truncateDescription } from "../lib/seo.ts";
 import { studyGuideLd } from "../lib/jsonLd.ts";
 import { courseGraph } from "../lib/courseGraph.ts";
+import { plain } from "../lib/text.ts";
 import { readFileSync } from "node:fs";
 import {
   sectionNav,
@@ -82,14 +83,16 @@ const deadlines = upcomingDeadlines(course.deadlines);
 const graph = courseGraph(course, Astro.site);
 const seo = {
   description: truncateDescription(
-    course.subtitle ? `${course.title} — ${course.subtitle}` : course.title,
+    plain(
+      course.subtitle ? `${course.title} — ${course.subtitle}` : course.title,
+    ),
   ),
   ogType: "website" as const,
 };
 const jsonLd = [
   studyGuideLd({
     code: course.code,
-    title: course.title,
+    title: plain(course.title),
     description: seo.description,
     url: graph.overviewUrl,
     inLanguage: course.language,

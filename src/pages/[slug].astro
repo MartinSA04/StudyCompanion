@@ -22,6 +22,7 @@ import {
   guideId,
 } from "../lib/jsonLd.ts";
 import { courseGraph } from "../lib/courseGraph.ts";
+import { plain } from "../lib/text.ts";
 import { slugify } from "../lib/slug.ts";
 import { mdxComponents } from "../mdx-components.ts";
 import {
@@ -192,7 +193,7 @@ if (props.kind === "section") {
   noindex = d.noindex;
   jsonLd.push(
     learningResourceLd({
-      name: d.title,
+      name: plain(d.title),
       description: truncateDescription(seoDescription),
       url: pageUrl,
       inLanguage: course.language,
@@ -202,7 +203,7 @@ if (props.kind === "section") {
       author: graph.author,
       partOfGuideId: guideId(graph.overviewUrl),
     }),
-    breadcrumbList([overviewCrumb, { name: d.title, url: pageUrl }]),
+    breadcrumbList([overviewCrumb, { name: plain(d.title), url: pageUrl }]),
   );
 } else {
   // Tool pages: a per-page description from the `ui` layer, so the four of them
@@ -214,14 +215,14 @@ if (props.kind === "section") {
     flashcards: course.ui.flashcardsMetaDesc,
     exams: course.ui.examsMetaDesc,
   }[props.kind];
-  seoDescription = `${toolDesc} — ${course.code} ${course.title}`;
+  seoDescription = `${toolDesc} — ${course.code} ${plain(course.title)}`;
   jsonLd.push(
-    breadcrumbList([overviewCrumb, { name: pageTitle, url: pageUrl }]),
+    breadcrumbList([overviewCrumb, { name: plain(pageTitle), url: pageUrl }]),
   );
   if (props.kind === "glossary" && course.glossary.length) {
     jsonLd.push(
       definedTermSetLd({
-        name: pageTitle,
+        name: plain(pageTitle),
         url: pageUrl,
         inLanguage: course.language,
         terms: course.glossary.map((g) => ({

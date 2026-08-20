@@ -353,6 +353,23 @@
   }
 }
 
+/* Long-title wrapping. `body` sets overflow-wrap: break-word, which saves a
+   narrow layout from overflowing but chops a word mid-syllable with no hyphen
+   to show for it — and Norwegian course titles are compounds
+   ("Halvlederkomponenter"). These are the surfaces where a whole title has to
+   survive a 360px screen, so let the browser hyphenate them properly using the
+   <html lang> dictionary. A course that wants a specific seam puts a soft
+   hyphen in the title (AUTHORING.md); an explicit break opportunity wins over
+   the dictionary's guesses. -webkit- prefix for iOS Safari, which still needs
+   it. NOT applied to .brand-title (nowrap + ellipsis by design) or to prose
+   body copy, where auto-hyphenation would fire on every line. */
+.hero h1,
+.mod-head h1,
+.site-footer p {
+  -webkit-hyphens: auto;
+  hyphens: auto;
+}
+
 /* ====== hero / overview ====== */
 .hero {
   border-radius: var(--radius);

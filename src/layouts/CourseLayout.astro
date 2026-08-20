@@ -17,6 +17,7 @@ import { THEME_COLOR_LIGHT, THEME_COLOR_DARK } from "../lib/themeColor.ts";
 import { faviconDataUri, OG_WIDTH, OG_HEIGHT } from "../lib/favicon.ts";
 import { STARTUP_IMAGES } from "../lib/startupImages.ts";
 import { ogLocale, canonicalPathname, warnMissingSiteOnce } from "../lib/seo.ts";
+import { plain } from "../lib/text.ts";
 import { formatDate } from "../lib/dates.ts";
 import { groupBySection } from "../lib/groupBySection.ts";
 import { progressKey as progressKeyFor } from "../lib/progress.ts";
@@ -279,10 +280,13 @@ const themeKey = `sc:theme:${course.code}`;
 // Single-sourced from lib/progress so the key template and the scripts that
 // read it can never disagree on the shape.
 const progressKey = progressKeyFor(course.code);
+// `plain()` throughout this block: a title may carry soft hyphens for on-screen
+// wrapping (lib/text.ts), and every string below is machine-read — a tab label,
+// a social card, a search snippet — where the break opportunity is noise.
 const title = pageTitle
-  ? `${pageTitle} · ${course.code}`
-  : `${course.code} · ${course.title}`;
-const ogTitle = pageTitle ?? course.title;
+  ? `${plain(pageTitle)} · ${course.code}`
+  : `${course.code} · ${plain(course.title)}`;
+const ogTitle = plain(pageTitle ?? course.title);
 
 // ---- SEO / social metadata ----
 // All derived from course.yaml + the page props. Absolute-URL features need
@@ -294,11 +298,12 @@ const canonicalUrl = site
   : null;
 if (import.meta.env.DEV && !site) warnMissingSiteOnce();
 
-const metaDescription =
+const metaDescription = plain(
   seo?.description ??
-  (course.subtitle ? `${course.title} — ${course.subtitle}` : course.title);
+    (course.subtitle ? `${course.title} — ${course.subtitle}` : course.title),
+);
 const ogType = seo?.ogType ?? "website";
-const siteName = `${course.code} ${course.title}`;
+const siteName = `${course.code} ${plain(course.title)}`;
 const locale = ogLocale(course.language);
 // The build-time 1200×630 accent card (lib/favicon.ts `ogCardSvg`), NOT one of
 // the square app icons: those carry a transparent margin, so a client would

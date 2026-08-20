@@ -63,7 +63,14 @@ export const courseSchema = z.strictObject({
    */
   schemaVersion: z.int().positive(),
   code: z.string(), //  "TFY4195"
-  title: z.string(), //  "Optikk"
+  /**
+   * "Optikk". May carry soft hyphens (U+00AD) to choose where a long compound
+   * wraps on a phone — `title: "Halvleder\xADkomponenter"` in YAML. They are
+   * display-only: `lib/text.ts` `plain()` strips them everywhere the title
+   * becomes machine-read data. See AUTHORING.md §6.
+   */
+  title: z.string(),
+  /** Same soft-hyphen convention as `title`. */
   subtitle: z.string().optional(),
   term: z.string(), //  "V2026"
   language: z.enum(["nb", "nn", "en"]).default("nb"),

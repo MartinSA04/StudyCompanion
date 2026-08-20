@@ -227,6 +227,21 @@ Keep `run(input)` deterministic for a given input (shuffle re-calls
   duplicate anchor (§8).
 - **Language.** Defaults and chrome are Norwegian (`language: nb`). Override
   individual strings under `course.yaml` → `ui` for `nn`/`en` courses.
+- **Long titles.** A long compound (`Halvlederkomponenter`) has to wrap somewhere
+  on a 360 px phone. The browser hyphenates the hero and module headings on its
+  own, but it picks a syllable; to choose the seam yourself, put a **soft hyphen**
+  (U+00AD) there using YAML's `\xAD` escape in a **double-quoted** scalar:
+
+  ```yaml
+  title: "Halvleder\xADkomponenter" # wraps as "Halvleder-" / "komponenter"
+  ```
+
+  It is invisible when the line fits and renders as a real hyphen when used. It
+  is display-only — the framework strips it from `<title>`, social cards,
+  JSON-LD and the web manifest, so the course is still spelled
+  `Halvlederkomponenter` everywhere a machine reads it. Works in `title`,
+  `subtitle` and section `title`s. Use it sparingly: one seam per compound, at
+  the morpheme boundary.
 - **Strict schema.** `course.yaml` is validated against a strict schema: an
   unknown or misspelled top-level or nested key **fails the build** naming the
   key. `course.yaml` also requires `schemaVersion` (no default) — set it to the

@@ -16,6 +16,7 @@ import { renderMathString } from "../lib/katex.ts";
 import { stripInline } from "../lib/seo.ts";
 import { quizLd, serializeLd } from "../lib/jsonLd.ts";
 import { loadCourse } from "../lib/loadCourse.ts";
+import { courseGraph } from "../lib/courseGraph.ts";
 import Icon from "./Icon.astro";
 
 // Build-time guard: an out-of-range/fractional answer would ship a quiz no
@@ -38,12 +39,10 @@ const ld = quizLd({
   options: options.map(stripInline),
   answer,
   explanation: explanation ? stripInline(explanation) : undefined,
-  about: {
-    code: course.code,
-    title: course.title,
-    url: course.courseUrl,
-    provider: course.institution,
-  },
+  // The same course reference every page-level node uses, rather than a second
+  // hand-built literal that could drift from it (it just had: this one kept the
+  // raw title, soft hyphens and all, where structured data wants `plain()`).
+  about: courseGraph(course).course,
 });
 ---
 

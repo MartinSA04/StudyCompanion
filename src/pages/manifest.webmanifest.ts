@@ -1,6 +1,7 @@
 import type { APIContext } from "astro";
 import { loadCourse } from "../lib/loadCourse.ts";
 import { THEME_COLOR_LIGHT } from "../lib/themeColor.ts";
+import { plain } from "../lib/text.ts";
 
 // Prerendered to a static /manifest.webmanifest so the guide is
 // installable ("Add to Home Screen"). Course-derived, no per-course code. The
@@ -21,9 +22,11 @@ export async function GET(_context: APIContext): Promise<Response> {
     // origin, so "/" is already unique. Ignored by iOS, which does not install
     // from the manifest at all.
     id: "/",
-    name: `${course.code} ${course.title}`,
+    // `plain()`: the manifest is the installed app's identity — home-screen
+    // label, task switcher, store listing. Wrapping hints do not belong there.
+    name: `${course.code} ${plain(course.title)}`,
     short_name: course.code,
-    description: course.subtitle ?? course.title,
+    description: plain(course.subtitle ?? course.title),
     lang: course.language,
     dir: "ltr",
     start_url: "/",

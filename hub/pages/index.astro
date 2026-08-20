@@ -5,6 +5,7 @@ import ThemeToggle from "../../src/components/ThemeToggle.astro";
 import { faviconDataUri, OG_WIDTH, OG_HEIGHT } from "../../src/lib/favicon.ts";
 import { contrastText } from "../../src/lib/color.ts";
 import { THEME_COLOR_LIGHT } from "../../src/lib/themeColor.ts";
+import { plain } from "../../src/lib/text.ts";
 import {
   hubCollectionLd,
   authorId,
@@ -112,7 +113,11 @@ const hubLd = hubCollectionLd({
   // File order, not the exam-sorted display order: the ItemList states WHICH
   // guides exist, and a list whose positions churn with the calendar is a
   // worse signal than a stable one.
-  courses: courses.map((c) => ({ code: c.code, title: c.title, url: c.url })),
+  courses: courses.map((c) => ({
+    code: c.code,
+    title: plain(c.title),
+    url: c.url,
+  })),
 });
 
 // Per-theme brand accent — the hub has no course.accent, so it pins its own
@@ -384,6 +389,11 @@ const accentVars =
   .hub-title {
     font-size: var(--text-lg);
     line-height: var(--leading-snug);
+    /* A long course name has to wrap inside a narrow tile; hyphenate it via the
+       page's lang instead of chopping mid-word. A courses.yaml entry may pin the
+       seam with a soft hyphen (AUTHORING.md §6). */
+    -webkit-hyphens: auto;
+    hyphens: auto;
   }
   /* Small muted mono aside (e.g. "no longer maintained") — same tone as the
      footer, kept quiet so it never competes with the title. */

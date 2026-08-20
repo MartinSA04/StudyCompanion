@@ -17,7 +17,9 @@
   term: H2026
   examDate: "2026-12-09"
 - code: TFE4146
-  title: Halvlederkomponenter
+  # Soft hyphen (U+00AD) — the tile wraps as "Halvleder-" / "komponenter" instead
+  # of chopping mid-word. Stripped from the hub's JSON-LD. See AUTHORING.md §6.
+  title: "Halvleder\xADkomponenter"
   url: https://halvleder.martinsundal.no
   term: H2026
   examDate: "2026-11-21"

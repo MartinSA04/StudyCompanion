@@ -188,6 +188,12 @@ authorship the footer disclaimer denies. Modules are `LearningResource`s linked
 to the guide by a stable `@id` (`<site>/#guide`), with `<site>/#author` doing
 the same for `author`, so the per-page fragments form one connected graph.
 
+Titles may carry **soft hyphens** (U+00AD) to pin where a long compound wraps on
+a phone (AUTHORING.md §6). Those are display-only: `src/lib/text.ts` `plain()`
+strips them at every boundary where a title becomes machine-read data — the
+`<title>`, OG/Twitter meta, JSON-LD, and the web manifest. Anything new that
+turns a course or section title into metadata must call it too.
+
 `<Quiz>` and the flashcards page emit schema.org `Quiz` (Google's "practice
 problems" rich result); the glossary emits a `DefinedTermSet`; every page gets a
 `BreadcrumbList`. The flashcard deck is capped at `FLASHCARD_LD_LIMIT` (100)
