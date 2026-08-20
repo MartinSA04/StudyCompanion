@@ -93,6 +93,15 @@ const anchor = id ?? slugify(name);
     color: var(--accent-ink);
   }
   .statement-name {
+    /* Wrap the name INSIDE its own box instead of letting the row wrap and drop
+       the "#" onto a line of its own (seen at 350–410px on "Fulle bånd leder
+       ikke"). The basis MUST be 0, not auto: a wrapping flex container packs
+       items into lines by their HYPOTHETICAL main size, which for `auto` is
+       max-content — so `min-width: 0` alone still let the row break, and the
+       bug survived behind the one statement whose badge happened to be narrow
+       enough. A zero basis takes the name out of that calculation entirely. */
+    flex: 1 1 0;
+    min-width: 0;
     font-family: var(--font-display);
     font-weight: var(--weight-semibold);
     font-size: var(--text-md);

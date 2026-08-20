@@ -94,6 +94,14 @@ const {
     background: var(--accent);
   }
   .panel-title {
+    /* Same rule as .statement-name, for the same reason — including the zero
+       basis, which is what actually stops the row from wrapping (see the note
+       there). Without it the title jumps to the next flex line and strands the
+       leading dot alone on the first one; a real sim title, "Ford-Fulkerson /
+       Edmonds-Karp", did that up to 450px. The dot and the kicker badge are
+       fixed marks; the title is what gives. */
+    flex: 1 1 0;
+    min-width: 0;
     font-family: var(--font-display);
     color: var(--fg);
   }
