@@ -9,6 +9,15 @@ sudo chown -R "$(whoami)" node_modules 2>/dev/null || true
 mise trust && mise install
 mise exec -- pnpm install
 
+# Make the toolchain global, not just workspace-scoped. mise activates tools per
+# directory, and only THIS repo has a mise.toml — so `cd ~/School/<CODE>/companion`
+# used to drop node and pnpm off PATH entirely, and `pnpm dev` failed in every
+# bind-mounted course repo. Copying (rather than re-pinning by hand) keeps the
+# global set identical to the repo's pin, so a bump here needs no second edit.
+# The container's ~ is not a volume, so this must run on every rebuild.
+install -d "$HOME/.config/mise"
+cp mise.toml "$HOME/.config/mise/config.toml"
+
 # Chromium + its apt system libs for `pnpm test:visual` (Playwright) — the SAME
 # command CI runs (.github/workflows/visual.yml), so local snapshots match the
 # committed Linux baselines. `--with-deps` shells out to `sudo apt-get`; the

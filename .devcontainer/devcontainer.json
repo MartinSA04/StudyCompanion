@@ -12,7 +12,7 @@
     "ghcr.io/martinsa04/devcontainer-base/mise-and-tools:1": {
       "installZsh": true,
       "installClaudeCode": true,
-      "claudeCodeVersion": "stable"
+      "claudeCodeVersion": "latest"
     }
   },
 
@@ -33,16 +33,15 @@
   // `gh auth login`. Read-write on purpose: gh rewrites hosts.yml on token
   // refresh. Requires ~/.config/gh on the host (run `gh auth login` there once).
   //
-  // The last six binds expose the consuming course repos from the host at their
+  // The last five binds expose the consuming course repos from the host at their
   // ~/School/<CODE>/companion paths (mirrored 1:1 in-container, so CLAUDE.md's
-  // release paths resolve as-is). optics/TFY4195 is FROZEN, so it is read-only.
+  // release paths resolve as-is). optics/TFY4195 is FROZEN and is not mounted.
   // NOTE: each host source must exist at rebuild time — Docker silently creates
   // an empty root-owned dir at the target for any missing source.
   "mounts": [
     "source=node-modules-${devcontainerId},target=${containerWorkspaceFolder}/node_modules,type=volume",
     "source=${localEnv:HOME}/.ssh/id_git,target=/home/vscode/.ssh/id_git,type=bind,readonly",
     "source=${localEnv:HOME}/.config/gh,target=/home/vscode/.config/gh,type=bind",
-    "source=${localEnv:HOME}/School/TFY4195/companion,target=/home/vscode/School/TFY4195/companion,type=bind,readonly",
     "source=${localEnv:HOME}/School/TDT4120/companion,target=/home/vscode/School/TDT4120/companion,type=bind",
     "source=${localEnv:HOME}/School/TFY4345/companion,target=/home/vscode/School/TFY4345/companion,type=bind",
     "source=${localEnv:HOME}/School/TFE4146/companion,target=/home/vscode/School/TFE4146/companion,type=bind",
