@@ -32,7 +32,7 @@ Run `pnpm dev` to preview, `pnpm build` for static output to `dist/`. Search (Pa
 
 ## Authoring content
 
-Author under `content/` only. **[`course-template/content/`](course-template/content/)** is a complete, annotated example — `course.yaml` documents every field, and `sections/*.mdx` show the section shapes; **`AUTHORING.md`** is the full guide (archetypes, conventions, per-section definition-of-done). Two things that bite:
+Author under `content/` only. **[`course-template/content/`](course-template/content/)** is a complete, annotated example — `course.yaml` documents every field, and `sections/*.mdx` show the section shapes; **`AUTHORING.md`** is the full guide (archetypes, conventions, per-section definition-of-done) and **[`WRITING.md`](WRITING.md)** is the ruleset for the prose (reader, length budget, plain-language and terminology rules, sim design rules). Two things that bite:
 
 - **`course.yaml`** — YAML scalars containing LaTeX must be double-quoted with **escaped backslashes**: `tex: "\\dfrac{a}{b}"`.
 - **`sections/NN-slug.mdx`** — frontmatter is the contract; `order` (not the filename) is the source of truth for sequence. Inline `$…$` and display `$$…$$` math render server-side via KaTeX.

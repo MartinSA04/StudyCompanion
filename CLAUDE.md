@@ -26,5 +26,8 @@ This is study-companion: an Astro 6 integration + component library for course s
   - kvantemekanikk I — `~/School/FY2045/companion`
 - Never add per-course logic here. Keep everything data-driven off the schema.
 - Architecture, contracts & widget reference: see README.md; planned work: see ROADMAP.md.
+- Writing course prose: AUTHORING.md (mechanics) + WRITING.md (the words — reader,
+  length budget, plain language, register, sim design). Both are binding on course
+  repos and live ONLY here, never copied into a course.
 - A kitchen-sink demo course lives at content/ (srcDir=demo/). Run `pnpm dev`/`pnpm build`
   to verify changes standalone; it exercises every widget in both themes.

@@ -5,6 +5,12 @@ primary brief for a content author, including an authoring agent. It tells you
 *how to write a good module* and *which widget to reach for*; for the exhaustive
 prop reference and architecture see `README.md`.
 
+> **Read [`WRITING.md`](WRITING.md) too, before drafting prose.** It is the rules
+> for the *words*: who the reader is, the per-module length budget, plain-language
+> and terminology rules, the register these guides never use, and the design rules
+> a course-owned simulation must follow. This file covers mechanics; that one
+> covers the writing itself, and it is equally binding.
+
 > Start a new course from `course-template/` (`npx degit
 > MartinSA04/StudyCompanion/course-template course-mycode`). It encodes
 > everything below by example.
@@ -285,6 +291,9 @@ The polish bar is **library-grade**. A module is done when:
       `<Steps>`, `<Statement>`, …).
 - [ ] **No unknown frontmatter keys** — the schema is strict, so a typo'd key
       fails the build; keep the frontmatter to the documented fields.
+- [ ] **`WRITING.md` §7 passed** — length budget measured and met, scope limited to
+      the week, one word per concept, no coined metaphors, register budgets held in
+      prose *and* in reader-visible props, `course.yaml` entries swept too.
 
 Per-course (in addition): **`site`** set in `astro.config.mjs` (canonical / social
 cards / sitemap); `courseUrl` set; exam metadata + `formulaSheetUrl` where the exam
