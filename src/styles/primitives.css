@@ -161,6 +161,11 @@ details[open] > .sc-summary {
 }
 .sc-chev {
   display: inline-flex;
+  /* `flex: none` — the glyph is a fixed 13px icon, and as a plain flex item it
+     inherited flex-shrink: 1 and got squeezed by a long summary label (measured
+     7.7px against a sentence-length one). The LABEL is what should give; the
+     chevron is a fixed affordance. */
+  flex: none;
   transition: transform var(--dur-fast) var(--ease);
 }
 details[open] > summary .sc-chev {

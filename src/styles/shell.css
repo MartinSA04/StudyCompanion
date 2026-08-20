@@ -365,6 +365,7 @@
    body copy, where auto-hyphenation would fire on every line. */
 .hero h1,
 .mod-head h1,
+.prose :is(h2, h3),
 .site-footer p {
   -webkit-hyphens: auto;
   hyphens: auto;
@@ -703,9 +704,42 @@
 .prose :is(h2, h3, h4) {
   scroll-margin-top: calc(var(--topbar-h) + var(--gap-4));
 }
-/* "Hover #" deep-link injected by PageToc.astro's script. */
+/* "Hover #" deep-link injected by PageToc.astro's script.
+
+   The marker gets a COLUMN of its own rather than trailing the text as one more
+   inline box. As an inline box it competed for room on the last line, so a
+   heading whose text already filled the column (one long Norwegian word at
+   320–345px) had nowhere to put it and pushed it onto a row of its own — a lone
+   "#" under an unwrapped heading. Reserving a column takes it out of that
+   contest entirely: the text wraps inside its own track and the marker sits
+   beside it.
+
+   `justify-content: start` is load-bearing — auto tracks otherwise absorb the
+   free space and park the marker at the far right of the column, away from the
+   text it belongs to (visual/heading-anchor.spec.ts guards both halves).
+
+   Scoped with :has() to headings the script has actually processed, so a
+   heading is a plain block until its two grid items exist — with JS off, or
+   before the script runs, a bare grid would split inline content (KaTeX!) into
+   a column per run. */
+.prose :is(h2, h3):has(> .heading-anchor) {
+  display: grid;
+  /* minmax(0, auto), not auto: an auto track floors at min-content, which for a
+     long unbreakable compound is the whole word — the grid would then overflow
+     its own heading and run the marker off the right edge of a 320px screen
+     (measured 27.6px past the viewport, taking the document into horizontal
+     scroll with it). Flooring at 0 lets the text track give instead, and the
+     hyphenation rule above turns that give into a proper hyphenated break. */
+  grid-template-columns: minmax(0, auto) auto;
+  justify-content: start;
+  /* Centred against the whole heading, not baseline-aligned to its first line.
+     On a one-line heading the two are near-identical; on a heading that wraps,
+     baseline leaves the marker dangling at the top right while centring reads
+     as a marker for the block. */
+  align-items: center;
+  column-gap: 0.35em;
+}
 .heading-anchor {
-  margin-left: 0.35em;
   font-size: 0.75em;
   color: var(--muted);
   text-decoration: none;

@@ -171,10 +171,22 @@ const show = visible.length >= threshold;
 
     // Inject hover "#" anchor links into every h2/h3 inside .prose. The guard
     // keeps a re-run from appending a second anchor.
+    //
+    // The heading's own content is first moved into a .heading-text span, which
+    // gives the heading exactly TWO children — text, then marker — for the grid
+    // that shell.css puts on it. Two reasons it has to be a wrapper rather than
+    // a bare grid over the heading's inline content: a grid would otherwise
+    // split a KaTeX heading into an anonymous item PER inline run (math would
+    // land in its own column, or wrap to an implicit row), and the marker needs
+    // a column of its own so it can never be the thing that wraps.
     document
       .querySelectorAll<HTMLElement>(".prose :is(h2, h3)")
       .forEach((h) => {
         if (!h.id || h.querySelector(".heading-anchor")) return;
+        const text = document.createElement("span");
+        text.className = "heading-text";
+        while (h.firstChild) text.appendChild(h.firstChild);
+        h.appendChild(text);
         const a = document.createElement("a");
         a.href = "#" + h.id;
         a.className = "heading-anchor";
