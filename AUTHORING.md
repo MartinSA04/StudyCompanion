@@ -10,7 +10,7 @@ prop reference and architecture see `README.md`.
 > and terminology rules, the register these guides never use, and the design rules
 > a course-owned simulation must follow. This file covers mechanics; that one
 > covers the writing itself, and it is equally binding.
-
+>
 > Start a new course from `course-template/` (`npx degit
 > MartinSA04/StudyCompanion/course-template course-mycode`). It encodes
 > everything below by example.
