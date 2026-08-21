@@ -35,23 +35,29 @@ const {
 ---
 
 <div class={`panel-head align-${align}`}>
-  {dot && <span class="panel-dot" aria-hidden="true" />}
   {
-    kicker && (
-      <span class="panel-kicker sc-kicker">
-        <slot name="kicker-icon" />
-        {kicker}
-      </span>
-    )
+    /* The mark and the title share ONE inline box, so the mark reads as the
+      first word of the title rather than as a column beside it. */
   }
-  {
-    title && (
-      <span
-        class={`panel-title size-${titleSize}`}
-        set:html={renderMathString(title)}
-      />
-    )
-  }
+  <span class="panel-lead">
+    {dot && <span class="panel-dot" aria-hidden="true" />}
+    {
+      kicker && (
+        <span class="panel-kicker sc-kicker">
+          <slot name="kicker-icon" />
+          {kicker}
+        </span>
+      )
+    }
+    {
+      title && (
+        <span
+          class={`panel-title size-${titleSize}`}
+          set:html={renderMathString(title)}
+        />
+      )
+    }
+  </span>
   <slot />
 </div>
 
@@ -75,33 +81,43 @@ const {
   .align-center {
     align-items: center;
   }
+  /* Mark + title in one inline run. Two things fall out of this that a flex row
+     could not give at once: the mark can never be stranded on a line of its own
+     (it is inside the text's own box, not a sibling competing for flex lines),
+     and a title that wraps starts its second line at the LEFT EDGE, under the
+     mark — instead of hanging in a narrow column beside it. A zero flex basis
+     keeps the whole run out of the outer row's line-packing. */
+  .panel-lead {
+    flex: 1 1 0;
+    min-width: 0;
+    line-height: var(--leading-snug);
+  }
   /* Mono/uppercase/tracking/semibold recipe comes from the shared .sc-kicker;
      the header only sets the badge's layout, size and tone. */
   .panel-kicker {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    flex: none;
-    align-self: center;
+    /* An inline-flex box with no baseline-aligned child synthesizes its
+       baseline from its bottom edge, which would drop the badge below the
+       title's baseline; centring it on the x-height reads level instead. */
+    vertical-align: middle;
+    margin-inline-end: var(--space-3);
     font-size: var(--text-sm);
     color: var(--accent-ink);
   }
   .panel-dot {
-    flex: none;
+    display: inline-block;
+    vertical-align: middle;
+    margin-inline-end: var(--space-3);
     width: 9px;
     height: 9px;
     border-radius: 50%;
     background: var(--accent);
   }
   .panel-title {
-    /* Same rule as .statement-name, for the same reason — including the zero
-       basis, which is what actually stops the row from wrapping (see the note
-       there). Without it the title jumps to the next flex line and strands the
-       leading dot alone on the first one; a real sim title, "Ford-Fulkerson /
-       Edmonds-Karp", did that up to 450px. The dot and the kicker badge are
-       fixed marks; the title is what gives. */
-    flex: 1 1 0;
-    min-width: 0;
+    /* Inline on purpose (see .panel-lead) — it is a run of text that happens to
+       follow a mark, not a column. */
     font-family: var(--font-display);
     color: var(--fg);
   }

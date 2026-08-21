@@ -50,8 +50,7 @@ const t = TONES[tone];
   <p class="adm-kicker">
     <span class="adm-icon" aria-hidden="true"
       ><Icon name={icon} size={15} /></span
-    >
-    {title}
+    ><span class="adm-label">{title}</span>
   </p>
   <div class="adm-body"><slot /></div>
 </aside>
@@ -63,10 +62,12 @@ const t = TONES[tone];
     border-radius: var(--radius);
     background: var(--c-bg);
   }
+  /* Inline flow, not a flex row: the icon is the first thing on the label's
+     first line, and a long label's second line starts back at the left edge
+     under it. As a flex row the label became a column beside the icon — icon
+     floating in a gutter, text hanging a 21px indent (see PanelHeader for the
+     same call). */
   .adm-kicker {
-    display: flex;
-    align-items: center;
-    gap: 6px;
     margin-bottom: var(--space-2);
     font-family: var(--font-mono);
     font-size: var(--text-sm);
@@ -76,9 +77,10 @@ const t = TONES[tone];
     color: var(--c);
   }
   .adm-icon {
-    flex: none;
     display: inline-flex;
     align-items: center;
+    vertical-align: middle;
+    margin-inline-end: 6px;
   }
   /* Let the last child sit flush against the padding. */
   .adm-body :global(> :last-child) {
