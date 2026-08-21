@@ -8,7 +8,7 @@ part: "Del 2: Komponenter"
 ---
 
 Simuleringer bor i kursrepoet (her i `public/sims/`), og rammeverket eier kun
-rammen rundt — tittel, DPR-skalert `<canvas>`, kontroll-slot og caption. Dra i
+rammen rundt: tittel, DPR-skalert `<canvas>`, kontroll-slot og caption. Dra i
 glidebryteren:
 
 <Simulation
@@ -19,14 +19,14 @@ glidebryteren:
 />
 
 <Callout type="tip">
-Bytt tema i topplinja — simuleringen tegnes på nytt med riktig aksentfarge, fordi
+Bytt tema i topplinja, så tegnes simuleringen på nytt med riktig aksentfarge, fordi
 rammeverket sender et `sc:themechange`-event.
 </Callout>
 
 ## DOM-verten for skarpe etiketter
 
 `host="dom"` bytter `<canvas>` mot et tema-tilpasset element modulen tegner SVG
-eller HTML inn i (`api.stage`) — velg den når diagrammet trenger skarpe, merkbare
+eller HTML inn i (`api.stage`). Velg den når diagrammet trenger skarpe, merkbare
 etiketter framfor piksler. Modulen bruker sidens fargevariabler, så figuren
 skifter tema av seg selv.
 
@@ -42,7 +42,7 @@ skifter tema av seg selv.
 
 En simulering kan også **styre en kodeblokk**: `<CodeBlock id="…">` får en stabil
 id, og simuleringen henter en kontroller med `api.codeBlock(id)` for å markere
-linjer mens den tegner tilstanden. Trykk **Neste steg** — den aktive linja flytter
+linjer mens den tegner tilstanden. Trykk **Neste steg**, så flytter den aktive linja
 seg i takt med søylene.
 
 <CodeBlock
@@ -68,8 +68,8 @@ seg i takt med søylene.
 
 ## Stegvis algoritme med `<Stepper>`
 
-For algoritmer eier rammeverket hele avspilleren — transport, fartskontroll,
-steglogg, variabel-rute og synk av kodelinja — mens kurset kun leverer en modul
+For algoritmer eier rammeverket hele avspilleren, altså transport, fartskontroll,
+steglogg, variabel-rute og synk av kodelinja, mens kurset kun leverer en modul
 (`public/steppers/…`) med `run(input)` (sporet) og `render(stage, frame)`
 (tegningen). Bruk **mellomrom** for å spille av, piltastene for å stega.
 
