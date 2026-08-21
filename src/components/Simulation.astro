@@ -43,11 +43,13 @@ import fs from "node:fs";
 import path from "node:path";
 import PanelHeader from "./PanelHeader.astro";
 import { assertOneOf } from "../lib/assertProp.ts";
+import { renderMathString } from "../lib/katex.ts";
 
 interface Props {
   /** Path to the course-provided ES module, e.g. "/sims/thin-lens.js". */
   src: string;
   title?: string;
+  /** Caption under the stage; may contain `$inline$` math. */
   caption?: string;
   /** CSS height of the stage in px. */
   height?: number;
@@ -110,7 +112,7 @@ if (src.startsWith("/") && !src.startsWith("//")) {
     </noscript>
   </div>
   <div class="sim-controls"></div>
-  {caption && <p class="sim-caption">{caption}</p>}
+  {caption && <p class="sim-caption" set:html={renderMathString(caption)} />}
 </figure>
 
 <style>

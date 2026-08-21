@@ -26,6 +26,7 @@ import fs from "node:fs";
 import path from "node:path";
 import PanelHeader from "./PanelHeader.astro";
 import Icon from "./Icon.astro";
+import { renderMathString } from "../lib/katex.ts";
 
 interface Props {
   /** Path to the course-provided ES module, e.g. "/steppers/bubblesort.js". */
@@ -33,6 +34,7 @@ interface Props {
   /** `id` of the <CodeBlock> to drive (its active line follows `frame.line`). */
   codeId?: string;
   title?: string;
+  /** Fallback caption under the stage; may contain `$inline$` math. */
   caption?: string;
   /** CSS height of the stage in px. */
   height?: number;
@@ -149,7 +151,11 @@ if (src.startsWith("/") && !src.startsWith("//")) {
     </div>
 
     <p class="stepper-desc" aria-live="polite"></p>
-    {caption && <p class="stepper-caption">{caption}</p>}
+    {
+      caption && (
+        <p class="stepper-caption" set:html={renderMathString(caption)} />
+      )
+    }
   </div>
 </figure>
 
