@@ -108,6 +108,12 @@ section in `course-template/content/sections/`.
 `<Compare>` tables and tight prose that links out via `<Term>`/`<FormulaRef>`
 rather than re-deriving. Usually `importance: useful` or `extra`.
 
+**Headings start at `##`.** The page shell renders the module title as the
+`<h1>`, so a module's own sections are `##` and a subsection inside one is
+`###`. The in-page table of contents reads exactly those two levels and indents
+`###` beneath `##` — open a module at `###` and you skip a heading level *and*
+flatten every section into a sub-item with no parent.
+
 **Section frontmatter** is the contract — `order` (the source of truth for
 sequence, not the filename), `title`, `summary` (**required**: it is the
 module's meta description and its search-result snippet — write one sentence for
@@ -211,12 +217,24 @@ Keep `run(input)` deterministic for a given input (shuffle re-calls
 
 - **Math.** Inline `$d\sin\theta = m\lambda$`, display `$$ … $$`. In **`course.yaml`**
   LaTeX scalars must be **double-quoted with escaped backslashes**:
-  `tex: "\\dfrac{a}{b}"`. Captions/labels (`<Formula caption>`, formula `label`,
-  glossary `definition`) render `$…$` with KaTeX; the rest is escaped except the
-  simple inline tags `<b> <i> <em> <strong> <sub> <sup> <code> <br>`
-  (attribute-less) — use `<b>`/`<em>`, not Markdown `**…**`. A literal `<`/`&`
-  (`n<m`, `T&C`) is safe plain text; anything fancier belongs in the section
-  body, not a prop string.
+  `tex: "\\dfrac{a}{b}"`.
+
+  **Props that render `$…$` with KaTeX.** Every reader-visible string prop below
+  goes through the same renderer, so put math in the prop rather than working
+  around it in the body:
+
+  | Where | Props |
+  |---|---|
+  | `course.yaml` | formula `label`, glossary `term` + `definition`, flashcard `front` + `back` |
+  | Captions | `<Figure>`, `<Formula>`, `<Table>`, `<Simulation>`, `<Stepper>` |
+  | Tables | `<Table columns>` and every cell in `rows` |
+  | Headings | `<Statement name>`, `<Step title>`, `<CompareCol title>` |
+  | Self-tests | `<Quiz question / options / explanation>`, `<SelfCheck question>` |
+
+  Everything else is escaped, except the simple inline tags
+  `<b> <i> <em> <strong> <sub> <sup> <code> <br>` (attribute-less) — use
+  `<b>`/`<em>`, not Markdown `**…**`. A literal `<`/`&` (`n<m`, `T&C`) is safe
+  plain text; anything fancier belongs in the section body, not a prop string.
 - **Explicit numbering.** Figures (`number`), formulas, and statement ids are set
   **by hand**, never auto-derived — so reordering content never silently
   renumbers, and a cross-ref target stays stable. Section display numbers are the

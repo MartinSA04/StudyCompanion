@@ -42,6 +42,10 @@ group session. Respect that.
 | Worked `<Example>` blocks per module | at most **2** |
 | Reading time per module | 10–20 minutes |
 
+The range is a target, not a threshold. A module that lands a little outside it is not a defect and
+does not need trimming to hit a number; one that lands at 3000 words is telling you something. Use
+the count as a signal to go back and look, not as a rule to satisfy.
+
 Measure, do not estimate:
 
 ```bash
@@ -223,8 +227,9 @@ The framework owns the design. A course-owned sim must look like it was drawn by
   They are the house style.
 - **One idea per sim.** A simulation exists to show the thing prose cannot. If prose can carry it, use
   prose.
-- `<Simulation caption>` renders as **plain text** — no KaTeX. Do not put `$…$` in it (unlike
-  `<Figure caption>`, formula `label` and glossary `definition`, which do render math).
+- **Captions render inline math.** Since v4.4.2 `<Simulation caption>` and `<Stepper caption>` run
+  the same `$…$` renderer as `<Figure caption>`, so write `$\Delta k$`, not a bare Unicode `Δ`.
+  `AUTHORING.md` §6 lists every prop that renders math.
 
 ---
 
@@ -234,7 +239,7 @@ In addition to the definition-of-done in `AUTHORING.md` §8:
 
 - [ ] **Audience established from the course page**, not assumed, and nothing re-taught that the
       prerequisites already cover.
-- [ ] **Word count measured** with the command in §2 and inside budget.
+- [ ] **Word count measured** with the command in §2, and in the neighbourhood of the budget.
 - [ ] **Scope is exactly this week's** syllabus; nothing adjacent added.
 - [ ] **No forward reference to a week, module number or date** anywhere, including `course.yaml`
       entries and simulation captions.
