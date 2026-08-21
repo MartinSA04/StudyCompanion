@@ -40,11 +40,18 @@ const anchor = id ?? slugify(name);
   aria-label={LABELS[kind]}
 >
   <p class="statement-head">
-    <span class="statement-badge sc-kicker">
-      <Icon name="bookmark" size={15} />
-      {LABELS[kind]}
+    {
+      /* Badge and name share ONE inline box (see PanelHeader): the badge reads as
+        the first word of the name, and a name that wraps returns to the left
+        edge under it instead of stacking in a column beside it. */
+    }
+    <span class="statement-lead">
+      <span class="statement-badge sc-kicker">
+        <Icon name="bookmark" size={15} />
+        {LABELS[kind]}
+      </span>
+      <span class="statement-name" set:html={renderMathString(name)} />
     </span>
-    <span class="statement-name" set:html={renderMathString(name)} />
     <a
       class="statement-anchor"
       href={`#${anchor}`}
@@ -79,13 +86,23 @@ const anchor = id ?? slugify(name);
     gap: var(--space-2) var(--space-3);
     margin-bottom: var(--space-2);
   }
+  /* One inline run holding the badge and the name — see the note in the markup.
+     The zero flex basis keeps it out of the head row's line-packing, so the "#"
+     can never be pushed onto a line of its own. */
+  .statement-lead {
+    flex: 1 1 0;
+    min-width: 0;
+    line-height: var(--leading-snug);
+  }
   /* Mono uppercase kicker recipe comes from .sc-kicker; layout + tone local. */
   .statement-badge {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    flex: none;
-    align-self: center;
+    /* Centred, not baseline-aligned: an inline-flex box with no baseline-aligned
+       child synthesizes its baseline from its bottom edge and would sit low. */
+    vertical-align: middle;
+    margin-inline-end: var(--space-3);
     font-size: var(--text-sm);
     /* --accent-ink keeps the kicker AA on the accent-soft ground in both themes
        (raw --accent is only 3.89:1 in dark). The bookmark icon inherits it via
@@ -93,23 +110,18 @@ const anchor = id ?? slugify(name);
     color: var(--accent-ink);
   }
   .statement-name {
-    /* Wrap the name INSIDE its own box instead of letting the row wrap and drop
-       the "#" onto a line of its own (seen at 350–410px on "Fulle bånd leder
-       ikke"). The basis MUST be 0, not auto: a wrapping flex container packs
-       items into lines by their HYPOTHETICAL main size, which for `auto` is
-       max-content — so `min-width: 0` alone still let the row break, and the
-       bug survived behind the one statement whose badge happened to be narrow
-       enough. A zero basis takes the name out of that calculation entirely. */
-    flex: 1 1 0;
-    min-width: 0;
+    /* Inline on purpose (see .statement-lead) — a run of text following the
+       badge, not a column beside it. */
     font-family: var(--font-display);
     font-weight: var(--weight-semibold);
     font-size: var(--text-md);
     color: var(--fg);
   }
   .statement-anchor {
-    margin-inline-start: auto;
-    align-self: center;
+    /* Baseline-aligned with the name's FIRST line (the head row is
+       align-items: baseline), so on a name that wraps the "#" stays up beside
+       the start of the text instead of drifting to the middle of the block. */
+    flex: none;
     padding-inline: var(--space-1);
     color: var(--muted);
     font-family: var(--font-mono);

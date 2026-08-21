@@ -10,11 +10,14 @@ import { test, expect } from "@playwright/test";
  * on the first one (or the marker itself dropped to a line below). Reported in
  * the wild as "Fulle bånd leder ikke" at 400px.
  *
- * The rule that fixes the two flex rows is the same: the text item takes a ZERO
- * flex basis so it drops out of the container's line-packing entirely, then
- * wraps inside its own box instead of pushing the marker onto a new line.
- * `.prose` headings solve the same problem with a grid column and are covered by
- * heading-anchor.spec.ts.
+ * The rule that fixes the two flex rows is the same, and it is structural rather
+ * than a flex tweak: the leading mark and the text live in ONE inline box (a
+ * `.panel-lead` / `.statement-lead` wrapper) which takes a zero flex basis, so
+ * it drops out of the row's line-packing entirely. The mark cannot be stranded
+ * because it is part of the text's own inline run, not a sibling competing for
+ * a flex line. The second, equally load-bearing property of that box is tested
+ * separately below: the text hangs no indent. `.prose` headings solve the same
+ * problem with a grid column and are covered by heading-anchor.spec.ts.
  *
  * The glossary case is here as a characterisation guard, not a fixed bug: its
  * "#" is an inline box in a block `<dt>` — the shape that DID break in prose
@@ -144,6 +147,101 @@ for (const c of CASES) {
     expect(sawWrap, "the row never had to wrap — nothing was proven").toBe(
       true,
     );
+    expect(offenders).toEqual([]);
+  });
+}
+
+/**
+ * The other half of the lead contract: a title that wraps must NOT hang an
+ * indent under its mark.
+ *
+ * Keeping the mark beside the text is easy to over-solve. Giving the text its
+ * own flex column does it — and turns the header into two columns, a narrow
+ * badge on the left and a stack of short lines on the right ("Regneeksempel"
+ * over a three-line title in a 400px panel). The mark stops reading as the
+ * first word of the title and starts reading as an icon in a gutter.
+ *
+ * So the fix is an inline run, not a column: line 2 onwards must start at the
+ * lead's own left edge, level with the mark, not indented past it. Measured with
+ * a Range because the wrapping text is inline — one border box, many line rects.
+ */
+const LEADS = [
+  {
+    name: "<Example> kicker",
+    path: "/eksempler",
+    lead: ".panel-lead",
+    text: ".panel-title",
+    long: "Brytning ved overgangen vann–luft ved total refleksjon",
+  },
+  {
+    name: "<Simulation> dot",
+    path: "/simulering",
+    lead: ".panel-lead",
+    text: ".panel-title",
+    long: "Ford-Fulkerson / Edmonds-Karp maksimal flyt",
+  },
+  {
+    name: "<Statement> badge",
+    path: "/sammenligning",
+    lead: ".statement-lead",
+    text: ".statement-name",
+    long: "Fulle bånd leder ikke til strømtransport",
+  },
+  {
+    name: "admonition kicker",
+    path: "/mer",
+    lead: ".adm-kicker",
+    text: ".adm-label",
+    long: "Merk grensetilfellet ved total refleksjon her",
+  },
+];
+
+for (const c of LEADS) {
+  test(`${c.name} — a wrapped title starts flush, not in a column`, async ({
+    page,
+  }) => {
+    await page.goto(c.path);
+    await page.evaluate((c) => {
+      for (const lead of document.querySelectorAll(c.lead)) {
+        const t = lead.querySelector(c.text);
+        if (t) t.textContent = c.long;
+      }
+    }, c);
+
+    const offenders: string[] = [];
+    let sawWrap = false;
+    for (let w = 320; w <= 700; w += 10) {
+      await page.setViewportSize({ width: w, height: 900 });
+      const rows = await page.evaluate((c) => {
+        const out: { lines: number; indent: number }[] = [];
+        for (const lead of document.querySelectorAll<HTMLElement>(c.lead)) {
+          const text = lead.querySelector<HTMLElement>(c.text);
+          if (!text) continue;
+          const range = document.createRange();
+          range.selectNodeContents(text);
+          const lines = [...range.getClientRects()].filter((r) => r.width > 0);
+          if (lines.length < 2) continue;
+          // How far the LAST line starts to the right of the lead's own content
+          // edge. Zero is flush; a hanging indent shows up as roughly the mark's
+          // width plus its gap.
+          out.push({
+            lines: lines.length,
+            indent:
+              lines[lines.length - 1].left - lead.getBoundingClientRect().left,
+          });
+        }
+        return out;
+      }, c);
+      for (const r of rows) {
+        sawWrap = true;
+        // 1px of tolerance for subpixel line-box rounding; a real hanging indent
+        // is the mark's width (a 9px dot at the very least, plus the gap).
+        if (r.indent > 1)
+          offenders.push(`@${w}px — indented ${r.indent.toFixed(1)}px`);
+      }
+    }
+
+    expect(sawWrap, "the title never wrapped — nothing was proven").toBe(true);
     expect(offenders).toEqual([]);
   });
 }
