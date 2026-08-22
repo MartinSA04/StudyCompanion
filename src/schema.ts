@@ -345,6 +345,12 @@ export const courseSchema = z.strictObject({
        */
       footerDisclaimer: z.string().default("Merk at siden kan inneholde feil."),
       updatedLabel: z.string().default("Oppdatert"),
+      /**
+       * Screen-reader prefix on a `<Video>` facade, so the link announces as an
+       * action ("Spill av: <title>") rather than as a bare title. Visually
+       * hidden — the play glyph carries it for sighted readers.
+       */
+      videoPlayLabel: z.string().default("Spill av"),
 
       /**
        * `<meta name="description">` for the four tool pages, each composed as

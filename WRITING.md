@@ -213,7 +213,7 @@ All of these are real, from a rewrite the maintainer rejected.
 
 ---
 
-## 6. Simulations and figures follow the design system
+## 6. Simulations, figures and video follow the design system
 
 The framework owns the design. A course-owned sim must look like it was drawn by the framework.
 
@@ -227,6 +227,11 @@ The framework owns the design. A course-owned sim must look like it was drawn by
   They are the house style.
 - **One idea per sim.** A simulation exists to show the thing prose cannot. If prose can carry it, use
   prose.
+- **A video is an aside, never the argument.** `<Video>` borrows an explanation someone else made,
+  which is a good trade when the subject moves and your prose cannot. But the module has to work for
+  the reader who never clicks: never write "se videoen for utledningen". One video in a module is
+  usually enough; if you want three, write the explanation instead. The card is built from text you
+  type, so `title`, `channel` and `duration` follow the same rules as any other reader-visible text.
 - **Captions render inline math.** Since v4.4.2 `<Simulation caption>` and `<Stepper caption>` run
   the same `$…$` renderer as `<Figure caption>`, so write `$\Delta k$`, not a bare Unicode `Δ`.
   `AUTHORING.md` §6 lists every prop that renders math.
@@ -253,6 +258,7 @@ In addition to the definition-of-done in `AUTHORING.md` §8:
 - [ ] **`course.yaml` swept too** — labels and definitions reach the Formelsamling and Begreper pages
       independently of the module, so a phrase fixed only in the `.mdx` still ships.
 - [ ] **Sims use framework classes and tokens only.**
+- [ ] **Every `<Video>` link opened and still playing**, and the module reads complete without it.
 - [ ] `pnpm build` green.
 
 Read the built page before shipping. Prose that looked fine in the editor often reads as padding on the
