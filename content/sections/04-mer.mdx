@@ -1,7 +1,7 @@
 ---
 order: 4
 title: Figurer, steg og hint
-summary: Bildekomponent, nummerert framgangsmåte, hint-stige og hovedpunkter.
+summary: Bilde- og videokomponent, nummerert framgangsmåte, hint-stige og hovedpunkter.
 importance: useful
 tag: Komponenter
 part: "Del 2: Komponenter"
@@ -10,7 +10,7 @@ updated: 2026-05-26
 noindex: true
 ---
 
-De nyeste innholdskomponentene: en figur med bildetekst, en nummerert
+De nyeste innholdskomponentene: en figur med bildetekst, en video, en nummerert
 framgangsmåte, en hint-stige og en oppsummering.
 
 ## Figur
@@ -25,6 +25,21 @@ Bredde/høyde reserverer plassen, så layouten ikke hopper når bildet lastes.
   number={1}
   width={480}
   height={300}
+/>
+
+## Video
+
+`<Video>` bygger inn en YouTube-video. Kortet under er ren tekst, og ingenting
+lastes fra Google før leseren klikker. Da byttes kortet mot spilleren i samme
+ramme. `id` tar hele lenken fra delingsmenyen, og et `?t=`-tidspunkt følger med.
+
+<Video
+  id="https://www.youtube.com/watch?v=WUvTyaaNkzM"
+  title="The essence of calculus"
+  channel="3Blue1Brown"
+  duration="17:04"
+  caption="Første video i serien om derivasjon og integrasjon. Bildeteksten kan inneholde matte, som $\frac{d}{dx}x^2 = 2x$."
+  number={1}
 />
 
 ## Framgangsmåte

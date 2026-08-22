@@ -64,6 +64,7 @@ Reach for a widget by intent. All are global in MDX — **no imports**.
 |---|---|
 | State a formula (with caption / "må pugges" badge) | `<Formula>` |
 | Show a captioned, numbered diagram/image | `<Figure>` |
+| Point at a YouTube video that shows something you cannot draw | `<Video>` — see below |
 | Frame a named law / theorem / definition / principle (anchored) | `<Statement>` |
 | Link a word in prose to the glossary | `<Term name="…">` |
 | Link prose to a formula's row in the Formelsamling | `<FormulaRef id="…">` |
@@ -84,6 +85,38 @@ Reach for a widget by intent. All are global in MDX — **no imports**.
 
 When in doubt, prefer the most specific widget: it carries the consistent design,
 a11y, and (for `<Statement>`/`<Term>`/`<FormulaRef>`) the cross-ref anchors.
+
+### `<Video>` — borrowed explanation, on two conditions
+
+Some things are far easier to watch than to read, and someone has often already
+made that video. `<Video>` embeds one as a click-to-load facade: a text-only card
+until the reader clicks, so nothing reaches Google on a plain page view.
+
+```mdx
+<Video
+  id="https://youtu.be/WUvTyaaNkzM?t=95"
+  title="The essence of calculus"
+  channel="3Blue1Brown"
+  duration="17:04"
+  caption="Hvorfor arealet under en kurve og stigningstallet er samme spørsmål."
+  number={1}
+/>
+```
+
+Paste the share link as `id` — a watch URL, a youtu.be link, with or without a
+`?t=` timestamp. The build reads the video id out of it and fails on a link it
+cannot parse. Type `title`, `channel` and `duration` from the video page: the
+card is built from your text, not from YouTube's thumbnail.
+
+Two conditions on using it at all:
+
+1. **The module must stand alone.** A reader who never clicks must still get the
+   full argument from your prose. Never write "see the video for the derivation".
+   The video adds intuition or motion; it never carries the load.
+2. **The link can rot and nothing will tell you.** Unlike `<Figure>`, which fails
+   the build on a missing file, a video that is deleted or set to private cannot
+   be detected at build time. Prefer stable channels with a long track record,
+   and re-check your `<Video>` links when you revise a course.
 
 ---
 

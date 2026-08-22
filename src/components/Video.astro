@@ -1,0 +1,224 @@
+---
+import Icon from "./Icon.astro";
+import { loadCourse } from "../lib/loadCourse.ts";
+import { parseYouTube } from "../lib/youtube.ts";
+import { renderMathString } from "../lib/katex.ts";
+
+/**
+ * A YouTube video as a click-to-load facade — the framework's answer to the one
+ * thing prose, KaTeX and `<Figure>` structurally cannot do: show motion.
+ *
+ * NOTHING THIRD-PARTY LOADS UNTIL THE READER CLICKS. Until then this is a
+ * typographic card built from the author's own text — no YouTube thumbnail, no
+ * Google JS, no cookies. That is a deliberate design choice twice over: it keeps
+ * the guide's only third-party contact opt-in (the click IS the consent), and it
+ * keeps YouTube's thumbnail art — outsized faces, arrows, yellow circles — off a
+ * page whose whole visual argument is restraint.
+ *
+ * The card is an `<a>` to the watch page, not a `<button>`: with JS off it still
+ * takes the reader to the video, and ctrl/middle-click open a tab like any link.
+ * A delegated handler upgrades a plain click into an inline `youtube-nocookie`
+ * iframe, opening the box out to 16:9 in place so the reader keeps the page.
+ *
+ * `id` takes whatever the share sheet gave the author — a watch URL, a youtu.be
+ * link, either carrying `?t=` — and `src/lib/youtube.ts` normalises it, throwing
+ * at build time on anything it cannot read. There is no `start` prop: the "Copy
+ * link at current time" URL already carries the offset.
+ *
+ * UNGUARDABLE: unlike `<Figure>`, which fails the build on a missing file, a
+ * video that is deleted or made private cannot be detected without network
+ * access at build time. Prefer stable, well-known channels, and never let a
+ * module's argument depend on one — see AUTHORING.md §3.
+ */
+interface Props {
+  /** Video id, or any youtube.com / youtu.be link (a `?t=` start is kept). */
+  id: string;
+  /** The video's own title — shown on the card and used as the iframe's name. */
+  title: string;
+  /** Channel name, e.g. "3Blue1Brown". */
+  channel?: string;
+  /** Runtime as YouTube shows it, e.g. "17:04". */
+  duration?: string;
+  /** Caption under the card; may contain `$inline$` math. */
+  caption?: string;
+  /** Video label, e.g. `2` → "Video 2". Omit for an unnumbered video. */
+  number?: number | string;
+}
+const { id, title, channel, duration, caption, number } = Astro.props;
+const { course } = await loadCourse();
+
+const { id: videoId, start } = parseYouTube(id);
+const label = number != null && number !== "" ? `Video ${number}` : null;
+
+const watchUrl = `https://www.youtube.com/watch?v=${videoId}${start ? `&t=${start}` : ""}`;
+// `playsinline` matters on iOS: without it a tapped video hijacks the screen
+// into the native fullscreen player and the reader loses the guide.
+const embedUrl = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&playsinline=1&rel=0${start ? `&start=${start}` : ""}`;
+
+// "YouTube" is named on the card on purpose — the reader should know which
+// third party they are about to load before they choose to load it.
+const meta = [channel, duration, "YouTube"].filter(Boolean).join(" · ");
+---
+
+<figure class="video">
+  <div class="video-box" data-video-embed={embedUrl} data-video-title={title}>
+    <a
+      class="video-frame"
+      href={watchUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      <span class="video-play" aria-hidden="true">
+        <Icon name="play" size={26} />
+      </span>
+      <span>
+        <span class="sr-only">{course.ui.videoPlayLabel}: </span>
+        <span class="video-title">{title}</span>
+        <span class="video-meta">{meta}</span>
+      </span>
+    </a>
+  </div>
+  {
+    (label || caption) && (
+      <figcaption class="video-cap">
+        {label && <span class="video-num">{label}.</span>}
+        {caption && <span set:html={renderMathString(caption)} />}
+      </figcaption>
+    )
+  }
+</figure>
+
+<style>
+  .video {
+    margin-block: var(--space-5);
+  }
+  /* The facade sits at its own compact height and the box takes 16:9 only once
+     the player is in it. Holding 16:9 from the start would mean a screenful of
+     empty ground on every page view — paid by every reader who scrolls past —
+     to save a shift that only the reader who clicks ever sees, and that a
+     click-to-open widget (<Derivation>, <Solution>, <Hints>) already makes
+     everywhere else on the page. Staying small also keeps a video reading as
+     what it is: supporting material, not the module's centrepiece. */
+  .video-box {
+    background: var(--canvas-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+  }
+  .video-box[data-playing] {
+    aspect-ratio: 16 / 9;
+  }
+  .video-frame {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-3);
+    padding: var(--space-6) var(--space-4);
+    text-align: center;
+    text-decoration: none;
+    color: var(--fg);
+  }
+  /* Clipped by the box's overflow, so the ring sits inside the edge. */
+  .video-frame:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: -3px;
+  }
+  .video-play {
+    display: grid;
+    place-items: center;
+    width: 3.25rem;
+    height: 3.25rem;
+    border-radius: 50%;
+    background: var(--accent-weak);
+    color: var(--accent-ink);
+    transition:
+      background-color 0.15s ease,
+      color 0.15s ease;
+  }
+  .video-frame:hover .video-play,
+  .video-frame:focus-visible .video-play {
+    background: var(--accent);
+    color: var(--accent-contrast);
+  }
+  .video-title {
+    font-weight: var(--weight-semibold);
+    line-height: var(--leading-snug);
+    text-wrap: balance;
+  }
+  .video-meta {
+    display: block;
+    margin-top: var(--space-1);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking);
+    color: var(--muted);
+  }
+  /* The iframe is created by the click handler, so it never gets this
+     component's scope attribute — it has to be matched globally. Kept under the
+     scoped `.video-box` so the rule cannot leak to the rest of the site. */
+  .video-box :global(.video-player) {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+  /* Mirrors .figure-cap — a video is a numbered, captioned exhibit like a figure
+     (component styles are scoped, so the rules can't simply be shared). */
+  .video-cap {
+    margin-top: var(--space-2);
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+    color: var(--muted);
+    text-align: center;
+  }
+  .video-num {
+    margin-right: 0.4ch;
+    color: var(--accent-ink);
+    font-weight: var(--weight-semibold);
+  }
+</style>
+
+<script>
+  import { onPage } from "../lib/pageLifecycle.ts";
+
+  /**
+   * Upgrades a click on the facade into an inline player. Modified clicks
+   * (ctrl/cmd/shift/alt) are left alone so "open in new tab" still means the
+   * watch page, and with JS unavailable the untouched <a> does the same.
+   */
+  onPage((signal) => {
+    document.querySelectorAll<HTMLElement>(".video-box").forEach((box) => {
+      const link = box.querySelector("a");
+      if (!link) return;
+      link.addEventListener(
+        "click",
+        (event) => {
+          if (
+            event.metaKey ||
+            event.ctrlKey ||
+            event.shiftKey ||
+            event.altKey ||
+            event.button !== 0
+          )
+            return;
+          event.preventDefault();
+          const iframe = document.createElement("iframe");
+          iframe.className = "video-player";
+          iframe.src = box.dataset.videoEmbed ?? "";
+          iframe.title = box.dataset.videoTitle ?? "";
+          iframe.allow =
+            "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
+          iframe.allowFullscreen = true;
+          box.dataset.playing = "";
+          box.replaceChildren(iframe);
+          // Land the keyboard in the player the click just created.
+          iframe.focus();
+        },
+        { signal },
+      );
+    });
+  });
+</script>

@@ -38,8 +38,6 @@ the value at the time, or waiting on a real consumer that needs it.
 ## Speculative (only if a consumer needs them)
 
 - **`<Tabs>`** — alternative explanations / approaches / languages. `minor`, **M**.
-- **`<Embed>`** — privacy-friendly lecture-video facade with an aspect-ratio box.
-  `minor`, **M**.
 - **Preact escalation** for `<Quiz>`/`<Flashcards>` — only if island state
   outgrows vanilla JS. Not needed at current complexity.
 - **Keystatic** content editing — revisit only if non-technical authors appear.
