@@ -81,6 +81,10 @@ glossary:
 exams:
   - { label: "Eksamen V2025", date: 2025-06-02, url: "https://example.com/exams/2025.pdf", solutionUrl: "https://example.com/exams/2025-losning.pdf" }
   - { label: "Eksamen V2024", date: 2024-05-28, url: "https://example.com/exams/2024.pdf" }
+  # Månedspresisjon: settet har ingen dato på forsiden, så bare måneden er kjent.
+  # Raden sorteres likevel riktig, mellom V2024 og V2023. Se AUTHORING.md §7.
+  - { label: "Kontinuasjonseksamen H2023", date: 2023-08, url: "https://example.com/exams/2023-kont.pdf" }
+  - { label: "Eksamen V2023", date: 2023-05-30, url: "https://example.com/exams/2023.pdf" }
 
 # Exercises the overview agenda (flat list, no done-states): one past item that
 # the build-time filter drops from the SSR output entirely, plus far-future

@@ -115,6 +115,14 @@ exams:
       url: "https://example.com/exams/2025.pdf",
       solutionUrl: "https://example.com/exams/2025-losning.pdf",
     }
+  # Kjenner du bare måneden (settet er navngitt etter semesteret og har ingen
+  # dato på forsiden), skriv YYYY-MM. Raden sorteres riktig, og siden viser
+  # måneden i stedet for en dag ingen har verifisert. Se AUTHORING.md §7.
+  - {
+      label: "Kontinuasjonseksamen H2024",
+      date: 2024-08,
+      url: "https://example.com/exams/2024-kont.pdf",
+    }
 
 # ── Dated coursework (optional → the overview agenda) ────────────────────────
 # ONE flat list of upcoming deadlines (øvinger, prosjekt, vurderinger) — no

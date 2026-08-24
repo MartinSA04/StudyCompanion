@@ -139,3 +139,12 @@ Migrate:
    populate the JSON-LD `author` and `<meta name="author">`. Omit them and no
    author is emitted, the same no-guessing rule `institution` follows.
 3. Set `schemaVersion: 4` in `content/course.yaml`.
+
+Additive since 4.0 (no migration, available when present):
+
+- `course.exams[].date` also accepts a **month-precision** `YYYY-MM` (v4.6.0)
+  alongside the existing `YYYY-MM-DD`. Use it for a paper whose exam day is not
+  published anywhere — several institutes name a set after the semester
+  (`…_221200`) and print no date on it. The row still sorts into the right
+  place, and the Eksamen page renders "august 2022" rather than a guessed day.
+  Existing `YYYY-MM-DD` entries are unaffected.
