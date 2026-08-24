@@ -285,7 +285,9 @@ test("a month-precision date sorts between the full dates around it", () => {
     ],
   });
   const order = [...parsed.exams]
-    .sort((a, b) => (b.date?.value.getTime() ?? 0) - (a.date?.value.getTime() ?? 0))
+    .sort(
+      (a, b) => (b.date?.value.getTime() ?? 0) - (a.date?.value.getTime() ?? 0),
+    )
     .map((e) => e.label);
   assert.deepEqual(order, ["des 2022", "aug 2022", "des 2021"]);
 });

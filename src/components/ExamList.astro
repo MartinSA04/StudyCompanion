@@ -29,9 +29,7 @@ const sorted = [...exams].sort((a, b) => {
         <div class="exam-main">
           <span class="exam-label">{e.label}</span>
           {e.date && (
-            <span class="exam-date">
-              {formatExamDate(e.date, language)}
-            </span>
+            <span class="exam-date">{formatExamDate(e.date, language)}</span>
           )}
         </div>
         <div class="exam-links">
