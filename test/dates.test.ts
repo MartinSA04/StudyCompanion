@@ -1,6 +1,11 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { dateLeaf, formatDate, formatDuration } from "../src/lib/dates.ts";
+import {
+  dateLeaf,
+  formatDate,
+  formatExamDate,
+  formatDuration,
+} from "../src/lib/dates.ts";
 
 // Schema dates are UTC midnight (z.coerce.date on "YYYY-MM-DD"); both helpers
 // must read them back in UTC so the leaf never shows the previous day west of
@@ -76,4 +81,34 @@ test("formatDuration: a non-positive duration is nonsensical → null, not '0 mi
   // drop the Varighet fact rather than print a meaningless "0 min".
   assert.equal(formatDuration(0), null);
   assert.equal(formatDuration(-30), null);
+});
+
+// formatExamDate renders a month-precision exam date without inventing a day.
+
+test("formatExamDate: month precision drops the day", () => {
+  const out = formatExamDate(
+    { value: new Date("2022-08-01T00:00:00Z"), precision: "month" },
+    "nb",
+  );
+  assert.match(out, /august/);
+  assert.match(out, /2022/);
+  assert.ok(!/\b1\b/.test(out), `month precision must not print a day: ${out}`);
+});
+
+test("formatExamDate: day precision keeps the day", () => {
+  const out = formatExamDate(
+    { value: new Date("2025-11-26T00:00:00Z"), precision: "day" },
+    "nb",
+  );
+  assert.match(out, /26/);
+  assert.match(out, /2025/);
+});
+
+test("formatExamDate: reads the date in UTC (midnight stays its own month)", () => {
+  const out = formatExamDate(
+    { value: new Date("2022-08-01T00:00:00Z"), precision: "month" },
+    "nb",
+  );
+  // West of UTC this would slip to July without the UTC timeZone.
+  assert.match(out, /august/);
 });

@@ -11,12 +11,31 @@ import { z } from "zod";
 export const SCHEMA_VERSION = 4;
 
 /** A single exam paper / past-exam reference (rendered by <ExamList>). */
+/**
+ * When an exam was held. Accepts a full `YYYY-MM-DD`, or a month-precision
+ * `YYYY-MM` for a paper whose day is not published anywhere — several NTNU sets
+ * are named after the semester (…_221200), not the exam day, and carry no date
+ * on the paper itself. Both forms sort; only the full form renders a day, so an
+ * unknown day is shown as a month instead of being guessed into existence
+ * (AUTHORING.md §7).
+ */
+const examDateSchema = z.union([
+  z
+    .string()
+    .regex(/^\d{4}-(0[1-9]|1[0-2])$/)
+    .transform((m) => ({
+      value: new Date(`${m}-01T00:00:00Z`),
+      precision: "month" as const,
+    })),
+  z.coerce.date().transform((d) => ({ value: d, precision: "day" as const })),
+]);
+
 const examPaperSchema = z.strictObject({
   label: z.string(),
   /** May be an absolute URL or a path into the course's public/ folder. */
   url: z.string().optional(),
   solutionUrl: z.string().optional(),
-  date: z.coerce.date().optional(),
+  date: examDateSchema.optional(),
 });
 
 /** A reference-sheet formula entry (rendered by <FormulaSheet>). */
@@ -446,5 +465,6 @@ export type Course = z.infer<typeof courseSchema>;
 export type Section = z.infer<typeof sectionSchema>;
 export type Flashcards = z.infer<typeof flashcardsSchema>;
 export type ExamPaper = z.infer<typeof examPaperSchema>;
+export type ExamDate = z.infer<typeof examDateSchema>;
 export type FormulaEntry = z.infer<typeof formulaEntrySchema>;
 export type GlossaryEntry = z.infer<typeof glossaryEntrySchema>;

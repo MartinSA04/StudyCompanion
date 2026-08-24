@@ -19,6 +19,26 @@ export function formatDate(
 }
 
 /**
+ * A past exam paper's date, which may be known only to the month. A full date
+ * renders like any other schema date; a month-precision one drops the day
+ * rather than printing the 1st, which the schema only stores so the row still
+ * sorts into the right place. Read in UTC for the same reason as formatDate.
+ */
+export function formatExamDate(
+  date: { value: Date; precision: "day" | "month" },
+  language: string,
+): string {
+  if (date.precision === "month") {
+    return new Intl.DateTimeFormat(language, {
+      year: "numeric",
+      month: "long",
+      timeZone: "UTC",
+    }).format(date.value);
+  }
+  return formatDate(date.value, language, "medium");
+}
+
+/**
  * The overview agenda's almanac leaf: a short month name with Intl's trailing
  * abbreviation dot stripped ("sep.", "des." → "sep", "des" — the leaf's CSS
  * owns casing) over the day-of-month. Read in UTC like formatDate above, so

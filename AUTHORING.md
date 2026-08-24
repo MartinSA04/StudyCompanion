@@ -310,7 +310,13 @@ not ad-hoc `links[]` entries:
   (the emneside). It renders in the hero + footer. *(Part of the per-course DoD.)*
 - **`course.exams[]`** — link **university-hosted** exam and solution PDFs when
   they exist. Only if one does *not* exist, vendor the PDF in `public/` and link
-  that path (`/exams/2024.pdf`).
+  that path (`/exams/2024.pdf`). Each entry's `date` takes a full `YYYY-MM-DD`
+  **or** a month-precision `YYYY-MM`: several institutes name a paper after the
+  semester (`…_221200`) and print no date on it, so the exam day is genuinely
+  unknown. Write `date: 2022-08` there. The row still sorts into the right
+  place, and the Eksamen page prints "august 2022" instead of a day nobody
+  verified — do **not** reach for the 1st of the month to make it sort. A paper
+  whose month is also unknown simply omits `date`.
 - **`course.examArchive`** — `{ url, label? }` to the official **complete**
   archive. When the `exams[]` you list are a hand-picked selection, set this: the
   Eksamen page then shows a "these are the most relevant; older sets are in the

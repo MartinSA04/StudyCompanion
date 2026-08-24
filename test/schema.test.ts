@@ -240,3 +240,68 @@ test("section draft/noindex default to false and coerce when set", () => {
   assert.equal(set.draft, true);
   assert.equal(set.noindex, true);
 });
+
+// ── exams[].date: month precision (v4.6) ─────────────────────────────────────
+// Several NTNU sets are named after the semester, not the exam day, and carry
+// no date on the paper. `YYYY-MM` lets such a row sort correctly without a
+// guessed day ever entering the data (AUTHORING.md §7).
+
+test("exams[].date accepts a full YYYY-MM-DD as day precision", () => {
+  const parsed = courseSchema.parse({
+    ...base,
+    exams: [{ label: "Ordinær", date: "2025-11-26" }],
+  });
+  const d = parsed.exams[0].date;
+  assert.equal(d?.precision, "day");
+  assert.equal(d?.value.toISOString(), "2025-11-26T00:00:00.000Z");
+});
+
+test("exams[].date accepts a month-precision YYYY-MM", () => {
+  const parsed = courseSchema.parse({
+    ...base,
+    exams: [{ label: "Kontinuasjon", date: "2022-08" }],
+  });
+  const d = parsed.exams[0].date;
+  assert.equal(d?.precision, "month");
+  // Stored as the 1st purely so the row sorts; never rendered as a day.
+  assert.equal(d?.value.toISOString(), "2022-08-01T00:00:00.000Z");
+});
+
+test("exams[].date stays optional (an undated paper is allowed)", () => {
+  const parsed = courseSchema.parse({
+    ...base,
+    exams: [{ label: "Ukjent" }],
+  });
+  assert.equal(parsed.exams[0].date, undefined);
+});
+
+test("a month-precision date sorts between the full dates around it", () => {
+  const parsed = courseSchema.parse({
+    ...base,
+    exams: [
+      { label: "des 2022", date: "2022-12-01" },
+      { label: "aug 2022", date: "2022-08" },
+      { label: "des 2021", date: "2021-12-14" },
+    ],
+  });
+  const order = [...parsed.exams]
+    .sort((a, b) => (b.date?.value.getTime() ?? 0) - (a.date?.value.getTime() ?? 0))
+    .map((e) => e.label);
+  assert.deepEqual(order, ["des 2022", "aug 2022", "des 2021"]);
+});
+
+test("a nonsense date value is rejected", () => {
+  const result = courseSchema.safeParse({
+    ...base,
+    exams: [{ label: "Tull", date: "ikke en dato" }],
+  });
+  assert.equal(result.success, false);
+});
+
+test("a 13th month is not accepted as month precision", () => {
+  const result = courseSchema.safeParse({
+    ...base,
+    exams: [{ label: "Tull", date: "2022-13" }],
+  });
+  assert.equal(result.success, false);
+});
