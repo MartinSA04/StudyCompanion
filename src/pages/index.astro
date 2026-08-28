@@ -74,6 +74,8 @@ const tiles = sections.map((s) => ({
 // Group tiles into parts (single null-part group when no section sets one).
 const tileGroups = partGroups(tiles);
 
+const modulWord = sections.length === 1 ? "modul" : "moduler";
+
 // Overview agenda: dated coursework still ahead, soonest first. A build-time
 // snapshot — the page script hides any row that slips past the viewer's clock
 // and re-derives which row is next (lib/examCountdown.ts).
@@ -117,8 +119,9 @@ const jsonLd = [
     <h1>{course.title}</h1>
     <p>
       {course.subtitle ? `${course.subtitle}. ` : ""}
-      {sections.length} moduler med læringsmål, kjerneteori, formler og selvtest —
-      velg en modul i menyen, eller en flis nedenfor.
+      {sections.length}
+      {modulWord} med læringsmål, kjerneteori, formler og selvtest. Velg en modul
+      i menyen, eller en flis nedenfor.
     </p>
     {
       course.courseUrl && (
@@ -139,7 +142,8 @@ const jsonLd = [
       course.features.progress && (
         <div class="hero-progress-row" data-hero-progress-row hidden>
           <p class="hero-done">
-            <span data-progress-done>0</span> av {tiles.length} moduler fullført
+            <span data-progress-done>0</span> av {tiles.length}
+            {modulWord} fullført
           </p>
           <a
             class="hero-continue sc-pill sc-press"
