@@ -22,6 +22,7 @@ import {
   guideId,
 } from "../lib/jsonLd.ts";
 import { courseGraph } from "../lib/courseGraph.ts";
+import { sectionIssueUrl } from "../lib/issueUrl.ts";
 import { plain } from "../lib/text.ts";
 import { slugify } from "../lib/slug.ts";
 import { mdxComponents } from "../mdx-components.ts";
@@ -97,8 +98,6 @@ let pageTitle = course.title;
 let Content: Awaited<ReturnType<typeof render>>["Content"] | null = null;
 let headings: { depth: number; slug: string; text: string }[] = [];
 let showToc = false;
-// Footer "edit this page" + freshness — section pages only, when repoUrl is set.
-let editUrl: string | undefined;
 let updated: Date | undefined;
 let head: {
   index: string;
@@ -113,10 +112,6 @@ if (props.kind === "section") {
   showToc = headings.filter((h) => h.depth === 2 || h.depth === 3).length >= 3;
   pageTitle = d.title;
   updated = d.updated;
-  const repoUrl = course.repoUrl?.replace(/\/+$/, "");
-  if (repoUrl && props.entry.filePath) {
-    editUrl = `${repoUrl}/edit/${course.repoBranch}/${props.entry.filePath}`;
-  }
   head = {
     // Deliberately minimal: folio number + title + the one importance signal.
     // The section's `part` and its overview-tile `tag` kicker already orient
@@ -173,6 +168,22 @@ const abs = (p: string) => absoluteUrl(p, Astro.site);
 const graph = courseGraph(course, Astro.site);
 const overviewCrumb = { name: "Oversikt", url: graph.overviewUrl };
 const pageUrl = abs(`/${active}`);
+
+// «Foreslå endring» — module pages only, when repoUrl is set. A prefilled
+// new-issue deep-link, NOT GitHub's /edit/ route: that walls non-collaborators
+// behind a fork prompt, while an issue is open to any signed-in reader and
+// arrives already anchored to this page + its source file.
+const feedbackUrl =
+  props.kind === "section" && course.repoUrl && props.entry.filePath && head
+    ? sectionIssueUrl({
+        repoUrl: course.repoUrl,
+        branch: course.repoBranch,
+        filePath: props.entry.filePath,
+        index: head.index,
+        title: head.title,
+        pageUrl: Astro.site ? pageUrl : undefined,
+      })
+    : undefined;
 
 let seoDescription = course.subtitle
   ? `${course.title} — ${course.subtitle}`
@@ -269,7 +280,7 @@ const seo = {
   tools={tools}
   active={active}
   pageTitle={pageTitle}
-  editUrl={editUrl}
+  feedbackUrl={feedbackUrl}
   updated={updated}
   seo={seo}
   jsonLd={jsonLd}

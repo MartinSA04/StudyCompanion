@@ -60,7 +60,7 @@ interface Props {
   /** Page <title>; defaults to the course title. */
   pageTitle?: string;
   /** "Edit this page" deep-link, shown in the page-meta row (section pages only). */
-  editUrl?: string;
+  feedbackUrl?: string;
   /** Last-updated date, shown in the page-meta freshness row (section pages only). */
   updated?: Date;
   /**
@@ -95,7 +95,7 @@ const {
   tools,
   active,
   pageTitle,
-  editUrl,
+  feedbackUrl,
   updated,
   seo,
   jsonLd,
@@ -789,23 +789,24 @@ const hasTools = toolNav.some((t) => t.show);
       <main class="content" id="content" tabindex="-1">
         <slot />
         {
-          /* Module-level metadata (this section file's freshness + its edit
-             link): a row ABOVE the footer's border-top separator, so it reads as
-             page metadata rather than site/page-wide chrome. Freshness sits on
-             the LEFT, the edit link on the RIGHT (space-between); when only one
-             is present the edit link still holds the right (margin-left: auto).
-             Only rendered on section pages, which supply `updated`/`editUrl`. */
-          (updatedStr || editUrl) && (
+          /* Module-level metadata (this section file's freshness + its
+             suggest-a-change link): a row ABOVE the footer's border-top
+             separator, so it reads as page metadata rather than site/page-wide
+             chrome. Freshness sits on the LEFT, the feedback link on the RIGHT
+             (space-between); when only one is present the feedback link still
+             holds the right (margin-left: auto). Only rendered on section
+             pages, which supply `updated`/`feedbackUrl`. */
+          (updatedStr || feedbackUrl) && (
             <div class="page-meta">
               {updatedStr && (
                 <span class="page-meta-updated">
                   {ui.updatedLabel} {updatedStr}
                 </span>
               )}
-              {editUrl && (
+              {feedbackUrl && (
                 <a
-                  class="page-meta-edit"
-                  href={editUrl}
+                  class="page-meta-feedback"
+                  href={feedbackUrl}
                   target="_blank"
                   rel="noopener noreferrer">
                   {ui.editPageLabel}

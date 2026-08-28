@@ -887,14 +887,14 @@
 .page-meta + .site-footer {
   margin-top: var(--gap-4);
 }
-/* margin-left:auto keeps the edit link on the right even when it is the only
-   child (no freshness span to push it there via space-between). */
-.page-meta-edit {
+/* margin-left:auto keeps the feedback link on the right even when it is the
+   only child (no freshness span to push it there via space-between). */
+.page-meta-feedback {
   margin-left: auto;
   color: var(--accent-ink);
   text-decoration: none;
 }
-.page-meta-edit:hover {
+.page-meta-feedback:hover {
   text-decoration: underline;
 }
 

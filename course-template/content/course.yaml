@@ -41,7 +41,8 @@ courseUrl: "https://example.com/emne/CODE101"
 # (explicit, never guessed from a URL). Omit to emit no provider.
 institution: "Example University"
 
-# Source repo of THIS course → footer "edit this page" links + freshness.
+# Source repo of THIS course → per-page «Foreslå endring» prefilled-issue links
+# + the footer's report-an-error issue link.
 # repoUrl: "https://github.com/you/course-code101"
 # repoBranch: main
 

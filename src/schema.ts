@@ -262,11 +262,14 @@ export const courseSchema = z.strictObject({
 
   /**
    * Source repository for THIS course's content (not the framework). When set,
-   * each module page gets a footer "edit this page" deep-link built from this
-   * URL + the section's file path. GitHub-style `/edit/<branch>/<path>` URLs.
+   * each module page gets a «Foreslå endring» deep-link to the repo's new-issue
+   * route (GitHub-style `/issues/new?title=…&body=…`), prefilled with the page
+   * and its source file — an issue needs no fork, unlike GitHub's `/edit/`
+   * route, which walls non-collaborators behind a fork prompt. Also drives the
+   * footer's plain report-an-error issue link.
    */
   repoUrl: z.url().optional(),
-  /** Branch the edit links point at. */
+  /** Branch the prefilled issue's source-file (`blob/`) link points at. */
   repoBranch: z.string().default("main"),
 
   features: z
