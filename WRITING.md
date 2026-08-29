@@ -227,6 +227,19 @@ The framework owns the design. A course-owned sim must look like it was drawn by
   They are the house style.
 - **One idea per sim.** A simulation exists to show the thing prose cannot. If prose can carry it, use
   prose.
+- **A sim explains; it never merely plots.** The reader must be able to do something that changes
+  their understanding: move a lever the theory talks about and watch the consequence. A graph is
+  allowed when the graph *is* the concept (a plateau, a crossover, a resonance), but an interactive
+  redraw of a static figure is a figure, not a sim.
+- **Budget the reader's attention.** At most one short readout sentence, and prefer none — put
+  numbers and names into the drawing as labels on the things they describe: a labelled zone beats a
+  sentence naming it, a marked axis tick beats "at 300 K" in text. A readout that never changes with
+  the controls is dead weight; delete it. Every number on screen costs attention the shape was
+  supposed to earn.
+- **Legible at phone width first.** Verify every sim at ≈390 px in both themes, including the slider
+  extremes: axis titles short enough not to clip, few enough ticks that labels cannot collide, and
+  in-drawing labels that shorten or drop when their region gets too narrow. If a label does not fit
+  on a phone, the fix is fewer words in the drawing, not smaller type.
 - **A video is an aside, never the argument.** `<Video>` borrows an explanation someone else made,
   which is a good trade when the subject moves and your prose cannot. But the module has to work for
   the reader who never clicks: never write "se videoen for utledningen". One video in a module is
@@ -248,6 +261,8 @@ In addition to the definition-of-done in `AUTHORING.md` §8:
 - [ ] **Scope is exactly this week's** syllabus; nothing adjacent added.
 - [ ] **No forward reference to a week, module number or date** anywhere, including `course.yaml`
       entries and simulation captions.
+- [ ] **Every sim checked at phone width** (≈390 px, both themes, slider extremes): no clipped or
+      colliding labels, readouts within the one-sentence budget of §6.
 - [ ] **Zero long dashes** in the module *and* in the `course.yaml` entries it added.
 - [ ] **One word per concept** throughout; no synonym introduced for variety.
 - [ ] **No coined metaphor or vocabulary**; every analogy is standard and cashed out.
