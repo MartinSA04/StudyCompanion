@@ -236,6 +236,10 @@ The framework owns the design. A course-owned sim must look like it was drawn by
   sentence naming it, a marked axis tick beats "at 300 K" in text. A readout that never changes with
   the controls is dead weight; delete it. Every number on screen costs attention the shape was
   supposed to earn.
+- **Plot in the reader's coordinates.** Use the axis the reader thinks in (temperature, distance,
+  time), not the axis a textbook's analysis technique uses (reciprocal, mirrored, Arrhenius). The
+  analysis form is a skill prose can teach; a sim that requires decoding its own axes explains
+  nothing. One caption sentence may bridge to the book's convention.
 - **Legible at phone width first.** Verify every sim at ≈390 px in both themes, including the slider
   extremes: axis titles short enough not to clip, few enough ticks that labels cannot collide, and
   in-drawing labels that shorten or drop when their region gets too narrow. If a label does not fit
