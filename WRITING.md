@@ -144,6 +144,15 @@ Every definite noun and pronoun needs an antecedent the reader can point at. «s
 Real numbers, checked arithmetic, units. Show the substitution, not just the result. Keep the solution
 to the steps a student would actually write.
 
+### 3.8 Notation follows the course
+
+§3.1 applies to symbols too. Before the first formula uses a symbol with more than one common
+convention — $k$ vs $k_B$ for Boltzmanns konstant, sign conventions, primed vs starred masses —
+check what the course's own authored material writes (problem sets, lecture notes, exams) and use
+that. The textbook does not settle it: where book and lecturer disagree, the lecturer's material
+wins, because that is the notation the reader must produce on the exam. Apply the choice everywhere
+the reader sees it — prose, formula collection, glossary, sim readouts.
+
 ---
 
 ## 4. Register: what these guides never sound like
