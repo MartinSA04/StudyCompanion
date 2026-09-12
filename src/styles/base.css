@@ -528,9 +528,55 @@ button {
   border-radius: var(--radius-sm);
 }
 
-/* --- KaTeX: keep wide display math from overflowing the column --- */
+/* --- KaTeX size ---
+   1.05em, not the shipped 1.21em: Spectral and KaTeX_Main are optically
+   matched (x-height ratio 1.02), so the default reads oversized here. The rem
+   floor is for math inside --text-sm containers (glossary definitions, formula
+   labels, quiz explanations, captions, tables): 0.84rem text would put a
+   second-level subscript at ~7.5px. In prose and display math 1.05em wins and
+   nothing changes; in small text the floor lifts the base to ~15px. */
 .katex {
-  font-size: 1.05em;
+  font-size: max(1.05em, 0.95rem);
+}
+/* Second-level scripts at 0.6 of the base instead of TeX's 0.5. TeX's 10:7:5
+   assumes optically designed 7pt/5pt fonts; KaTeX scales one face linearly, so
+   its 0.5 lands on 8.9px glyphs in prose (the B in e^{-E_g/k_BT}, primes in an
+   inline \frac). 0.6 is the OpenType MATH table's suggested value, what
+   screen-first math fonts ship, and at this base it equals MathML's 8pt floor.
+   Level 1 stays at KaTeX's 0.7 (every engine and font agrees on it).
+   KaTeX has no option for this, so the size classes are overridden: size1 is
+   its scriptscript slot; only the transitions that occur in ordinary text and
+   display math are re-derived (\small/\large families keep KaTeX's ratios,
+   and \tiny — also size1 — grows with it). The extra .katex-html hop beats
+   katex.min.css's own specificity regardless of stylesheet order.
+   test/katex-script-size.test.ts pins the KaTeX selectors this relies on. */
+.katex .katex-html .sizing.reset-size6.size1,
+.katex .katex-html .fontsize-ensurer.reset-size6.size1 {
+  font-size: 0.6em;
+}
+.katex .katex-html .sizing.reset-size3.size1,
+.katex .katex-html .fontsize-ensurer.reset-size3.size1 {
+  font-size: 0.8571428571em; /* 0.6 / 0.7 */
+}
+.katex .katex-html .sizing.reset-size1.size3,
+.katex .katex-html .fontsize-ensurer.reset-size1.size3 {
+  font-size: 1.1666666667em; /* 0.7 / 0.6 */
+}
+.katex .katex-html .sizing.reset-size1.size6,
+.katex .katex-html .fontsize-ensurer.reset-size1.size6 {
+  font-size: 1.6666666667em; /* 1 / 0.6 */
+}
+/* KaTeX positioned every box for the 0.5 glyphs, and a glyph grows about its
+   baseline, so the extra height goes UP. That only collides where something
+   sits directly above level-2 ink: the rule of a text-style fraction over its
+   denominator's superscripts (\frac{1}{r^2} inline, \tfrac). Push that
+   denominator content down by the growth: (1 - 0.5/0.6) × a 0.7em cap height
+   = 0.117em of its own size. The denominator is the first vlist child of an
+   .mfrac (denominator, rule, numerator — pinned by the test). Numerator
+   scripts grow away from the rule and need nothing. */
+.katex .katex-html .mfrac .vlist > span:first-child .sizing.reset-size3.size1 {
+  position: relative;
+  top: 0.12em;
 }
 /* Left-set display math to the shared reading edge instead of KaTeX's default
    centering. The whole layout is built on ONE left edge (headings, prose,

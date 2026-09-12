@@ -43,7 +43,7 @@ const texHtml =
       <slot />
     </a>
   ) : texHtml ? (
-    <a class="formula-ref" href={href} set:html={texHtml} />
+    <a class="formula-ref formula-ref--math" href={href} set:html={texHtml} />
   ) : (
     <a class="formula-ref" href={href}>
       {id}
@@ -61,7 +61,13 @@ const texHtml =
   .formula-ref:hover {
     border-bottom-style: solid;
   }
-  .formula-ref :global(.katex) {
-    font-size: 0.95em;
+  /* Math-only refs: an inline anchor paints its border at the font-metric
+     bottom, so a formula with real depth (\dfrac, tall delimiters) descends
+     through the dashes. inline-block wraps the true box and drops the border
+     below the whole formula. Scoped to this branch on purpose: text-slotted
+     refs must keep wrapping across lines, and their math is shallow enough to
+     clear the border. */
+  .formula-ref--math {
+    display: inline-block;
   }
 </style>
