@@ -576,7 +576,11 @@ const hasTools = toolNav.some((t) => t.show);
           {/* count.js self-counts the initial load but never hooks the History
               API, so every view-transition navigation goes uncounted. Bridge
               them off astro:page-load: skip the first firing (it coincides with
-              the load count.js already logged) and count each later one. The
+              the load count.js already logged) and count each later one, naming
+              the page navigated from as the referrer: document.referrer is fixed
+              when the document is created and a swap never creates one, so
+              count.js's fallback would stamp the landing referrer (for a
+              bookmark or home-screen launch: none) on every later view. The
               listener registers once — ClientRouter does not re-run an identical
               head inline script across swaps, so this persists as-is.
               Plain JS body, deliberately: Astro ships is:inline text verbatim and
@@ -586,12 +590,15 @@ const hasTools = toolNav.some((t) => t.show);
           <script is:inline>
             (function () {
               var first = true;
+              var prev = location.href;
               document.addEventListener("astro:page-load", function () {
                 if (first) { first = false; return; }
                 if (window.goatcounter && window.goatcounter.count)
                   window.goatcounter.count({
                     path: location.pathname + location.search,
+                    referrer: prev,
                   });
+                prev = location.href;
               });
             })();
           </script>

@@ -41,7 +41,7 @@ const bridge = inlineScripts(layout).find(
 function run(body: string) {
   const listeners = new Map<string, ((e?: unknown) => void)[]>();
   const counted: unknown[] = [];
-  const location = { pathname: "/", search: "" };
+  const location = { href: "https://algdat.test/", pathname: "/", search: "" };
   const document = {
     addEventListener(type: string, fn: (e?: unknown) => void) {
       listeners.set(type, [...(listeners.get(type) ?? []), fn]);
@@ -60,7 +60,17 @@ function run(body: string) {
     location,
   );
   const fire = (type: string) => listeners.get(type)?.forEach((fn) => fn());
-  return { listeners, counted, location, fire };
+  /** Simulates a ClientRouter swap: the URL changes, the document does not. */
+  const goTo = (path: string) => {
+    const u = new URL(path, "https://algdat.test");
+    location.pathname = u.pathname;
+    location.search = u.search;
+    location.href = u.href;
+  };
+  const paths = () => counted.map((v) => (v as { path: string }).path);
+  const referrers = () =>
+    counted.map((v) => (v as { referrer: string }).referrer);
+  return { listeners, counted, fire, goTo, paths, referrers };
 }
 
 test("the analytics bridge is an is:inline script in the layout", () => {
@@ -73,22 +83,38 @@ test("the emitted bridge registers exactly one astro:page-load listener", () => 
 });
 
 test("the bridge skips the initial load and counts each later navigation", () => {
-  const { counted, location, fire } = run(bridge!.body);
+  const { counted, fire, goTo, paths } = run(bridge!.body);
 
   // Initial document load: count.js already counted it, so the bridge must not.
   fire("astro:page-load");
   assert.deepEqual(counted, []);
 
-  location.pathname = "/datastrukturer";
+  goTo("/datastrukturer");
   fire("astro:page-load");
-  assert.deepEqual(counted, [{ path: "/datastrukturer" }]);
+  assert.deepEqual(paths(), ["/datastrukturer"]);
 
-  location.pathname = "/begreper";
-  location.search = "?q=heap";
+  goTo("/begreper?q=heap");
   fire("astro:page-load");
-  assert.deepEqual(counted, [
-    { path: "/datastrukturer" },
-    { path: "/begreper?q=heap" },
+  assert.deepEqual(paths(), ["/datastrukturer", "/begreper?q=heap"]);
+});
+
+test("the bridge names the page navigated from as the referrer", () => {
+  // document.referrer is fixed when the document is created and ClientRouter
+  // never creates a new one, so left to count.js every swapped-in view would
+  // repeat the landing page's referrer: a bookmark landing followed by five
+  // module views is six "(unknown)" pageviews. The bridge must say where the
+  // reader actually came from.
+  const { fire, goTo, referrers } = run(bridge!.body);
+
+  fire("astro:page-load");
+  goTo("/datastrukturer");
+  fire("astro:page-load");
+  goTo("/begreper?q=heap");
+  fire("astro:page-load");
+
+  assert.deepEqual(referrers(), [
+    "https://algdat.test/",
+    "https://algdat.test/datastrukturer",
   ]);
 });
 
