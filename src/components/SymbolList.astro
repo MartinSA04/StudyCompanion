@@ -128,17 +128,11 @@ const haystack = (s: SymbolEntry) =>
                   tabindex={s.id ? "-1" : undefined}
                   data-text={haystack(s)}
                 >
+                  {/* No visible "#" anchor: beside a symbol it reads as part
+                      of the math. Rows with an id are still deep-link targets
+                      (:target flash + focus), exactly like the formula sheet. */}
                   <th scope="row" class="sym-tex">
                     <span class="sym-render" set:html={tex(s.tex)} />
-                    {s.id && (
-                      <a
-                        class="sym-anchor"
-                        href={`#${s.id}`}
-                        aria-label={`Lenke til ${texToPlain(s.tex)}`}
-                      >
-                        #
-                      </a>
-                    )}
                   </th>
                   <td class="sym-meaning">
                     {s.term ? (
@@ -289,30 +283,11 @@ const haystack = (s: SymbolEntry) =>
   .sym-render :global(.katex) {
     font-size: 1.1em;
   }
-  .sym-anchor {
-    margin-inline-start: var(--space-1);
-    color: var(--muted);
-    font-family: var(--font-mono);
-    font-size: var(--text-sm);
-    text-decoration: none;
-    opacity: 0;
-    transition:
-      opacity var(--dur-fast) var(--ease),
-      color var(--dur-fast) var(--ease);
-  }
-  .sym-row:hover .sym-anchor,
-  .sym-anchor:focus-visible {
-    opacity: 1;
-    color: var(--accent-ink);
-  }
-  /* Touch devices have no hover, so keep the anchor reachable there. */
-  @media (hover: none) {
-    .sym-anchor {
-      opacity: 1;
-    }
-  }
+  /* The meaning is the row's primary text — the counterpart of the glossary
+     headword, not of its definition — so it sits at the base size; only the
+     note below it drops to the small muted size. */
   .sym-meaning {
-    font-size: var(--text-sm);
+    font-size: var(--text-base);
     color: var(--fg);
     line-height: var(--leading-normal);
   }
@@ -351,6 +326,7 @@ const haystack = (s: SymbolEntry) =>
   .sym-note {
     display: block;
     margin-top: 2px;
+    font-size: var(--text-sm);
     color: var(--muted);
     line-height: var(--leading-snug);
   }
