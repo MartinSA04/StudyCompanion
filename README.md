@@ -20,13 +20,13 @@ npx degit MartinSA04/StudyCompanion/course-template course-mycode
 
 It ships the framework pin, a GitHub Pages deploy workflow, an annotated `content/course.yaml`, and example sections. Then read **`AUTHORING.md`** — the content author's guide (archetypes, widget decision guide, conventions, per-section definition-of-done).
 
-You author **only** under `content/` — `course.yaml` (metadata, formulas, glossary, exams, deadlines, features, analytics, ui strings), `flashcards.yaml`, and `sections/NN-slug.mdx` — and drop static assets in `public/` (`figures/`, `sims/`; the favicon, app icons and share card are auto-generated from the course `accent`). See `course-template/` for the exact file layout and an annotated `course.yaml`.
+You author **only** under `content/` — `course.yaml` (metadata, formulas, symbols, glossary, exams, deadlines, features, analytics, ui strings), `flashcards.yaml`, and `sections/NN-slug.mdx` — and drop static assets in `public/` (`figures/`, `sims/`; the favicon, app icons and share card are auto-generated from the course `accent`). See `course-template/` for the exact file layout and an annotated `course.yaml`.
 
 > For local framework development, point the `study-companion` dependency at a `link:../path/to/study-companion` instead of the git tag (see `course-template/package.json`).
 
 Run `pnpm dev` to preview, `pnpm build` for static output to `dist/`. Search (Pagefind) is built into `dist/pagefind/` and only works in `build`/`preview`, not `dev`.
 
-`pnpm build` also **validates cross-references** and fails on any dead link: a `<Term name>` / `<FormulaRef id>` with no matching `course.yaml` entry, or a duplicate `<Statement>` / formula anchor. The error names the section file and the unresolved target.
+`pnpm build` also **validates cross-references** and fails on any dead link: a `<Term name>` / `<FormulaRef id>` with no matching `course.yaml` entry, a `symbols[]` row whose `term` / `formula` matches nothing, or a duplicate `<Statement>` / formula / symbol anchor. The error names the section file and the unresolved target.
 
 ---
 
@@ -199,6 +199,7 @@ strips them at every boundary where a title becomes machine-read data — the
 turns a course or section title into metadata must call it too.
 
 `<Quiz>` and the flashcards page emit schema.org `Quiz` (Google's "practice
-problems" rich result); the glossary emits a `DefinedTermSet`; every page gets a
-`BreadcrumbList`. The flashcard deck is capped at `FLASHCARD_LD_LIMIT` (100)
+problems" rich result); the glossary and the symbol list each emit a
+`DefinedTermSet` (a symbol's name is its plain spelling, "Nc" for `N_c`, and only
+rows with an `id` get a `#` url); every page gets a `BreadcrumbList`. The flashcard deck is capped at `FLASHCARD_LD_LIMIT` (100)
 questions, logged when it truncates.

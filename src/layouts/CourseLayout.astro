@@ -320,9 +320,10 @@ const twitterHandle = course.seo?.twitter
 // lib/themeColor.ts) — the mobile toolbar per theme, and the same source the
 // PWA manifest install-splash reads, so the two can never drift.
 
-type IconName = "sigma" | "book" | "layers" | "file";
+type IconName = "sigma" | "pi" | "book" | "layers" | "file";
 const toolNav: { slug: string; icon: IconName; label: string; show: boolean }[] = [
   { slug: TOOL_SLUGS.formulas, icon: "sigma", label: ui.formulaSheetLabel, show: tools.formulas },
+  { slug: TOOL_SLUGS.symbols, icon: "pi", label: ui.symbolsLabel, show: tools.symbols },
   { slug: TOOL_SLUGS.glossary, icon: "book", label: ui.glossaryLabel, show: tools.glossary },
   { slug: TOOL_SLUGS.flashcards, icon: "layers", label: ui.flashcardsLabel, show: tools.flashcards },
   { slug: TOOL_SLUGS.exams, icon: "file", label: ui.examsLabel, show: tools.exams },

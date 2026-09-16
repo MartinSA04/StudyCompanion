@@ -184,6 +184,31 @@ test("print hides the glossary search box but keeps the term list", async ({
 });
 
 /**
+ * Same contract for the Symboler page: the live-search box (.sym-controls) is
+ * hidden on paper while the symbol table — a textbook-style list of symbols,
+ * the one reference page a student is likeliest to print — keeps every row.
+ */
+test("print hides the symbol search box but keeps the symbol table", async ({
+  page,
+}) => {
+  await page.goto("/symboler");
+  await page.waitForLoadState("networkidle");
+
+  const controls = page.locator(".sym-controls").first();
+  const row = page.locator(".sym-row").first();
+  await expect(controls).toBeVisible();
+  await expect(row).toBeVisible();
+
+  await page.emulateMedia({ media: "print" });
+  expect(await controls.evaluate((n) => getComputedStyle(n).display)).toBe(
+    "none",
+  );
+  expect(await row.evaluate((n) => getComputedStyle(n).display)).not.toBe(
+    "none",
+  );
+});
+
+/**
  * Simulation and Stepper transport/scrub apparatus are dead affordances on
  * paper, but their stages print as a snapshot figure of the current state —
  * hide only the controls, keep the stage. Assert both on /simulering so a

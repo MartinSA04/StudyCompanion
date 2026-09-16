@@ -227,3 +227,53 @@ test("unusedGlossary lists only terms no <Term> references", () => {
   });
   assert.deepEqual(unusedGlossary, ["Diffraksjon"]);
 });
+
+test("symbols: a `term` that matches no glossary entry is an error", () => {
+  const { errors } = validateXrefs({
+    glossaryTerms: ["Koherens"],
+    formulaIds: [],
+    symbols: [{ tex: "\\lambda", term: "Bølgelengde" }],
+    sections: [],
+  });
+  assert.equal(errors.length, 1);
+  assert.match(errors[0], /\\lambda/);
+  assert.match(errors[0], /Bølgelengde/);
+  assert.match(errors[0], /#bolgelengde/);
+});
+
+test("symbols: a `formula` that matches no formula id is an error", () => {
+  const { errors } = validateXrefs({
+    glossaryTerms: [],
+    formulaIds: ["snells"],
+    symbols: [{ tex: "\\theta_c", formula: "grensevinkel" }],
+    sections: [],
+  });
+  assert.equal(errors.length, 1);
+  assert.match(errors[0], /grensevinkel/);
+  assert.match(errors[0], /\\theta_c/);
+});
+
+test("symbols: duplicate ids are an error; resolving links are clean", () => {
+  const dup = validateXrefs({
+    glossaryTerms: [],
+    formulaIds: [],
+    symbols: [
+      { tex: "E", id: "e" },
+      { tex: "\\mathcal{E}", id: "e" },
+    ],
+    sections: [],
+  });
+  assert.equal(dup.errors.length, 1);
+  assert.match(dup.errors[0], /Duplicate symbol id "e"/);
+
+  const clean = validateXrefs({
+    glossaryTerms: ["Brytningsindeks"],
+    formulaIds: ["snells"],
+    symbols: [
+      { tex: "n", id: "n", term: "Brytningsindeks", formula: "snells" },
+      { tex: "\\lambda" },
+    ],
+    sections: [],
+  });
+  assert.deepEqual(clean.errors, []);
+});

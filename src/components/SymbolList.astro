@@ -1,0 +1,437 @@
+---
+import katex from "katex";
+import type { SymbolEntry } from "../schema.ts";
+import { ignoreInSearch, renderMathString } from "../lib/katex.ts";
+import { groupBySection } from "../lib/groupBySection.ts";
+import { texToPlain } from "../lib/texPlain.ts";
+import { slugify } from "../lib/slug.ts";
+import { TOOL_SLUGS } from "../lib/nav.ts";
+import Icon from "./Icon.astro";
+
+/**
+ * The course's list of symbols, grouped by their optional `section`: one row
+ * per symbol — the symbol (KaTeX), a one-line meaning, its unit — plus an
+ * optional note and links onward to the glossary row (`term`) and the defining
+ * formula (`formula`). Rendered from `course.symbols`. Mirrors the <Glossary> /
+ * <FormulaSheet> pattern: server-side KaTeX, a free-text search box, a stable
+ * `#id` anchor on every row that sets one, and the shared filterList kernel.
+ *
+ * A real <table>, unlike the siblings' per-row grids: the symbol and unit
+ * columns line up across a whole group (each row's own grid would size them
+ * separately), a screen reader gets column headers, and paper gets a
+ * textbook-style list of symbols.
+ *
+ * Search matches the raw TeX ("mu_n"), its plain spelling ("μn", "Nc" —
+ * lib/texPlain.ts), and the meaning/unit/note texts with their inline math
+ * flattened the same way — so a reader finds $N_c$ by typing any of "N_c",
+ * "Nc" or "tilstandstetthet".
+ */
+interface Props {
+  symbols: SymbolEntry[];
+  /** Localizable chrome strings; each falls back to the Norwegian default. */
+  ui?: {
+    searchPlaceholder?: string;
+    searchLabel?: string;
+    empty?: string;
+    otherGroup?: string;
+    colSymbol?: string;
+    colMeaning?: string;
+    colUnit?: string;
+    formulaLink?: string;
+  };
+}
+const { symbols, ui } = Astro.props;
+const labels = {
+  searchPlaceholder: ui?.searchPlaceholder ?? "Søk i symboler …",
+  searchLabel: ui?.searchLabel ?? "Søk i symboler",
+  empty: ui?.empty ?? "Ingen symboler matcher søket.",
+  otherGroup: ui?.otherGroup ?? "Andre symboler",
+  colSymbol: ui?.colSymbol ?? "Symbol",
+  colMeaning: ui?.colMeaning ?? "Betydning",
+  colUnit: ui?.colUnit ?? "Enhet",
+  formulaLink: ui?.formulaLink ?? "Vis formelen i formelsamlingen",
+};
+
+const groups = groupBySection(symbols, labels.otherGroup);
+
+// Inline (text-style) KaTeX: a symbol is a letter with decorations, not a
+// display formula, so it sits on the row's baseline at prose size.
+const tex = (t: string) =>
+  ignoreInSearch(
+    katex.renderToString(t, { displayMode: false, throwOnError: false }),
+  );
+
+// Author text → what a reader would type: markup dropped, inline math
+// flattened to its plain spelling ("$N_c$" → "Nc").
+const plainText = (s: string) =>
+  s
+    .replace(/<[^>]*>/g, "")
+    .replace(/\$([^$]*)\$/g, (_, t) => ` ${texToPlain(t)} `);
+
+// A lowercased haystack for client-side search.
+const haystack = (s: SymbolEntry) =>
+  [
+    s.tex,
+    texToPlain(s.tex),
+    plainText(s.meaning),
+    s.unit ? plainText(s.unit) : "",
+    s.note ? plainText(s.note) : "",
+    s.term ?? "",
+  ]
+    .join(" ")
+    .toLowerCase();
+---
+
+<div class="sym-controls">
+  <div class="sym-search sc-field">
+    <Icon name="search" />
+    <input
+      type="search"
+      class="sym-search-input"
+      placeholder={labels.searchPlaceholder}
+      aria-label={labels.searchLabel}
+      autocomplete="off"
+    />
+  </div>
+</div>
+
+<div class="symbols">
+  {
+    groups.map((g, i) => (
+      <section class="sym-group" data-sym-group>
+        {g.section && (
+          <h2 class="sym-group-title">
+            <span class="sym-group-num">{String(i + 1).padStart(2, "0")}</span>
+            {g.section}
+          </h2>
+        )}
+        <div class="sym-card">
+          <table class="sym-table">
+            <thead>
+              <tr>
+                <th scope="col" class="sc-kicker">
+                  {labels.colSymbol}
+                </th>
+                <th scope="col" class="sc-kicker">
+                  {labels.colMeaning}
+                </th>
+                <th scope="col" class="sc-kicker">
+                  {labels.colUnit}
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {g.items.map((s) => (
+                <tr
+                  class="sym-row"
+                  id={s.id}
+                  tabindex={s.id ? "-1" : undefined}
+                  data-text={haystack(s)}
+                >
+                  <th scope="row" class="sym-tex">
+                    <span class="sym-render" set:html={tex(s.tex)} />
+                    {s.id && (
+                      <a
+                        class="sym-anchor"
+                        href={`#${s.id}`}
+                        aria-label={`Lenke til ${texToPlain(s.tex)}`}
+                      >
+                        #
+                      </a>
+                    )}
+                  </th>
+                  <td class="sym-meaning">
+                    {s.term ? (
+                      <a
+                        class="sym-term-link"
+                        href={`/${TOOL_SLUGS.glossary}#${slugify(s.term)}`}
+                        set:html={renderMathString(s.meaning)}
+                      />
+                    ) : (
+                      <span set:html={renderMathString(s.meaning)} />
+                    )}
+                    {s.formula && (
+                      <a
+                        class="sym-formula-link"
+                        href={`/${TOOL_SLUGS.formulas}#${s.formula}`}
+                        aria-label={labels.formulaLink}
+                        title={labels.formulaLink}
+                      >
+                        <Icon name="sigma" size={13} />
+                      </a>
+                    )}
+                    {s.note && (
+                      <span
+                        class="sym-note"
+                        set:html={renderMathString(s.note)}
+                      />
+                    )}
+                  </td>
+                  <td class="sym-unit">
+                    {s.unit && <span set:html={renderMathString(s.unit)} />}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    ))
+  }
+  <p class="sym-empty" hidden>{labels.empty}</p>
+</div>
+<!-- Polite match-count feedback for screen readers: the filter is visual-only
+     otherwise (rows just get [hidden]). Same role=status pattern as Glossary. -->
+<p class="sr-only" role="status" aria-live="polite" data-sym-status></p>
+
+<style>
+  .sym-controls {
+    margin-bottom: var(--space-5);
+  }
+  /* Fill, frame-less field + focus ring come from the shared .sc-field. */
+  .sym-search-input {
+    flex: 1;
+    min-width: 0;
+    border: 0;
+    background: transparent;
+    color: var(--fg);
+    font-family: var(--font-body);
+    font-size: var(--text-base);
+  }
+  .sym-search-input:focus {
+    outline: none;
+  }
+  .sym-search-input::placeholder {
+    color: var(--muted);
+  }
+  .sym-search-input::-webkit-search-cancel-button {
+    -webkit-appearance: none;
+  }
+
+  .symbols {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+  }
+  .sym-group-title {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    font-family: var(--font-display);
+    font-size: var(--text-lg);
+    color: var(--fg);
+    margin-bottom: var(--space-3);
+  }
+  .sym-group-num {
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    color: var(--accent-ink);
+  }
+  .sym-card {
+    background: var(--card);
+    box-shadow: var(--shadow-sm);
+    border-radius: var(--radius);
+    /* Clip row backgrounds/dividers to the rounded card. */
+    overflow: hidden;
+  }
+  .sym-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .sym-table th,
+  .sym-table td {
+    text-align: left;
+    font-weight: var(--weight-normal, 400);
+    vertical-align: baseline;
+  }
+  /* Column headers: the quiet mono kicker, one hairline under it. */
+  .sym-table thead th {
+    padding: var(--space-3) var(--space-4) var(--space-2);
+    font-size: var(--text-xs);
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+  }
+  .sym-row > th,
+  .sym-row > td {
+    padding: var(--space-3) var(--space-4);
+    border-bottom: 1px dashed var(--border);
+  }
+  /* Drop the divider under the last VISIBLE row (not just the DOM last child),
+     so a filtered search never leaves a divider dangling under the final match. */
+  .sym-row:not([hidden]):not(:has(~ .sym-row:not([hidden]))) > th,
+  .sym-row:not([hidden]):not(:has(~ .sym-row:not([hidden]))) > td {
+    border-bottom: 0;
+  }
+  .sym-row {
+    scroll-margin-top: calc(var(--topbar-h) + var(--space-3));
+    break-inside: avoid;
+  }
+  /* Flash the row a deep link just jumped to (keyframe in base.css). */
+  .sym-row:target {
+    background: var(--accent-soft);
+    animation: sc-target-flash var(--dur-flash) var(--ease);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .sym-row:target {
+      animation: none;
+    }
+  }
+  /* Shrink-to-content columns: `width: 1%` + nowrap makes the symbol and unit
+     columns exactly as wide as their widest cell, and the meaning takes the rest. */
+  .sym-tex,
+  .sym-unit {
+    width: 1%;
+    white-space: nowrap;
+  }
+  .sym-tex {
+    color: var(--fg);
+  }
+  .sym-render :global(.katex) {
+    font-size: 1.1em;
+  }
+  .sym-anchor {
+    margin-inline-start: var(--space-1);
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    text-decoration: none;
+    opacity: 0;
+    transition:
+      opacity var(--dur-fast) var(--ease),
+      color var(--dur-fast) var(--ease);
+  }
+  .sym-row:hover .sym-anchor,
+  .sym-anchor:focus-visible {
+    opacity: 1;
+    color: var(--accent-ink);
+  }
+  /* Touch devices have no hover, so keep the anchor reachable there. */
+  @media (hover: none) {
+    .sym-anchor {
+      opacity: 1;
+    }
+  }
+  .sym-meaning {
+    font-size: var(--text-sm);
+    color: var(--fg);
+    line-height: var(--leading-normal);
+  }
+  .sym-meaning :global(b),
+  .sym-meaning :global(strong) {
+    color: var(--accent-ink);
+    font-weight: var(--weight-semibold);
+  }
+  /* The meaning IS the link to its glossary row — the same dashed underline
+     <Term> gives a word in prose, so the affordance reads the same everywhere. */
+  .sym-term-link {
+    color: var(--accent-ink);
+    text-decoration: none;
+    border-bottom: 1px dashed var(--accent-ring);
+  }
+  .sym-term-link:hover {
+    border-bottom-style: solid;
+  }
+  /* Onward to the defining formula: a small sigma after the meaning. */
+  .sym-formula-link {
+    display: inline-flex;
+    vertical-align: -2px;
+    margin-inline-start: var(--space-2);
+    padding: 2px;
+    border-radius: 4px;
+    color: var(--muted);
+    transition:
+      color var(--dur-fast) var(--ease),
+      background-color var(--dur-fast) var(--ease);
+  }
+  .sym-formula-link:hover,
+  .sym-formula-link:focus-visible {
+    color: var(--accent-ink);
+    background: var(--accent-soft);
+  }
+  .sym-note {
+    display: block;
+    margin-top: 2px;
+    color: var(--muted);
+    line-height: var(--leading-snug);
+  }
+  .sym-unit {
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    color: var(--muted);
+  }
+  .sym-empty {
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    padding: var(--space-3) 0;
+  }
+
+  @media (max-width: 640px) {
+    .sym-table thead th {
+      padding: var(--space-2) var(--space-3) var(--space-1);
+    }
+    .sym-row > th,
+    .sym-row > td {
+      padding: var(--space-3) var(--space-3);
+    }
+    /* A phone-width card is ~330px. The symbol and unit columns are nowrap, so
+       if the meaning's longest word cannot fit beside them the table overflows
+       the card and the unit is clipped at its edge. `anywhere` lets a long
+       Norwegian compound break (hyphenated) instead — it is the one column
+       that is allowed to give — and the symbol cell may wrap after a comma
+       ("N_d^+, N_a^-": KaTeX splits its output at punctuation) so a two-symbol
+       row does not widen the whole column. */
+    .sym-tex {
+      white-space: normal;
+    }
+    .sym-meaning {
+      overflow-wrap: anywhere;
+      hyphens: auto;
+    }
+  }
+</style>
+
+<script>
+  import { onPage } from "../lib/pageLifecycle.ts";
+  import { filterList } from "../lib/filterList.ts";
+  // Free-text search over TeX + plain spelling + texts. Row/group/empty toggling
+  // is the shared filterList kernel; this widget adds only the sr-status line.
+  onPage((signal) => {
+    const rows = [...document.querySelectorAll<HTMLElement>(".sym-row")];
+    const groups = [
+      ...document.querySelectorAll<HTMLElement>("[data-sym-group]"),
+    ];
+    const searchInput =
+      document.querySelector<HTMLInputElement>(".sym-search-input");
+    const empty = document.querySelector<HTMLElement>(".sym-empty");
+    const status = document.querySelector<HTMLElement>("[data-sym-status]");
+    // Reuse the localized empty-state copy for the screen-reader announcement,
+    // so the two never drift apart under a course's `ui` override.
+    const emptyLabel = empty?.textContent ?? "Ingen symboler matcher søket.";
+
+    const apply = (term: string) => {
+      const visibleCount = filterList({
+        rows,
+        groups,
+        rowSelector: ".sym-row",
+        empty,
+        predicate: (r) => !term || (r.dataset.text ?? "").includes(term),
+      });
+      // Announce only while a filter is active — an empty term is the
+      // reset-to-all state, which needs no announcement.
+      if (status) {
+        status.textContent = !term
+          ? ""
+          : visibleCount === 0
+            ? emptyLabel
+            : `${visibleCount} treff`;
+      }
+    };
+
+    searchInput?.addEventListener(
+      "input",
+      () => apply(searchInput.value.trim().toLowerCase()),
+      { signal },
+    );
+  });
+</script>

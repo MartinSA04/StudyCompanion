@@ -151,7 +151,9 @@ convention — $k$ vs $k_B$ for Boltzmanns konstant, sign conventions, primed vs
 check what the course's own authored material writes (problem sets, lecture notes, exams) and use
 that. The textbook does not settle it: where book and lecturer disagree, the lecturer's material
 wins, because that is the notation the reader must produce on the exam. Apply the choice everywhere
-the reader sees it — prose, formula collection, glossary, sim readouts.
+the reader sees it — prose, formula collection, symbol list, glossary, sim readouts. The symbol list
+(`course.yaml` `symbols[]`) is where a collision gets its one-line warning («ikke energien $E$»),
+so the reader who meets $\mathcal{E}$ mid-formula has somewhere to look it up.
 
 ---
 
@@ -283,8 +285,9 @@ In addition to the definition-of-done in `AUTHORING.md` §8:
 - [ ] **§4 read against the finished text**, including reader-visible props: captions, `<Quiz>` options
       and explanations, `<Callout>` titles, `<Answer>`, `<Statement>`, `<LearningGoals>`,
       `<KeyTakeaways>`. Read it, do not just count it.
-- [ ] **`course.yaml` swept too** — labels and definitions reach the Formelsamling and Begreper pages
-      independently of the module, so a phrase fixed only in the `.mdx` still ships.
+- [ ] **`course.yaml` swept too** — labels, symbol meanings and definitions reach the Formelsamling,
+      Symboler and Begreper pages independently of the module, so a phrase fixed only in the `.mdx`
+      still ships.
 - [ ] **Sims use framework classes and tokens only.**
 - [ ] **Every `<Video>` link opened and still playing**, and the module reads complete without it.
 - [ ] `pnpm build` green.

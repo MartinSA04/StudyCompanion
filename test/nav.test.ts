@@ -66,6 +66,7 @@ test("shortTitle trims at the first em-dash, comma, ampersand or colon", () => {
 test("toolFlags reflects course data + flashcard count", () => {
   const base = {
     formulas: [{}, {}],
+    symbols: [{}],
     glossary: [{}],
     exams: [{}],
     features: { flashcards: true },
@@ -73,6 +74,7 @@ test("toolFlags reflects course data + flashcard count", () => {
   const flags = toolFlags(base, 5);
   assert.deepEqual(flags, {
     formulas: true,
+    symbols: true,
     glossary: true,
     flashcards: true,
     exams: true,
@@ -82,6 +84,7 @@ test("toolFlags reflects course data + flashcard count", () => {
   const noDeck = toolFlags(
     {
       formulas: [],
+      symbols: [],
       glossary: [],
       exams: [],
       features: { flashcards: true },
@@ -90,6 +93,7 @@ test("toolFlags reflects course data + flashcard count", () => {
   );
   assert.deepEqual(noDeck, {
     formulas: false,
+    symbols: false,
     glossary: false,
     flashcards: false,
     exams: false,
@@ -97,6 +101,7 @@ test("toolFlags reflects course data + flashcard count", () => {
   const flagOff = toolFlags(
     {
       formulas: [],
+      symbols: [],
       glossary: [],
       exams: [],
       features: { flashcards: false },

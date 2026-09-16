@@ -14,6 +14,7 @@ const PAGES = [
   { path: "/mer", name: "module-mer" },
   { path: "/sammenligning", name: "module-sammenligning" },
   { path: "/formelsamling", name: "tool-formelsamling" },
+  { path: "/symboler", name: "tool-symboler" },
   { path: "/begreper", name: "tool-begreper" },
   { path: "/flashcards", name: "tool-flashcards" },
   { path: "/eksamen", name: "tool-eksamen" },

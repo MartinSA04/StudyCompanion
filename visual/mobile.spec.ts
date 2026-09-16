@@ -19,6 +19,9 @@ const PAGES = [
   // rating row becomes a sticky bottom bar below 640px, which no desktop shot
   // reaches. (No countdown/sim here, so the masks below simply match nothing.)
   { path: "/flashcards", name: "flashcards" },
+  // Symboler is a real <table> (symbol · meaning · unit); captured here at
+  // phone width where the meaning column must wrap and nothing may overflow.
+  { path: "/symboler", name: "symboler" },
 ];
 
 for (const { path, name } of PAGES) {

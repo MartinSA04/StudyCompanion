@@ -3,6 +3,7 @@ import { render } from "astro:content";
 import type { CollectionEntry } from "astro:content";
 import CourseLayout from "../layouts/CourseLayout.astro";
 import FormulaSheet from "../components/FormulaSheet.astro";
+import SymbolList from "../components/SymbolList.astro";
 import Glossary from "../components/Glossary.astro";
 import Flashcards from "../components/Flashcards.astro";
 import ExamList from "../components/ExamList.astro";
@@ -25,6 +26,7 @@ import { courseGraph } from "../lib/courseGraph.ts";
 import { sectionIssueUrl } from "../lib/issueUrl.ts";
 import { plain } from "../lib/text.ts";
 import { slugify } from "../lib/slug.ts";
+import { texToPlain } from "../lib/texPlain.ts";
 import { mdxComponents } from "../mdx-components.ts";
 import {
   sectionNav,
@@ -41,7 +43,7 @@ type Props =
       prev: Neighbor;
       next: Neighbor;
     }
-  | { kind: "formulas" | "glossary" | "flashcards" | "exams" };
+  | { kind: "formulas" | "symbols" | "glossary" | "flashcards" | "exams" };
 
 export async function getStaticPaths() {
   const { sections, tools } = await loadCourse();
@@ -66,6 +68,11 @@ export async function getStaticPaths() {
     paths.push({
       params: { slug: TOOL_SLUGS.formulas },
       props: { kind: "formulas" },
+    });
+  if (tools.symbols)
+    paths.push({
+      params: { slug: TOOL_SLUGS.symbols },
+      props: { kind: "symbols" },
     });
   if (tools.glossary)
     paths.push({
@@ -124,6 +131,8 @@ if (props.kind === "section") {
   };
 } else if (props.kind === "formulas") {
   pageTitle = course.ui.formulaSheetLabel;
+} else if (props.kind === "symbols") {
+  pageTitle = course.ui.symbolsLabel;
 } else if (props.kind === "glossary") {
   pageTitle = course.ui.glossaryLabel;
 } else if (props.kind === "flashcards") {
@@ -134,8 +143,9 @@ if (props.kind === "section") {
 
 // KaTeX-preload gate (lib/hasMath.ts): does THIS page paint any math? A module
 // checks its raw MDX body (delimiters + math-emitting widgets); the formula
-// sheet is always math; glossary/flashcards check their real schema strings; the
-// exam page renders none (its metadata is plain strings, no renderMathString).
+// sheet and the symbol list are always math; glossary/flashcards check their
+// real schema strings; the exam page renders none (its metadata is plain
+// strings, no renderMathString).
 let hasMath = false;
 if (props.kind === "section") {
   const e = props.entry as { body?: string; filePath?: string };
@@ -150,7 +160,7 @@ if (props.kind === "section") {
     }
   }
   hasMath = hasMath || bodyHasMath(body);
-} else if (props.kind === "formulas") {
+} else if (props.kind === "formulas" || props.kind === "symbols") {
   hasMath = true;
 } else if (props.kind === "glossary") {
   hasMath = stringsHaveMath(
@@ -162,8 +172,9 @@ if (props.kind === "section") {
 
 // ---- SEO + JSON-LD ----
 // Module pages are `article`s (with a modified time + LearningResource); tool
-// pages are `website`s. Every page gets a breadcrumb; the glossary also gets a
-// DefinedTermSet. Absolute URLs resolve against `site` (relative without it).
+// pages are `website`s. Every page gets a breadcrumb; the glossary and the
+// symbol list also get a DefinedTermSet. Absolute URLs resolve against `site`
+// (relative without it).
 const abs = (p: string) => absoluteUrl(p, Astro.site);
 const graph = courseGraph(course, Astro.site);
 const overviewCrumb = { name: "Oversikt", url: graph.overviewUrl };
@@ -217,11 +228,12 @@ if (props.kind === "section") {
     breadcrumbList([overviewCrumb, { name: plain(d.title), url: pageUrl }]),
   );
 } else {
-  // Tool pages: a per-page description from the `ui` layer, so the four of them
+  // Tool pages: a per-page description from the `ui` layer, so the five of them
   // don't share one boilerplate string. The phrase describes the PAGE; the
   // course half is appended here.
   const toolDesc = {
     formulas: course.ui.formulaSheetMetaDesc,
+    symbols: course.ui.symbolsMetaDesc,
     glossary: course.ui.glossaryMetaDesc,
     flashcards: course.ui.flashcardsMetaDesc,
     exams: course.ui.examsMetaDesc,
@@ -240,6 +252,25 @@ if (props.kind === "section") {
           term: g.term,
           definition: stripInline(g.definition),
           id: slugify(g.term),
+        })),
+      }),
+    );
+  }
+  if (props.kind === "symbols" && course.symbols.length) {
+    // Each symbol as a DefinedTerm: its plain spelling as the name ("Nc"), the
+    // meaning (+ unit) as the description, and a #id url only where the author
+    // set an anchor id (see lib/jsonLd.ts).
+    jsonLd.push(
+      definedTermSetLd({
+        name: plain(pageTitle),
+        url: pageUrl,
+        inLanguage: course.language,
+        terms: course.symbols.map((s) => ({
+          term: texToPlain(s.tex),
+          definition:
+            stripInline(s.meaning) +
+            (s.unit ? ` [${stripInline(s.unit)}]` : ""),
+          id: s.id,
         })),
       }),
     );
@@ -384,7 +415,7 @@ const seo = {
 
   {
     props.kind === "formulas" && (
-      /* data-pagefind-body: the formula sheet is one of the two reference
+      /* data-pagefind-body: the formula sheet is one of the three reference
          surfaces the search hint names (SearchPalette). Pagefind indexes ONLY
          tagged elements once any page carries the attribute, so an untagged
          tool page drops out of the index entirely. The tool pages' KaTeX is
@@ -425,8 +456,34 @@ const seo = {
   }
 
   {
+    props.kind === "symbols" && (
+      /* data-pagefind-body: a reference surface like the sheet and glossary —
+         same single-body rule. Its KaTeX is search-ignored at .katex-mathml
+         (ignoreInSearch), so rows index as their visible glyphs + texts. */
+      <div data-pagefind-body>
+        <header class="tool-head">
+          <h1>{course.ui.symbolsLabel}</h1>
+        </header>
+        <SymbolList
+          symbols={course.symbols}
+          ui={{
+            searchPlaceholder: course.ui.symbolsSearchPlaceholder,
+            searchLabel: course.ui.symbolsSearchLabel,
+            empty: course.ui.symbolsEmptyLabel,
+            otherGroup: course.ui.symbolsOtherGroupLabel,
+            colSymbol: course.ui.symbolsColSymbol,
+            colMeaning: course.ui.symbolsColMeaning,
+            colUnit: course.ui.symbolsColUnit,
+            formulaLink: course.ui.symbolsFormulaLink,
+          }}
+        />
+      </div>
+    )
+  }
+
+  {
     props.kind === "glossary" && (
-      /* data-pagefind-body: the glossary is the second reference surface the
+      /* data-pagefind-body: the glossary is the third reference surface the
          search hint names (SearchPalette); same single-body rule as the formula
          sheet above. Its KaTeX is already search-ignored at .katex-mathml
          (renderMathString → ignoreInSearch), so definitions index as text. */

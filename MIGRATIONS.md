@@ -148,3 +148,11 @@ Additive since 4.0 (no migration, available when present):
   (`…_221200`) and print no date on it. The row still sorts into the right
   place, and the Eksamen page renders "august 2022" rather than a guessed day.
   Existing `YYYY-MM-DD` entries are unaffected.
+- `course.symbols[]` — `{ tex, meaning, unit?, note?, section?, id?, term?,
+  formula? }` (v4.7.0) → renders the **Symboler** page, a textbook-style list of
+  symbols (symbol · meaning · unit) with search over the TeX and its plain
+  spelling. `term` links a row to its glossary headword and `formula` to a
+  `formulas[].id` (both validated at build); `id` makes the row a
+  `/symboler#id` target. The page exists only when the list is non-empty. The
+  slug `symboler` joins the reserved tool slugs, so a section file named
+  `NN-symboler.mdx` now fails the build — rename it.

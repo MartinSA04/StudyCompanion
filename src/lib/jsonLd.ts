@@ -179,12 +179,17 @@ export function learningResourceLd(opts: {
   return ld;
 }
 
-/** The glossary — a DefinedTermSet, emitted on the Begreper tool page. */
+/**
+ * A DefinedTermSet — the glossary on the Begreper page, and the list of
+ * symbols on the Symboler page. A term with an anchor `id` gets a stable
+ * `#id` url; one without (a symbol row the author gave no id) is emitted as a
+ * bare DefinedTerm rather than with an invented fragment nothing resolves.
+ */
 export function definedTermSetLd(opts: {
   name: string;
   url: string;
   inLanguage: string;
-  terms: { term: string; definition: string; id: string }[];
+  terms: { term: string; definition: string; id?: string }[];
 }) {
   return {
     "@context": CONTEXT,
@@ -196,8 +201,9 @@ export function definedTermSetLd(opts: {
       "@type": "DefinedTerm",
       name: t.term,
       description: t.definition,
-      "@id": `${opts.url}#${t.id}`,
-      url: `${opts.url}#${t.id}`,
+      ...(t.id
+        ? { "@id": `${opts.url}#${t.id}`, url: `${opts.url}#${t.id}` }
+        : {}),
     })),
   };
 }

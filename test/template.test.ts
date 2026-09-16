@@ -66,6 +66,7 @@ test("template <Term>/<FormulaRef>/<Statement> refs all resolve (real xref valid
   const report = validateXrefs({
     glossaryTerms: course.glossary.map((g) => g.term),
     formulaIds: course.formulas.flatMap((f) => (f.id ? [f.id] : [])),
+    symbols: course.symbols,
     sections: sectionFiles.map((file) => ({
       label: `sections/${file}`,
       body: frontmatter(read(`sections/${file}`)).body,

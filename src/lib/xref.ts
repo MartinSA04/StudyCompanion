@@ -23,6 +23,13 @@ export interface XrefInput {
   glossaryTerms: string[];
   /** The `id`s actually set on `course.formulas[]` entries (skip the unset). */
   formulaIds: string[];
+  /**
+   * `course.symbols[]` — each optional `id` must be unique, a `term` must name
+   * a glossary headword and a `formula` must name a formula id (both render as
+   * links, so an unresolved one is a dead link). Optional so callers with no
+   * symbol list need not pass an empty one.
+   */
+  symbols?: { tex: string; id?: string; term?: string; formula?: string }[];
   /** One entry per section: a label used in messages + the raw MDX body. */
   sections: { label: string; body: string }[];
 }
@@ -93,6 +100,33 @@ export function validateXrefs(input: XrefInput): XrefReport {
       );
     }
     formulaIds.add(id);
+  }
+
+  // course.symbols[]: ids unique (a "#id" on the Symboler page), and the
+  // term/formula links resolve to a real glossary row / formula row.
+  const symbolIds = new Set<string>();
+  for (const s of input.symbols ?? []) {
+    if (s.id) {
+      if (symbolIds.has(s.id)) {
+        errors.push(
+          `Duplicate symbol id "${s.id}" in course.symbols — ids must be unique so "#${s.id}" resolves to one row.`,
+        );
+      }
+      symbolIds.add(s.id);
+    }
+    if (s.term != null) {
+      const slug = slugify(s.term);
+      if (!glossarySlugs.has(slug)) {
+        errors.push(
+          `Symbol "${s.tex}" links term "${s.term}", which matches no glossary entry (looked for the row anchor "#${slug}").`,
+        );
+      }
+    }
+    if (s.formula != null && !formulaIds.has(s.formula)) {
+      errors.push(
+        `Symbol "${s.tex}" links formula "${s.formula}", which matches no formula with that id in course.formulas.`,
+      );
+    }
   }
 
   const referencedGlossary = new Set<string>();

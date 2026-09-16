@@ -274,3 +274,21 @@ test("definedTermSetLd maps terms to DefinedTerm with stable #id urls", () => {
   assert.equal(t.url, "https://x/begreper#foton");
   assert.equal(t["@id"], "https://x/begreper#foton");
 });
+
+test("definedTermSetLd omits @id/url for a term with no anchor id", () => {
+  // Symboler rows only carry an anchor when the author sets `id`; a DefinedTerm
+  // with no stable fragment must not invent one.
+  const ld = definedTermSetLd({
+    name: "Symboler",
+    url: "https://x/symboler",
+    inLanguage: "nb",
+    terms: [
+      { term: "Nc", definition: "Effektiv tilstandstetthet [cm⁻³]", id: "nc" },
+      { term: "λ", definition: "Bølgelengde [nm]" },
+    ],
+  });
+  assert.equal(ld.hasDefinedTerm[0].url, "https://x/symboler#nc");
+  assert.equal(ld.hasDefinedTerm[1].name, "λ");
+  assert.equal("url" in ld.hasDefinedTerm[1], false);
+  assert.equal("@id" in ld.hasDefinedTerm[1], false);
+});

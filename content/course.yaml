@@ -69,6 +69,20 @@ formulas:
   - { tex: "d\\sin\\theta = m\\lambda", label: "Maksima i flerspaltinterferens", section: "Bølgeoptikk" }
   - { tex: "\\Delta y = \\frac{\\lambda L}{d}", label: "Stripeavstand i dobbeltspalteforsøket", section: "Bølgeoptikk", memorize: true, onSheet: false }
 
+# Exercises <SymbolList> (the Symboler page): grouping by `section`, a row with
+# no unit, a `note`, `term` → Begreper link, `formula` → Formelsamling link, an
+# `id` anchor, Greek + \mathcal TeX, and one section-less entry (the trailing
+# "Andre symboler" bucket).
+symbols:
+  - { tex: "n", meaning: "Brytningsindeks", section: "Geometrisk optikk", id: n, term: "Brytningsindeks", formula: snells, note: "Dimensjonsløs, $n = c/v$." }
+  - { tex: "\\theta_c", meaning: "Grensevinkel for totalrefleksjon", unit: "rad", section: "Geometrisk optikk", term: "Totalrefleksjon" }
+  - { tex: "f", meaning: "Brennvidde", unit: "m", section: "Geometrisk optikk", formula: tynnlinse, note: "Positiv for en samlelinse, negativ for en spredelinse." }
+  - { tex: "s,\\ s'", meaning: "Objekt- og bildeavstand", unit: "m", section: "Geometrisk optikk", formula: tynnlinse }
+  - { tex: "\\lambda", meaning: "Bølgelengde", unit: "nm", section: "Bølgeoptikk", id: lambda }
+  - { tex: "\\mathcal{E}", meaning: "Elektrisk feltstyrke i lysbølgen", unit: "V/m", section: "Bølgeoptikk", note: "Ikke energien $E$." }
+  - { tex: "I", meaning: "Intensitet (irradians), $I \\propto \\mathcal{E}^2$", unit: "W/m²", section: "Bølgeoptikk" }
+  - { tex: "c", meaning: "Lysfarten i vakuum", unit: "m/s", note: "$2{,}998 \\times 10^{8}$ m/s" }
+
 # Exercises the <Glossary> tool page + inline <Term> links: grouped by `section`,
 # plus one section-less entry (the ungrouped bucket) and inline math / HTML.
 glossary:

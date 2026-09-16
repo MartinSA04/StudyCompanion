@@ -50,6 +50,7 @@ export async function GET(context: APIContext): Promise<Response> {
   }
   const toolRoutes: [boolean, string][] = [
     [tools.formulas, TOOL_SLUGS.formulas],
+    [tools.symbols, TOOL_SLUGS.symbols],
     [tools.glossary, TOOL_SLUGS.glossary],
     [tools.flashcards, TOOL_SLUGS.flashcards],
     [tools.exams, TOOL_SLUGS.exams],

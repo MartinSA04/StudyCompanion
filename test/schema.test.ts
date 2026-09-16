@@ -307,3 +307,61 @@ test("a 13th month is not accepted as month precision", () => {
   });
   assert.equal(result.success, false);
 });
+
+test("symbols[]: optional list with tex + meaning, optional unit/note/section/id/term/formula", () => {
+  const parsed = courseSchema.parse(base);
+  assert.deepEqual(parsed.symbols, []);
+  const withSymbols = courseSchema.parse({
+    ...base,
+    symbols: [
+      { tex: "N_c", meaning: "Effektiv tilstandstetthet", unit: "cm⁻³" },
+      {
+        tex: "\\mathcal{E}",
+        meaning: "Elektrisk felt",
+        unit: "V/cm",
+        note: "Ikke energien $E$.",
+        section: "Transport",
+        id: "felt",
+        term: "Elektrisk felt",
+        formula: "drift",
+      },
+    ],
+  });
+  assert.equal(withSymbols.symbols.length, 2);
+  assert.equal(withSymbols.symbols[0].unit, "cm⁻³");
+  assert.equal(withSymbols.symbols[0].id, undefined);
+  assert.equal(withSymbols.symbols[1].id, "felt");
+  assert.equal(withSymbols.symbols[1].term, "Elektrisk felt");
+  assert.equal(withSymbols.symbols[1].formula, "drift");
+  // Same anchor rule as formulas[].id: emitted verbatim as a DOM id.
+  const badId = courseSchema.safeParse({
+    ...base,
+    symbols: [{ tex: "E", meaning: "Energi", id: "E felt" }],
+  });
+  assert.equal(badId.success, false);
+  // strictObject: a typo'd key fails loudly.
+  const typo = courseSchema.safeParse({
+    ...base,
+    symbols: [{ tex: "E", meaning: "Energi", units: "eV" }],
+  });
+  assert.equal(typo.success, false);
+});
+
+test("ui: Symboler page strings default to Norwegian chrome", () => {
+  const parsed = courseSchema.parse(base);
+  assert.equal(parsed.ui.symbolsLabel, "Symboler");
+  assert.equal(parsed.ui.symbolsSearchPlaceholder, "Søk i symboler …");
+  assert.equal(parsed.ui.symbolsSearchLabel, "Søk i symboler");
+  assert.equal(parsed.ui.symbolsEmptyLabel, "Ingen symboler matcher søket.");
+  assert.equal(parsed.ui.symbolsOtherGroupLabel, "Andre symboler");
+  assert.equal(parsed.ui.symbolsColSymbol, "Symbol");
+  assert.equal(parsed.ui.symbolsColMeaning, "Betydning");
+  assert.equal(parsed.ui.symbolsColUnit, "Enhet");
+  assert.equal(parsed.ui.symbolsFormulaLink, "Vis formelen i formelsamlingen");
+  // The Formelsamling no longer claims to hold symbols — that is its own page.
+  assert.equal(parsed.ui.sheetSearchPlaceholder, "Søk i formler …");
+  assert.equal(
+    parsed.ui.formulaSheetMetaDesc,
+    "Alle formler fra emnet samlet på én søkbar side",
+  );
+});

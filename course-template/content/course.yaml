@@ -93,6 +93,32 @@ formulas:
       onSheet: false, # … and an off-sheet stripe (not on the exam sheet).
     }
 
+# ── Symbols (optional → Symboler page) ───────────────────────────────────────
+# One row per symbol: what it means and in what unit — the mid-formula lookup
+# ("hva var $N_c$ igjen?"), as distinct from the glossary's concept explanations.
+# Keep `meaning` to one line; `note` is an optional second line (typical value,
+# sign convention, "ikke energien $E$"). `term` links the row to a glossary
+# headword and `formula` to a formulas[].id — both are checked by the build.
+# Give an `id` to any symbol you deep-link to (/symboler#id).
+symbols:
+  - {
+      tex: "c",
+      meaning: "Hypotenusen",
+      unit: "m",
+      section: "Eksempeldel",
+      id: hyp,
+      term: "Hypotenus",
+      formula: pytagoras,
+    }
+  - { tex: "a,\\ b", meaning: "Katetene", unit: "m", section: "Eksempeldel", formula: pytagoras }
+  - {
+      tex: "\\Delta",
+      meaning: "Diskriminanten $b^2 - 4ac$",
+      section: "Eksempeldel",
+      term: "Diskriminant",
+      note: "Dimensjonsløs; fortegnet avgjør antall reelle løsninger.",
+    }
+
 # ── Glossary (optional → Begreper page + inline <Term name="…">) ─────────────
 glossary:
   - {
@@ -174,12 +200,21 @@ features: { progress: true, search: true, flashcards: true, theme: true }
 #   formulaSheetLabel: Formelsamling
 #   officialFormulaSheetLabel: Offisiell formelsamling til eksamen
 #   noFormulaSheetNote: "Til eksamen i dette emnet deles det ikke ut noen formelsamling. Oversikten under er en studieressurs: på eksamen må alt kunnes uten hjelpemidler."
-#   sheetSearchPlaceholder: "Søk i formler og symboler …"
+#   sheetSearchPlaceholder: "Søk i formler …"
 #   sheetSearchLabel: Søk i formler
 #   onSheetLabel: På formelarket
 #   memorizeLabel: Må pugges
 #   sheetEmptyLabel: Ingen formler matcher søket.
 #   formulaSheetOtherGroupLabel: Andre formler
+#   symbolsLabel: Symboler
+#   symbolsSearchPlaceholder: "Søk i symboler …"
+#   symbolsSearchLabel: Søk i symboler
+#   symbolsEmptyLabel: Ingen symboler matcher søket.
+#   symbolsOtherGroupLabel: Andre symboler
+#   symbolsColSymbol: Symbol
+#   symbolsColMeaning: Betydning
+#   symbolsColUnit: Enhet
+#   symbolsFormulaLink: Vis formelen i formelsamlingen
 #   examArchiveNote: "Utvalget under er de mest relevante settene. Eldre eksamener finnes i det fullstendige arkivet."
 #   glossaryLabel: Begreper
 #   glossarySearchPlaceholder: "Søk i begreper …"

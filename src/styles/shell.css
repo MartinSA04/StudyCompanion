@@ -1120,6 +1120,7 @@ summary,
   .code-copy,
   .fs-copy,
   .fs-controls,
+  .sym-controls,
   .gloss-controls,
   .sim-controls,
   .stepper-controls {
@@ -1130,8 +1131,9 @@ summary,
      flip) — so an un-hidden deck prints one answerless question wrapped in dead
      controls (section filter, Snu, Øv/Kan, nav arrows, "1 / 4", keyboard hint).
      The page still prints its heading and intro; this is deliberately not a
-     print-all-cards feature. The glossary above only loses its live-search box
-     (.gloss-controls, hidden with the chrome); its term list still prints. */
+     print-all-cards feature. The glossary and symbol list above only lose their
+     live-search boxes (.gloss-controls / .sym-controls, hidden with the chrome);
+     their term rows still print. */
   .flashcards {
     display: none !important;
   }

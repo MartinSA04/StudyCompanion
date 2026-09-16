@@ -61,6 +61,56 @@ const formulaEntrySchema = z.strictObject({
     .optional(),
 });
 
+/**
+ * A row on the Symboler page (rendered by <SymbolList>): what a symbol means,
+ * in what unit, and where its concept and defining formula live. This is the
+ * course's list of symbols — the lookup a reader needs mid-formula ("what was
+ * $N_c$ again?"), which is a different question from the glossary's "what IS
+ * effective density of states?". Keep `meaning` to one line; the explanation
+ * belongs in the glossary row `term` points at.
+ */
+const symbolEntrySchema = z.strictObject({
+  /** The symbol as LaTeX, e.g. "N_c", "\\mu_n" or "\\mathcal{E}". */
+  tex: z.string(),
+  /** One-line meaning. May contain `$inline$` math and simple inline HTML. */
+  meaning: z.string(),
+  /**
+   * Unit as the course writes it, e.g. "cm⁻³", "cm²/V·s", "eV". Omit for a
+   * dimensionless quantity. May contain `$inline$` math.
+   */
+  unit: z.string().optional(),
+  /**
+   * Optional second line: a typical value, a sign convention, or a collision
+   * warning ("ikke energien $E$"). May contain `$inline$` math.
+   */
+  note: z.string().optional(),
+  /** Free-text grouping, e.g. a topic or "Latinske bokstaver". */
+  section: z.string().optional(),
+  /**
+   * Stable anchor id for deep-linking (`/symboler#id`). Same shape rule as
+   * `formulas[].id`; must be unique among symbols. Rows without an id get no
+   * anchor — ids are explicit because deriving one from `tex` would collide on
+   * exactly the pairs a symbol list exists to separate ($E$ vs $\mathcal{E}$).
+   */
+  id: z
+    .string()
+    .regex(
+      /^[A-Za-z0-9_-]+$/,
+      'A symbol id is emitted verbatim as a DOM id and a "#fragment", so it must be ASCII letters, digits, "-" or "_" (e.g. "nc" or "e-felt") — no spaces, punctuation or math.',
+    )
+    .optional(),
+  /**
+   * Glossary headword (a `glossary[].term`) this symbol names. The meaning
+   * becomes a link to that Begreper row. The build fails if it matches nothing.
+   */
+  term: z.string().optional(),
+  /**
+   * A `formulas[].id` that defines or uses this symbol; renders as a link to
+   * that Formelsamling row. The build fails if it matches nothing.
+   */
+  formula: z.string().optional(),
+});
+
 /** A glossary term + definition (rendered by <Glossary>, linked by <Term>). */
 const glossaryEntrySchema = z.strictObject({
   term: z.string(),
@@ -169,6 +219,9 @@ export const courseSchema = z.strictObject({
 
   /** Reference-sheet formulas for <FormulaSheet>. Additive since v1 (optional). */
   formulas: z.array(formulaEntrySchema).default([]),
+
+  /** List of symbols for the Symboler tool page (<SymbolList>). */
+  symbols: z.array(symbolEntrySchema).default([]),
 
   /** Glossary terms for the <Glossary> tool page + inline <Term> links. */
   glossary: z.array(glossaryEntrySchema).default([]),
@@ -312,7 +365,7 @@ export const courseSchema = z.strictObject({
           "Til eksamen i dette emnet deles det ikke ut noen formelsamling. Oversikten under er en studieressurs: på eksamen må alt kunnes uten hjelpemidler.",
         ),
       /** Placeholder for the Formelsamling search field. */
-      sheetSearchPlaceholder: z.string().default("Søk i formler og symboler …"),
+      sheetSearchPlaceholder: z.string().default("Søk i formler …"),
       /** Accessible name (aria-label) for the Formelsamling search field. */
       sheetSearchLabel: z.string().default("Søk i formler"),
       /** Filter chip: only formulas that ARE on the exam sheet. */
@@ -323,6 +376,21 @@ export const courseSchema = z.strictObject({
       sheetEmptyLabel: z.string().default("Ingen formler matcher søket."),
       /** Heading for section-less formulas when the sheet is otherwise grouped. */
       formulaSheetOtherGroupLabel: z.string().default("Andre formler"),
+      symbolsLabel: z.string().default("Symboler"),
+      /** Placeholder for the Symboler search field. */
+      symbolsSearchPlaceholder: z.string().default("Søk i symboler …"),
+      /** Accessible name (aria-label) for the Symboler search field. */
+      symbolsSearchLabel: z.string().default("Søk i symboler"),
+      /** Empty state when no symbol matches the search. */
+      symbolsEmptyLabel: z.string().default("Ingen symboler matcher søket."),
+      /** Heading for section-less symbols when the list is otherwise grouped. */
+      symbolsOtherGroupLabel: z.string().default("Andre symboler"),
+      /** Column headers of the symbol table. */
+      symbolsColSymbol: z.string().default("Symbol"),
+      symbolsColMeaning: z.string().default("Betydning"),
+      symbolsColUnit: z.string().default("Enhet"),
+      /** Accessible name of the per-row link to a symbol's formula. */
+      symbolsFormulaLink: z.string().default("Vis formelen i formelsamlingen"),
       glossaryLabel: z.string().default("Begreper"),
       /** Placeholder for the Begreper search field. */
       glossarySearchPlaceholder: z.string().default("Søk i begreper …"),
@@ -375,10 +443,10 @@ export const courseSchema = z.strictObject({
       videoPlayLabel: z.string().default("Spill av"),
 
       /**
-       * `<meta name="description">` for the four tool pages, each composed as
+       * `<meta name="description">` for the five tool pages, each composed as
        * `"<phrase> — <code> <title>"`. They exist because the tool pages
        * otherwise shared one `"<Label> — <Course title>"` boilerplate, giving
-       * four pages per site the same duplicate description. Phrase the override
+       * five pages per site the same duplicate description. Phrase the override
        * to describe the PAGE, not the course; the course half is appended.
        *
        * Unlike the other `ui` strings these carry NO terminal punctuation — a
@@ -386,7 +454,12 @@ export const courseSchema = z.strictObject({
        */
       formulaSheetMetaDesc: z
         .string()
-        .default("Alle formler og symboler fra emnet samlet på én søkbar side"),
+        .default("Alle formler fra emnet samlet på én søkbar side"),
+      symbolsMetaDesc: z
+        .string()
+        .default(
+          "Alle symboler fra emnet med betydning og enhet på én søkbar side",
+        ),
       glossaryMetaDesc: z
         .string()
         .default("Alle sentrale begreper fra emnet, forklart og søkbare"),
@@ -470,4 +543,5 @@ export type Flashcards = z.infer<typeof flashcardsSchema>;
 export type ExamPaper = z.infer<typeof examPaperSchema>;
 export type ExamDate = z.infer<typeof examDateSchema>;
 export type FormulaEntry = z.infer<typeof formulaEntrySchema>;
+export type SymbolEntry = z.infer<typeof symbolEntrySchema>;
 export type GlossaryEntry = z.infer<typeof glossaryEntrySchema>;

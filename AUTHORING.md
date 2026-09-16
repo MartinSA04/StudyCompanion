@@ -26,10 +26,10 @@ page wiring, and widgets. Concretely:
 - **Never edit the framework from a course repo.** No components, pages, layouts,
   styles, or toolchain config live in a course. If a widget is missing, add it to
   the framework and bump the pinned tag — don't hand-roll HTML in a section.
-- **Everything renders from the schema.** Formulas, glossary, exams, links and
-  metadata live in `course.yaml`; prose lives in `sections/`. Keeping data in the
-  schema is what powers the Formelsamling, Begreper, Eksamen and Flashcards pages
-  for free.
+- **Everything renders from the schema.** Formulas, symbols, glossary, exams,
+  links and metadata live in `course.yaml`; prose lives in `sections/`. Keeping
+  data in the schema is what powers the Formelsamling, Symboler, Begreper,
+  Eksamen and Flashcards pages for free.
 - **Static-first.** Math renders server-side (KaTeX); interactivity is a few small
   islands that degrade without JS.
 
@@ -42,7 +42,11 @@ See also: `README.md` (widget + `course.yaml` reference), `MIGRATIONS.md`
 
 1. **`course.yaml` first.** Identity (`code`, `title`, `term`, `language`),
    `accent` + `accentDark`, `courseUrl`, the `exam` block, and the `formulas` /
-   `glossary` you already know. This is the spine everything hangs off. Also set
+   `symbols` / `glossary` you already know. This is the spine everything hangs
+   off. Formulas, symbols and glossary answer three different questions — *what
+   is the relation*, *what does this letter mean and in what unit*, *what is the
+   concept* — so a fact lives in one of them, not all three: a symbol row is one
+   line plus a unit, and its `term` / `formula` links point at the explanation. Also set
    **`site`** in `astro.config.mjs` to the guide's public origin — the framework
    needs it for the canonical link, social cards and the sitemap.
 2. **Outline the sections** by `order` (and optional `part` for chapters). One
@@ -258,7 +262,7 @@ Keep `run(input)` deterministic for a given input (shuffle re-calls
 
   | Where | Props |
   |---|---|
-  | `course.yaml` | formula `label`, glossary `term` + `definition`, flashcard `front` + `back` |
+  | `course.yaml` | formula `label`, symbol `meaning` + `unit` + `note`, glossary `term` + `definition`, flashcard `front` + `back` |
   | Captions | `<Figure>`, `<Formula>`, `<Table>`, `<Simulation>`, `<Stepper>` |
   | Tables | `<Table columns>` and every cell in `rows` |
   | Headings | `<Statement name>`, `<Step title>`, `<CompareCol title>` |
@@ -274,8 +278,11 @@ Keep `run(input)` deterministic for a given input (shuffle re-calls
   one exception (auto, gap-free from `order`; override with `num`).
 - **Cross-ref anchors.** `<Term name>` → the glossary row `slugify(term)`;
   `<FormulaRef id>` → the `formulas[].id`; `<Statement id>` defaults to
-  `slugify(name)`. Norwegian æ/ø/å fold to ae/o/a. The build fails on any dead or
-  duplicate anchor (§8).
+  `slugify(name)`; a `symbols[].id` is the row's `/symboler#id` (explicit, never
+  derived from the TeX — `E` and `\mathcal{E}` would collide). A symbol's
+  `term` / `formula` must name an existing glossary headword / formula id.
+  Norwegian æ/ø/å fold to ae/o/a. The build fails on any dead or duplicate
+  anchor (§8).
 - **Language.** Defaults and chrome are Norwegian (`language: nb`). Override
   individual strings under `course.yaml` → `ui` for `nn`/`en` courses.
 - **Long titles.** A long compound (`Halvlederkomponenter`) has to wrap somewhere

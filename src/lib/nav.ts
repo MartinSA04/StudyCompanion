@@ -68,6 +68,7 @@ export function shortTitle(title: string): string {
 /** Tool slugs are reserved; a section may not collide with them. */
 export const TOOL_SLUGS = {
   formulas: "formelsamling",
+  symbols: "symboler",
   glossary: "begreper",
   flashcards: "flashcards",
   exams: "eksamen",
@@ -75,6 +76,7 @@ export const TOOL_SLUGS = {
 
 export interface ToolFlags {
   formulas: boolean;
+  symbols: boolean;
   glossary: boolean;
   flashcards: boolean;
   exams: boolean;
@@ -83,6 +85,7 @@ export interface ToolFlags {
 export function toolFlags(course: Course, flashcardCount: number): ToolFlags {
   return {
     formulas: course.formulas.length > 0,
+    symbols: course.symbols.length > 0,
     glossary: course.glossary.length > 0,
     flashcards: course.features.flashcards && flashcardCount > 0,
     exams: course.exams.length > 0,
