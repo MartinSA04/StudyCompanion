@@ -277,11 +277,15 @@ const haystack = (s: SymbolEntry) =>
     width: 1%;
     white-space: nowrap;
   }
+  /* The global table styles size cells down to the small size; the symbol is
+     the row's subject, so its cell is restated at the base size and the KaTeX
+     inside sits at the same 1.15em the formula sheet gives its formulas. */
   .sym-tex {
     color: var(--fg);
+    font-size: var(--text-base);
   }
   .sym-render :global(.katex) {
-    font-size: 1.1em;
+    font-size: 1.15em;
   }
   /* The meaning is the row's primary text — the counterpart of the glossary
      headword, not of its definition — so it sits at the base size; only the
