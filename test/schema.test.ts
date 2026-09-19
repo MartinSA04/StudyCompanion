@@ -365,3 +365,37 @@ test("ui: Symboler page strings default to Norwegian chrome", () => {
     "Alle formler fra emnet samlet på én søkbar side",
   );
 });
+
+// ── exams[].id: deep-link anchor for <ExamRef> (v4.8) ────────────────────────
+
+test("an exam id must be a fragment-safe token (letters/digits/-/_ only)", () => {
+  const ok = courseSchema.parse({
+    ...base,
+    exams: [{ label: "Ordinær eksamen, desember 2025", id: "2025-des" }],
+  });
+  assert.equal(ok.exams[0].id, "2025-des");
+  // Same anchor rule as formulas[].id: emitted verbatim as a DOM id and a
+  // <ExamRef> "#fragment".
+  for (const bad of ["des 2025", "Ø", "id#1", "a.b", ""]) {
+    const r = courseSchema.safeParse({
+      ...base,
+      exams: [{ label: "x", id: bad }],
+    });
+    assert.equal(r.success, false, `exam id "${bad}" should be rejected`);
+  }
+});
+
+test("exams[].id stays optional (a paper nothing links to needs none)", () => {
+  const parsed = courseSchema.parse({
+    ...base,
+    exams: [{ label: "Ordinær" }],
+  });
+  assert.equal(parsed.exams[0].id, undefined);
+});
+
+test("ui.examTaskLabel defaults to the Norwegian 'oppgave'", () => {
+  const parsed = courseSchema.parse(base);
+  assert.equal(parsed.ui.examTaskLabel, "oppgave");
+  const en = courseSchema.parse({ ...base, ui: { examTaskLabel: "problem" } });
+  assert.equal(en.ui.examTaskLabel, "problem");
+});

@@ -277,3 +277,85 @@ test("symbols: duplicate ids are an error; resolving links are clean", () => {
   });
   assert.deepEqual(clean.errors, []);
 });
+
+// ── <ExamRef id> → course.exams[].id + url (v4.8) ──────────────────────────
+
+test("an <ExamRef> whose id matches an exam with a url resolves", () => {
+  const { errors } = validateXrefs({
+    glossaryTerms: [],
+    formulaIds: [],
+    exams: [
+      { id: "2025-des", url: "https://example.com/2025.pdf" },
+      { id: "2025-aug", url: "/exams/2025-aug.pdf" },
+      { url: "https://example.com/2019.pdf" }, // no id: nothing can link it, fine
+    ],
+    sections: [
+      {
+        label: "03",
+        body: '<ExamRef id="2025-des" task="3b" /> og <ExamRef id="2025-aug">kont 2025</ExamRef>',
+      },
+    ],
+  });
+  assert.deepEqual(errors, []);
+});
+
+test("an <ExamRef> with no matching exam id is an error", () => {
+  const { errors } = validateXrefs({
+    glossaryTerms: [],
+    formulaIds: [],
+    exams: [{ id: "2025-des", url: "https://example.com/2025.pdf" }],
+    sections: [{ label: "03", body: '<ExamRef id="2019-jun" task="1" />' }],
+  });
+  assert.equal(errors.length, 1);
+  assert.match(errors[0], /03: <ExamRef id="2019-jun">/);
+  assert.match(errors[0], /course\.exams/);
+});
+
+test("an <ExamRef> to an exam that has no url is an error", () => {
+  // The link opens the paper; an entry without a url has nothing to open.
+  const { errors } = validateXrefs({
+    glossaryTerms: [],
+    formulaIds: [],
+    exams: [{ id: "2022-des" }],
+    sections: [{ label: "05", body: '<ExamRef id="2022-des" task="2" />' }],
+  });
+  assert.equal(errors.length, 1);
+  assert.match(errors[0], /05: <ExamRef id="2022-des">/);
+  assert.match(errors[0], /no url/);
+});
+
+test("an <ExamRef> in a course that lists no exams is an error", () => {
+  // `exams` is optional for callers with no exam list, so a bare <ExamRef>
+  // must still fail rather than slip through as "nothing to check against".
+  const { errors } = validateXrefs({
+    glossaryTerms: [],
+    formulaIds: [],
+    sections: [{ label: "03", body: '<ExamRef id="2025-des" />' }],
+  });
+  assert.equal(errors.length, 1);
+  assert.match(errors[0], /2025-des/);
+});
+
+test("duplicate exam ids are an error", () => {
+  const { errors } = validateXrefs({
+    glossaryTerms: [],
+    formulaIds: [],
+    exams: [
+      { id: "2025-des", url: "https://example.com/a.pdf" },
+      { id: "2025-des", url: "https://example.com/b.pdf" },
+    ],
+    sections: [],
+  });
+  assert.equal(errors.length, 1);
+  assert.match(errors[0], /Duplicate exam id "2025-des"/);
+});
+
+test("an <ExamRef> shown in a code span is documentation, not a reference", () => {
+  const { errors } = validateXrefs({
+    glossaryTerms: [],
+    formulaIds: [],
+    exams: [],
+    sections: [{ label: "doc", body: 'Skriv `<ExamRef id="2025-des" />`.' }],
+  });
+  assert.deepEqual(errors, []);
+});

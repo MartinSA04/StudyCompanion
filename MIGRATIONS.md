@@ -156,3 +156,9 @@ Additive since 4.0 (no migration, available when present):
   `/symboler#id` target. The page exists only when the list is non-empty. The
   slug `symboler` joins the reserved tool slugs, so a section file named
   `NN-symboler.mdx` now fails the build — rename it.
+- `course.exams[].id` + `<ExamRef id task?>` (v4.8.0) → an inline link from an
+  exam task quoted in a module straight to the paper (`exams[].url`, new tab).
+  The id follows the `formulas[].id` rule; the build fails on a dead or
+  duplicate id, or on a reference to a paper with no `url`. `ui.examTaskLabel`
+  (default «oppgave») is the word before the task number. `AUTHORING.md` §3
+  makes quoting past-exam tasks this way standard practice.

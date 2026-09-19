@@ -40,6 +40,7 @@ group session. Respect that.
 |---|---|
 | One lecture week / one lecture | **one module**, 1300–2000 prose words |
 | Worked `<Example>` blocks per module | at most **2** |
+| Past-exam tasks per module | at least **1** where the archive has one the module alone can solve; rarely more than 3 |
 | Reading time per module | 10–20 minutes |
 
 The range is a target, not a threshold. A module that lands a little outside it is not a defect and
@@ -62,6 +63,19 @@ Cover **exactly** the syllabus for that week, and nothing adjacent. Do not pull 
 material, and do not add topics because they are interesting or because a source you read covered them.
 
 If you believe the scope is wrong, say so to the maintainer. Do not fix it by writing more.
+
+### Exam tasks: the paper's words, this module's scope
+
+Every module quotes the past-exam tasks it can solve (`AUTHORING.md` §3 has the
+markup). Two things decide which tasks qualify and how they are written:
+
+- **Solvable from here.** Pick a task only if a reader who has worked through this module, with the
+  course's prerequisites, can answer every sub-question you quote. Nothing from a later module, nothing
+  the module skipped. If only sub-questions a–b fit, quote a–b and let `task` say so.
+- **The paper's words.** Quote the task exactly, values and units included, in the paper's language. Do
+  not tighten, translate or modernise it; if the paper's wording is bad, that is what the reader will
+  meet on the exam. The `<ExamRef>` is the citation, so write no «denne oppgaven var gitt til eksamen i
+  2023»-sentence around it.
 
 ### Never pin a forward reference
 
@@ -142,7 +156,9 @@ Every definite noun and pronoun needs an antecedent the reader can point at. «s
 ### 3.7 Worked examples
 
 Real numbers, checked arithmetic, units. Show the substitution, not just the result. Keep the solution
-to the steps a student would actually write.
+to the steps a student would actually write. The solution to a quoted exam task is written the same
+way, in the guide's words, and its final answer is checked against the official solution where one
+exists; do not paste the official solution.
 
 ### 3.8 Notation follows the course
 
@@ -274,6 +290,8 @@ In addition to the definition-of-done in `AUTHORING.md` §8:
       prerequisites already cover.
 - [ ] **Word count measured** with the command in §2, and in the neighbourhood of the budget.
 - [ ] **Scope is exactly this week's** syllabus; nothing adjacent added.
+- [ ] **Exam tasks quoted verbatim** and opened by `<ExamRef>`; every sub-question quoted is solvable
+      from this module plus prerequisites; answers checked against the official solution.
 - [ ] **No forward reference to a week, module number or date** anywhere, including `course.yaml`
       entries and simulation captions.
 - [ ] **Every sim checked at phone width** (≈390 px, both themes, slider extremes): no clipped or

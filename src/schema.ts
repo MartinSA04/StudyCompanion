@@ -32,6 +32,18 @@ const examDateSchema = z.union([
 
 const examPaperSchema = z.strictObject({
   label: z.string(),
+  /**
+   * Stable anchor id for deep-linking from prose via `<ExamRef id>`. When set,
+   * the paper's row on the Eksamen page becomes a `#id` target. Must be unique.
+   * Same shape rule as `formulas[].id` (emitted verbatim as a DOM id).
+   */
+  id: z
+    .string()
+    .regex(
+      /^[A-Za-z0-9_-]+$/,
+      'An exam id is emitted verbatim as a DOM id and an <ExamRef> "#fragment", so it must be ASCII letters, digits, "-" or "_" (e.g. "2025-des" or "kont-2024") — no spaces, punctuation or non-ASCII.',
+    )
+    .optional(),
   /** May be an absolute URL or a path into the course's public/ folder. */
   url: z.string().optional(),
   solutionUrl: z.string().optional(),
@@ -351,6 +363,11 @@ export const courseSchema = z.strictObject({
       /** Flip the active card between front and back. */
       flipLabel: z.string().default("Snu"),
       examsLabel: z.string().default("Eksamen"),
+      /**
+       * The word `<ExamRef task>` puts before a task number ("oppgave 3b").
+       * Lower-case: it follows the exam label mid-sentence. Override for `nn`/`en`.
+       */
+      examTaskLabel: z.string().default("oppgave"),
       formulaSheetLabel: z.string().default("Formelsamling"),
       officialFormulaSheetLabel: z
         .string()

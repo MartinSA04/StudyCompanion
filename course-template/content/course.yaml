@@ -136,8 +136,12 @@ glossary:
 # Link UNIVERSITY-HOSTED PDFs when they exist; only vendor in public/ as a
 # fallback (then use a "/exams/…" path).
 exams:
+  # `id` (valgfri) gjør raden til et ankermål for en `<ExamRef id="v2025" />` i
+  # en modul, som lenker en sitert eksamensoppgave til settet sitt. Samme
+  # ASCII-regel som formulas[].id. Se AUTHORING.md §3.
   - {
       label: "Eksamen V2025",
+      id: "v2025",
       date: 2025-06-02,
       url: "https://example.com/exams/2025.pdf",
       solutionUrl: "https://example.com/exams/2025-losning.pdf",

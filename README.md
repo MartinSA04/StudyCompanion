@@ -26,7 +26,7 @@ You author **only** under `content/` — `course.yaml` (metadata, formulas, symb
 
 Run `pnpm dev` to preview, `pnpm build` for static output to `dist/`. Search (Pagefind) is built into `dist/pagefind/` and only works in `build`/`preview`, not `dev`.
 
-`pnpm build` also **validates cross-references** and fails on any dead link: a `<Term name>` / `<FormulaRef id>` with no matching `course.yaml` entry, a `symbols[]` row whose `term` / `formula` matches nothing, or a duplicate `<Statement>` / formula / symbol anchor. The error names the section file and the unresolved target.
+`pnpm build` also **validates cross-references** and fails on any dead link: a `<Term name>` / `<FormulaRef id>` / `<ExamRef id>` with no matching `course.yaml` entry (or an `<ExamRef>` to a paper with no `url`), a `symbols[]` row whose `term` / `formula` matches nothing, or a duplicate `<Statement>` / formula / symbol / exam anchor. The error names the section file and the unresolved target.
 
 ---
 
@@ -67,6 +67,7 @@ Author under `content/` only. **[`course-template/content/`](course-template/con
 | `<Term>` | `name`, slot? | Inline link into the glossary page. `name` is the headword (slugified to the row anchor); the slot, if any, is the display word (e.g. an inflected form), else `name` is shown. |
 | `<Sidenote>` | `label?`, slot | Short margin note. Floats into the right margin strip on wide viewports; falls back to a quiet inline aside when the strip collapses. Floats beside the content that **follows** it, so place it just before the relevant paragraph. Keep it to a sentence or two. |
 | `<FormulaRef>` | `id`, slot? | Inline cross-ref to a formula's row in the Formelsamling (matches `course.formulas[].id`). With no slot it renders the formula (KaTeX) as the link; the target row flashes via `:target`. |
+| `<ExamRef>` | `id`, `task?`, slot? | Inline reference from a quoted exam task to its paper: opens `course.exams[].url` in a new tab. `id` matches `course.exams[].id`; `task` is the task as the paper numbers it ("3b"). Default text is the paper's `label` + "oppgave 3b" (`ui.examTaskLabel`); the slot overrides it. The build fails on an unknown id or a paper with no `url`. |
 | `<Example>` | `label?`, `title?` | Worked example ("regneeksempel"); default slot is the problem, then a `<Solution>`. `title` may contain `$…$`. |
 | `<Solution>` | `label?`, `open?` | Collapsible worked solution, used inside `<Example>`. Put `<Answer>` inside it so it stays hidden until revealed. |
 | `<Answer>` | `label?` | Highlighted final answer; place inside `<Solution>`. |

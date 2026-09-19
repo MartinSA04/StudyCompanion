@@ -1,0 +1,64 @@
+---
+import { loadCourse } from "../lib/loadCourse.ts";
+import Icon from "./Icon.astro";
+
+/**
+ * Inline reference from a quoted exam task to the paper it came from — the
+ * exam-task sibling of <FormulaRef>/<Term>. Give it the `id` set on a
+ * `course.exams` entry and, when a task is quoted, the `task` as the paper
+ * numbers it ("3b"). It links STRAIGHT to the paper (`exams[].url`, opened in
+ * a new tab like every other document link), so the reader is one click from
+ * the original set; the build fails when the id matches nothing or the entry
+ * has no url (lib/xref.ts). With no slotted text it renders the paper's label
+ * plus "oppgave 3b" (`ui.examTaskLabel`); slotted text overrides that.
+ *
+ * Styled as an ordinary prose link (solid underline + external mark), not as
+ * a dashed in-site cross-ref: the dashed rule means "jumps within the guide",
+ * and this opens a document.
+ */
+interface Props {
+  id: string;
+  /** The task quoted, exactly as the paper numbers it: "3b", "2a–c". */
+  task?: string;
+}
+const { id, task } = Astro.props;
+const { course } = await loadCourse();
+const exam = course.exams.find((e) => e.id === id);
+
+if (import.meta.env.DEV && !exam) {
+  console.warn(
+    `[study-companion] <ExamRef id="${id}"> matches no exam with that id in course.exams.`,
+  );
+}
+if (import.meta.env.DEV && exam && !exam.url) {
+  console.warn(
+    `[study-companion] <ExamRef id="${id}"> points at an exam with no url — the link opens the paper, so give the entry a url.`,
+  );
+}
+
+const hasText = Astro.slots.has("default");
+const label = exam
+  ? task
+    ? `${exam.label}, ${course.ui.examTaskLabel} ${task}`
+    : exam.label
+  : id;
+---
+
+<a
+  class="exam-ref"
+  href={exam?.url ?? "#"}
+  target="_blank"
+  rel="noopener noreferrer"
+  >{hasText ? <slot /> : label}<Icon name="external" size={13} /></a
+>
+
+<style>
+  /* Global `a` supplies colour + underline; only the external mark is local. It
+     rides the text's baseline as a glyph would, so a reference that wraps across
+     lines keeps the mark glued to its last word. */
+  .exam-ref :global(svg) {
+    display: inline;
+    vertical-align: -0.1em;
+    margin-inline-start: 0.2em;
+  }
+</style>

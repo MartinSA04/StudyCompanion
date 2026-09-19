@@ -11,9 +11,12 @@ import { slugify } from "./slug.ts";
  *
  * Anchoring matches the widgets exactly (single source of truth in `slug.ts`):
  *   - `<Term name>`        → a glossary entry whose `slugify(term)` matches.
+ *   - `<ExamRef id>`       → a `course.exams[]` entry with that `id` AND a `url`
+ *                            (the link opens the paper itself).
  *   - `<FormulaRef id>`    → a `course.formulas[]` entry with that `id`.
  *   - `<Statement … id?>`  → anchor (explicit `id` or `slugify(name)`) is unique.
  *   - `course.formulas[].id` values are unique.
+ *   - `course.exams[].id` values are unique.
  *
  * Kept pure (no Astro/fs imports) so it is unit-testable in isolation.
  */
@@ -23,6 +26,14 @@ export interface XrefInput {
   glossaryTerms: string[];
   /** The `id`s actually set on `course.formulas[]` entries (skip the unset). */
   formulaIds: string[];
+  /**
+   * `course.exams[]` — each optional `id` must be unique, and an `<ExamRef id>`
+   * must name an entry that has a `url` (the link opens the paper itself, so an
+   * entry without one has nothing to open). Optional so callers with no exam
+   * list need not pass an empty one; an `<ExamRef>` in a course that lists none
+   * is still a dead link and still an error.
+   */
+  exams?: { id?: string; url?: string }[];
   /**
    * `course.symbols[]` — each optional `id` must be unique, a `term` must name
    * a glossary headword and a `formula` must name a formula id (both render as
@@ -102,6 +113,21 @@ export function validateXrefs(input: XrefInput): XrefReport {
     formulaIds.add(id);
   }
 
+  // course.exams[].id must be unique (an <ExamRef> resolves the id to ONE
+  // paper's url); remember which ids have a url to open.
+  const examIds = new Set<string>();
+  const examUrls = new Set<string>();
+  for (const e of input.exams ?? []) {
+    if (!e.id) continue;
+    if (examIds.has(e.id)) {
+      errors.push(
+        `Duplicate exam id "${e.id}" in course.exams — ids must be unique so <ExamRef id="${e.id}"> resolves to one paper.`,
+      );
+    }
+    examIds.add(e.id);
+    if (e.url) examUrls.add(e.id);
+  }
+
   // course.symbols[]: ids unique (a "#id" on the Symboler page), and the
   // term/formula links resolve to a real glossary row / formula row.
   const symbolIds = new Set<string>();
@@ -154,6 +180,20 @@ export function validateXrefs(input: XrefInput): XrefReport {
       if (!formulaIds.has(id)) {
         errors.push(
           `${label}: <FormulaRef id="${id}"> matches no formula with that id in course.formulas.`,
+        );
+      }
+    }
+
+    for (const tag of openingTags(text, "ExamRef")) {
+      const id = attr(tag, "id");
+      if (id == null) continue;
+      if (!examIds.has(id)) {
+        errors.push(
+          `${label}: <ExamRef id="${id}"> matches no exam with that id in course.exams.`,
+        );
+      } else if (!examUrls.has(id)) {
+        errors.push(
+          `${label}: <ExamRef id="${id}"> points at an exam with no url — the link opens the paper, so give that course.exams entry a url (or drop the reference).`,
         );
       }
     }

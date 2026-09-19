@@ -53,8 +53,9 @@ See also: `README.md` (widget + `course.yaml` reference), `MIGRATIONS.md`
    `NN-slug.mdx` per module. Sketch the brief for each first — see
    `course-template/SECTION-BRIEF.md`.
 3. **Draft each module against an archetype** (§4). Write prose, place widgets.
-4. **Wire cross-references** — `<Term>`, `<FormulaRef>`, `<Statement>` ids — so
-   prose links to the canonical definition instead of repeating it.
+4. **Wire cross-references** — `<Term>`, `<FormulaRef>`, `<ExamRef>`, `<Statement>`
+   ids — so prose links to the canonical definition (or the original paper)
+   instead of repeating it.
 5. **Verify** against the definition-of-done (§8): `pnpm build` (which *fails* on
    a dead cross-reference), then read the module in both themes.
 
@@ -72,6 +73,7 @@ Reach for a widget by intent. All are global in MDX — **no imports**.
 | Frame a named law / theorem / definition / principle (anchored) | `<Statement>` |
 | Link a word in prose to the glossary | `<Term name="…">` |
 | Link prose to a formula's row in the Formelsamling | `<FormulaRef id="…">` |
+| Quote a task from a past exam, linked to the paper | `<Example label="Eksamensoppgave">` opened by `<ExamRef id="…" task="…">` — see below |
 | Give a worked example with a hidden solution | `<Example>` + `<Solution>` + `<Answer>` |
 | Lay out a step-by-step procedure / method | `<Steps>` + `<Step>` |
 | Offer graduated hints (nudge → method → solution) | `<Hints>` + `<Hint>` |
@@ -121,6 +123,52 @@ Two conditions on using it at all:
    the build on a missing file, a video that is deleted or set to private cannot
    be detected at build time. Prefer stable channels with a long track record,
    and re-check your `<Video>` links when you revise a course.
+
+### Exam tasks — quoted, cited, solvable here
+
+A module quotes the past-exam tasks it can solve. That is what the reader is
+practising for, and a real task is the honest test of whether the module taught
+enough. Three rules:
+
+1. **Quote, never paraphrase.** The task text is the paper's, word for word:
+   the given values, the units, the sub-question letters. Keep the paper's
+   language even when it differs from the guide's. You may drop sub-questions
+   that fall outside the module; you never edit inside one. The `task` prop
+   names exactly what you quoted (`"3"`, `"3a–b"`).
+2. **Cite it with `<ExamRef>`.** Give the paper an `id` in `course.yaml`
+   `exams[]` and open the task with the reference. It links straight to the
+   paper (`url`, new tab), and the build fails if the id matches nothing or the
+   entry has no `url`. The reference *is* the citation: write no sentence about
+   where the task comes from.
+3. **Wholly module-relevant.** A reader who has worked through this module and
+   has the course's prerequisites can solve every sub-question you quote, with
+   nothing from later modules. If a task needs a figure from the paper, ship the
+   figure (`<Figure>`, vendored in `public/`) or skip the task. If only part of
+   a task fits, quote that part and say so in `task`.
+
+Wrap it in `<Example label="Eksamensoppgave">` with the reference as the first
+line of the body, then the quoted text, then a `<Solution>` in the guide's own
+words (`WRITING.md` §3.7) whose final answer you have checked against the
+official solution where one exists. Place it right after the prose that teaches
+what it needs, not in a block at the end. `WRITING.md` §2 sets how many.
+
+```mdx
+<Example label="Eksamensoppgave" title="Totalrefleksjon i glass">
+<ExamRef id="v2025" task="2b" />
+
+En lysstråle går inne i en glassplate med brytningsindeks $n = 1{,}50$ og
+treffer grenseflaten mot luft. Finn den minste innfallsvinkelen som gir
+totalrefleksjon.
+
+<Solution>
+…
+<Answer>$\theta_c \approx 42^\circ$</Answer>
+</Solution>
+</Example>
+```
+
+Inline in prose the same tag reads as a plain citation: without `task` it shows
+the paper's label, and slotted text overrides the label.
 
 ---
 
@@ -277,7 +325,8 @@ Keep `run(input)` deterministic for a given input (shuffle re-calls
   renumbers, and a cross-ref target stays stable. Section display numbers are the
   one exception (auto, gap-free from `order`; override with `num`).
 - **Cross-ref anchors.** `<Term name>` → the glossary row `slugify(term)`;
-  `<FormulaRef id>` → the `formulas[].id`; `<Statement id>` defaults to
+  `<FormulaRef id>` → the `formulas[].id`; `<ExamRef id>` → the `exams[].id`
+  (whose entry must have a `url`, since the link opens the paper); `<Statement id>` defaults to
   `slugify(name)`; a `symbols[].id` is the row's `/symboler#id` (explicit, never
   derived from the TeX — `E` and `\mathcal{E}` would collide). A symbol's
   `term` / `formula` must name an existing glossary headword / formula id.
@@ -323,7 +372,9 @@ not ad-hoc `links[]` entries:
   unknown. Write `date: 2022-08` there. The row still sorts into the right
   place, and the Eksamen page prints "august 2022" instead of a day nobody
   verified — do **not** reach for the 1st of the month to make it sort. A paper
-  whose month is also unknown simply omits `date`.
+  whose month is also unknown simply omits `date`. Give every paper you quote a
+  task from an `id` (`2025-des`, `kont-2024`; same ASCII rule as
+  `formulas[].id`) so the module can cite it with `<ExamRef>` (§3).
 - **`course.examArchive`** — `{ url, label? }` to the official **complete**
   archive. When the `exams[]` you list are a hand-picked selection, set this: the
   Eksamen page then shows a "these are the most relevant; older sets are in the
@@ -359,11 +410,15 @@ The polish bar is **library-grade**. A module is done when:
       bullet (concept/method modules).
 - [ ] **All math renders** — no raw `$…$` leaking; results that are *the point* are
       in display mode.
-- [ ] **Cross-refs resolve** — every `<Term>` / `<FormulaRef>` / `<Statement>`
-      target exists and is unique. *Enforced: `pnpm build` fails otherwise.*
+- [ ] **Cross-refs resolve** — every `<Term>` / `<FormulaRef>` / `<ExamRef>` /
+      `<Statement>` target exists and is unique. *Enforced: `pnpm build` fails
+      otherwise.*
 - [ ] **No fabricated facts** — every concrete value (dates, durations, syllabus
       refs, figures) is verified; anything unknown is **omitted**, never guessed.
 - [ ] **A self-check** — a `<SelfCheck>` or `<Quiz>` where the material supports it.
+- [ ] **Exam tasks** — the past-exam tasks this module alone can solve are quoted
+      verbatim, each opened by `<ExamRef>`, with a solution checked against the
+      official one (§3).
 - [ ] **Both themes read** — light *and* dark, AA contrast, no clipped widgets.
 - [ ] **Honest `importance`** — core vs useful vs extra reflects the syllabus.
 - [ ] **No ad-hoc HTML/Markdown table** where a widget exists (use `<Compare>`,

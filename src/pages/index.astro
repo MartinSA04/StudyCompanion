@@ -42,6 +42,7 @@ const { course, sections, flashcards, tools } = await loadCourse();
   const report = validateXrefs({
     glossaryTerms: course.glossary.map((g) => g.term),
     formulaIds: course.formulas.flatMap((f) => (f.id ? [f.id] : [])),
+    exams: course.exams,
     symbols: course.symbols,
     sections: sectionInputs,
   });

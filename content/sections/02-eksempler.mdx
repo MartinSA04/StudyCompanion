@@ -27,6 +27,35 @@ slik at $\theta_2 = \arcsin(0{,}855) \approx 58{,}7^\circ$.
 </Solution>
 </Example>
 
+## Eksamensoppgave
+
+En oppgave hentet ordrett fra et tidligere eksamenssett bruker `<Example>` med
+`label="Eksamensoppgave"` og åpner med `<ExamRef>`, som lenker rett til
+oppgavesettet (`url` på raden i `exams[]`). Løsningsforslaget ligger på
+Eksamen-siden som før.
+
+<Example label="Eksamensoppgave" title="Totalrefleksjon i glass">
+<ExamRef id="v2025" task="2b" />
+
+En lysstråle går inne i en glassplate med brytningsindeks $n = 1{,}50$ og
+treffer grenseflaten mot luft. Finn den minste innfallsvinkelen som gir
+totalrefleksjon.
+
+<Solution>
+Grensevinkelen følger av Snells lov med $\theta_2 = 90^\circ$:
+
+<Formula tex="\sin\theta_c = \frac{n_2}{n_1} = \frac{1{,}00}{1{,}50} \approx 0{,}667" />
+
+slik at $\theta_c = \arcsin(0{,}667) \approx 41{,}8^\circ$.
+
+<Answer>$\theta_c \approx 42^\circ$</Answer>
+</Solution>
+</Example>
+
+I løpende tekst brukes `<ExamRef>` som `<FormulaRef>`: uten `task` viser den bare
+settets navn, <ExamRef id="h2023-kont" />, og slottet tekst overstyrer
+etiketten, som i <ExamRef id="v2024" task="1a">oppgave 1a våren 2024</ExamRef>.
+
 ## Selvtest
 
 <SelfCheck question="Hva skjer med brytningsvinkelen når innfallsvinkelen nærmer seg grensevinkelen?">

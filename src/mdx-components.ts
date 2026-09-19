@@ -24,6 +24,7 @@ import CompareCol from "./components/CompareCol.astro";
 import Statement from "./components/Statement.astro";
 import Term from "./components/Term.astro";
 import FormulaRef from "./components/FormulaRef.astro";
+import ExamRef from "./components/ExamRef.astro";
 import Sidenote from "./components/Sidenote.astro";
 
 /**
@@ -61,6 +62,7 @@ export const mdxComponents = {
   Statement,
   Term,
   FormulaRef,
+  ExamRef,
   Sidenote,
 };
 
