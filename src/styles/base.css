@@ -250,6 +250,15 @@ canvas {
   max-width: 100%;
   height: auto;
 }
+/* KaTeX draws \vec (and other accents) as an absolutely positioned <svg>
+   inside .accent-body, a box KaTeX gives width:0 so the arrow can overhang
+   its letter. Against that containing block the reset's max-width:100% is
+   0px and the arrow vanishes; KaTeX's own width and height already win, only
+   max-width leaks through. Pinned by test/katex-svg-reset.test.ts and
+   measured by visual/katex-accent.spec.ts. */
+.katex svg {
+  max-width: none;
+}
 
 /* --- Code (Shiki output + inline) --- */
 code,
