@@ -146,6 +146,12 @@ enough. Three rules:
    figure (`<Figure>`, vendored in `public/`) or skip the task. If only part of
    a task fits, quote that part and say so in `task`.
 
+**Better none than a bad one.** A task that needs something the module does not
+teach, that rests on a figure you cannot ship, or that only brushes the topic,
+teaches the reader that the guide is not enough. Leave it out; a module with no
+exam task is complete, a module with a wrong one is not. Prefer the tasks
+whose *every* sub-question the module answers.
+
 Wrap it in `<Example label="Eksamensoppgave">` with the reference as the first
 line of the body, then the quoted text, then a `<Solution>` in the guide's own
 words (`WRITING.md` §3.7) whose final answer you have checked against the

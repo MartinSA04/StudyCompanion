@@ -76,6 +76,9 @@ markup). Two things decide which tasks qualify and how they are written:
   not tighten, translate or modernise it; if the paper's wording is bad, that is what the reader will
   meet on the exam. The `<ExamRef>` is the citation, so write no «denne oppgaven var gitt til eksamen i
   2023»-sentence around it.
+- **None beats a poor fit.** The budget row says *at least one where the archive has one*; when it has
+  none that this module alone can solve, the module carries no exam task. Never pad with a task that is
+  only loosely about the topic, needs a later week, or comes from an exam on a different syllabus.
 
 ### Never pin a forward reference
 
