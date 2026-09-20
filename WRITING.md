@@ -294,7 +294,10 @@ In addition to the definition-of-done in `AUTHORING.md` §8:
 - [ ] **Word count measured** with the command in §2, and in the neighbourhood of the budget.
 - [ ] **Scope is exactly this week's** syllabus; nothing adjacent added.
 - [ ] **Exam tasks quoted verbatim** and opened by `<ExamRef>`; every sub-question quoted is solvable
-      from this module plus prerequisites; answers checked against the official solution.
+      from this module plus prerequisites; answers checked against the official solution; every
+      multiple-choice task is a `<Quiz>` with the paper's alternatives, never a list in prose.
+- [ ] **No formula broken at an unnatural place.** A wide formula scrolls, which is fine; one that
+      wraps after `=` or at a `\qquad` comma reads as broken. `aligned` only at natural seams.
 - [ ] **No forward reference to a week, module number or date** anywhere, including `course.yaml`
       entries and simulation captions.
 - [ ] **Every sim checked at phone width** (≈390 px, both themes, slider extremes): no clipped or

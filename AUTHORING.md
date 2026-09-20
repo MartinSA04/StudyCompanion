@@ -73,7 +73,7 @@ Reach for a widget by intent. All are global in MDX — **no imports**.
 | Frame a named law / theorem / definition / principle (anchored) | `<Statement>` |
 | Link a word in prose to the glossary | `<Term name="…">` |
 | Link prose to a formula's row in the Formelsamling | `<FormulaRef id="…">` |
-| Quote a task from a past exam, linked to the paper | `<Example label="Eksamensoppgave">` opened by `<ExamRef id="…" task="…">` — see below |
+| Quote a task from a past exam, linked to the paper | `<Example label="Eksamensoppgave">` opened by `<ExamRef id="…" task="…">` — see below; a multiple-choice task carries a `<Quiz>` inside it |
 | Give a worked example with a hidden solution | `<Example>` + `<Solution>` + `<Answer>` |
 | Lay out a step-by-step procedure / method | `<Steps>` + `<Step>` |
 | Offer graduated hints (nudge → method → solution) | `<Hints>` + `<Hint>` |
@@ -145,6 +145,19 @@ enough. Three rules:
    nothing from later modules. If a task needs a figure from the paper, ship the
    figure (`<Figure>`, vendored in `public/`) or skip the task. If only part of
    a task fits, quote that part and say so in `task`.
+4. **A multiple-choice task is a `<Quiz>`.** Never list the alternatives as
+   prose, a bullet list or `a) … b) …` lines: the reader must be able to pick
+   one and be told, which is what the widget does. Put the `<Quiz>` inside the
+   `<Example label="Eksamensoppgave">` after the `<ExamRef>`; a long stem (given
+   values, a formula, a figure) stays verbatim in the body above it, and the
+   final question goes in `question`. `options` are the paper's alternatives,
+   verbatim and in the paper's order (typos included); `answer` is the index of
+   the official key; `explanation` carries the reasoning in the guide's words.
+   No `<Solution>`/`<Answer>` around a quiz: the widget already checks and
+   explains. A "select two alternatives" task is ONE quiz with
+   `answer={[i, j]}`: the widget switches to checkbox rows and a «Sjekk svar»
+   button, and the paper's list stays whole and in order. Never split it into
+   two quizzes.
 
 **Better none than a bad one.** A task that needs something the module does not
 teach, that rests on a figure you cannot ship, or that only brushes the topic,
@@ -170,6 +183,26 @@ totalrefleksjon.
 …
 <Answer>$\theta_c \approx 42^\circ$</Answer>
 </Solution>
+</Example>
+```
+
+A multiple-choice task keeps the same wrapper and swaps the solution for the
+widget:
+
+```mdx
+<Example label="Eksamensoppgave" title="Gitterkonstanten fra lydhastigheten">
+<ExamRef id="2022-mai" task="26" />
+
+A monatomic linear chain has acoustic lattice vibrations with phase velocity
+$v_\mathrm p = 2200$ m/s, and the maximum frequency is
+$\omega_0 = 2 \cdot 10^{13}$ rad s$^{-1}$.
+
+<Quiz
+  question={"What is the lattice constant $a$?"}
+  options={["3.2 Å", "2.1 Å", "4.2 Å", "2.2 Å", "2.3 Å"]}
+  answer={3}
+  explanation={"$v_\\mathrm p = a\\sqrt{C/M}$ og $\\omega_0 = 2\\sqrt{C/M}$, så $a = 2v_\\mathrm p/\\omega_0 = 2{,}2$ Å."}
+/>
 </Example>
 ```
 
@@ -326,6 +359,17 @@ Keep `run(input)` deterministic for a given input (shuffle re-calls
   `<b> <i> <em> <strong> <sub> <sup> <code> <br>` (attribute-less) — use
   `<b>`/`<em>`, not Markdown `**…**`. A literal `<`/`&` (`n<m`, `T&C`) is safe
   plain text; anything fancier belongs in the section body, not a prop string.
+
+  **Wide formulas scroll; they never break.** A `<Formula>` card, a
+  Formelsamling row and display math all scroll horizontally when they are
+  wider than the column, and a scrollbar on a phone is fine. What is *not*
+  fine is a formula broken at an unnatural place — `C_V =` alone on a line, a
+  `\qquad`-joined pair split at its comma, a numerator parted from its `=` —
+  because it reads as broken. Never reflow a formula to dodge a scrollbar.
+  Use `\begin{aligned}` only at seams a textbook would break at: one equation
+  per row, or a continuation that starts with `=`, `+`, `−` or `±`. When the
+  wide part is the second row, put `&` at the start of both rows so the
+  continuation sits flush left instead of at the `=` column.
 - **Explicit numbering.** Figures (`number`), formulas, and statement ids are set
   **by hand**, never auto-derived — so reordering content never silently
   renumbers, and a cross-ref target stays stable. Section display numbers are the
@@ -424,7 +468,10 @@ The polish bar is **library-grade**. A module is done when:
 - [ ] **A self-check** — a `<SelfCheck>` or `<Quiz>` where the material supports it.
 - [ ] **Exam tasks** — the past-exam tasks this module alone can solve are quoted
       verbatim, each opened by `<ExamRef>`, with a solution checked against the
-      official one (§3).
+      official one (§3); every multiple-choice task is a `<Quiz>`, never a list.
+- [ ] **No formula broken at an unnatural place** — a wide formula may scroll,
+      it may not wrap after `=` or at a `\qquad` comma (§6); read every
+      `<Formula>` card and display block at phone width.
 - [ ] **Both themes read** — light *and* dark, AA contrast, no clipped widgets.
 - [ ] **Honest `importance`** — core vs useful vs extra reflects the syllabus.
 - [ ] **No ad-hoc HTML/Markdown table** where a widget exists (use `<Compare>`,

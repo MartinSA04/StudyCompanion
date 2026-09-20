@@ -116,6 +116,12 @@ const html = ignoreInSearch(
        to spare. Landing the overshoot in padding suppresses that; genuinely
        wide formulas still scroll. */
     overflow-y: hidden;
+    /* Inline-mode KaTeX is a run of top-level .base spans, and a browser may
+       break a line between them — after an `=`, at a `\qquad` comma — long
+       before the cell's own scroll engages. A formula wrapped there reads as
+       broken (maintainer call, 2026-09-20: a scrollbar is fine, a bad break
+       is not), so keep the run on one line and let overflow-x scroll it. */
+    white-space: nowrap;
     padding-block: var(--space-1);
     padding-inline-end: var(--space-1);
     color: var(--fg);

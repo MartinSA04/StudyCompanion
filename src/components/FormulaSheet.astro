@@ -341,6 +341,13 @@ const hasMemorize = examFormulaSheet && formulas.some((f) => f.memorize);
        to spare. Landing the overshoot in padding suppresses that; genuinely
        wide formulas still scroll. */
     overflow-y: hidden;
+    /* Inline-mode KaTeX is a run of top-level .base spans with a soft break
+       opportunity between them (after relations and binary operators), so a
+       wide row wrapped after an `=` or at a `\qquad` comma before the cell's
+       scroll ever engaged, and read as broken. Keep the run on one line and
+       let overflow-x scroll it (maintainer call, 2026-09-20: a scrollbar is
+       fine, a bad break is not). Same rule as Formula.astro's .fx. */
+    white-space: nowrap;
     padding-block: var(--space-1);
     padding-inline-end: var(--space-1);
     color: var(--fg);
