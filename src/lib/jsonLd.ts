@@ -235,17 +235,25 @@ export const FLASHCARD_LD_LIMIT = 100;
 export function quizLd(opts: {
   question: string;
   options: string[];
-  answer: number;
+  /** Index of the right option, or of every right option. */
+  answer: number | number[];
   explanation?: string;
   about?: CourseRefOpts;
 }) {
-  const accepted: Record<string, unknown> = {
-    "@type": "Answer",
-    text: opts.options[opts.answer],
-  };
-  if (opts.explanation) {
-    accepted.comment = { "@type": "Comment", text: opts.explanation };
-  }
+  const answers = Array.isArray(opts.answer) ? opts.answer : [opts.answer];
+  // schema.org allows several acceptedAnswer values; a single one stays a bare
+  // object (not a one-element array) so existing consumers see no change.
+  const accept = answers.map((i) => {
+    const a: Record<string, unknown> = {
+      "@type": "Answer",
+      text: opts.options[i],
+    };
+    if (opts.explanation) {
+      a.comment = { "@type": "Comment", text: opts.explanation };
+    }
+    return a;
+  });
+  const accepted = accept.length === 1 ? accept[0] : accept;
   const question: Record<string, unknown> = {
     "@type": "Question",
     eduQuestionType: "Multiple choice",
@@ -253,7 +261,7 @@ export function quizLd(opts: {
     text: opts.question,
     acceptedAnswer: accepted,
   };
-  const wrong = opts.options.filter((_, i) => i !== opts.answer);
+  const wrong = opts.options.filter((_, i) => !answers.includes(i));
   if (wrong.length) {
     question.suggestedAnswer = wrong.map((text) => ({
       "@type": "Answer",

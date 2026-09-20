@@ -34,7 +34,7 @@ for (const theme of THEMES) {
     await page.goto("/eksempler");
     await page.waitForLoadState("networkidle");
 
-    const quiz = page.locator(".quiz");
+    const quiz = page.locator(".quiz:not([data-multi])");
     // Answer index 1 ("Totalrefleksjon") — the correct option, so the snapshot
     // pins the green graded row, the "Riktig!" feedback and the revealed
     // explanation in one shot.
@@ -53,7 +53,7 @@ for (const theme of THEMES) {
     await page.goto("/eksempler");
     await page.waitForLoadState("networkidle");
 
-    const quiz = page.locator(".quiz");
+    const quiz = page.locator(".quiz:not([data-multi])");
     // Answer index 0 ("Spredning") — a WRONG option (answer is 1). A wrong click
     // auto-reveals the correct row too, so one snapshot pins the red graded row +
     // its "x" cross mark, the "Ikke helt. Se riktig svar." feedback and the
@@ -67,6 +67,51 @@ for (const theme of THEMES) {
     await expect(quiz.locator(".quiz-explain")).toBeVisible();
 
     await expect(quiz).toHaveScreenshot(`quiz-answered-wrong-${theme}.png`);
+  });
+
+  test(`quiz multi ticked — ${theme}`, async ({ page }) => {
+    await forceTheme(page, theme);
+    await page.goto("/eksempler");
+    await page.waitForLoadState("networkidle");
+
+    // The several-answers quiz: checkbox rows + «Sjekk svar». Tick one right
+    // (0) and one wrong (1) option and snapshot BEFORE submitting, so the
+    // baseline pins the square marks, the accent-filled ticked state and the
+    // enabled submit button — a state no grading snapshot can show.
+    const quiz = page.locator(".quiz[data-multi]");
+    await quiz.locator('.quiz-option[data-index="0"]').click();
+    await quiz.locator('.quiz-option[data-index="1"]').click();
+    await expect(quiz.locator(".quiz-submit")).toBeEnabled();
+
+    await expect(quiz).toHaveScreenshot(`quiz-multi-ticked-${theme}.png`);
+  });
+
+  test(`quiz multi answered wrong — ${theme}`, async ({ page }) => {
+    await forceTheme(page, theme);
+    await page.goto("/eksempler");
+    await page.waitForLoadState("networkidle");
+
+    // Ticking 0 (right) + 1 (wrong) and submitting grades every row at once:
+    // 0 chosen-right (filled green), 1 chosen-wrong (red cross), 2 missed
+    // (hollow green check) and 3 plain — all three graded states in one shot,
+    // plus the "Se riktige svar." plural feedback and the disabled button.
+    const quiz = page.locator(".quiz[data-multi]");
+    await quiz.locator('.quiz-option[data-index="0"]').click();
+    await quiz.locator('.quiz-option[data-index="1"]').click();
+    await quiz.locator(".quiz-submit").click();
+    await expect(quiz.locator(".quiz-feedback")).toHaveAttribute(
+      "data-result",
+      "wrong",
+    );
+    await expect(quiz.locator('.quiz-option[data-index="2"]')).toHaveAttribute(
+      "data-state",
+      "missed",
+    );
+    await expect(quiz.locator(".quiz-explain")).toBeVisible();
+
+    await expect(quiz).toHaveScreenshot(
+      `quiz-multi-answered-wrong-${theme}.png`,
+    );
   });
 
   test(`flashcard flipped — ${theme}`, async ({ page }) => {

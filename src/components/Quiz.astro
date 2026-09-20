@@ -1,14 +1,20 @@
 ---
 /**
- * Single-answer multiple-choice question (vanilla island). `answer` is the
- * 0-based index of the correct option. Clicking an option reveals whether it
- * was right and shows the optional explanation. This is a study aid, not a
- * graded test, so the answer being present in the DOM is fine.
+ * Multiple-choice question (vanilla island). `answer` is the 0-based index of
+ * the right option — or an array of indices when several options are right.
+ *
+ * Single answer: radio-style rows, and the click grades at once. Several
+ * answers: the rows are checkboxes (square marks, the convention readers
+ * already know from every form), the reader ticks any number and presses
+ * «Sjekk svar»; grading then marks each row as chosen-and-right,
+ * chosen-and-wrong or missed. This is a study aid, not a graded test, so the
+ * answer being present in the DOM is fine.
  */
 interface Props {
   question: string;
   options: string[];
-  answer: number;
+  /** 0-based index of the right option, or the indices of every right one. */
+  answer: number | number[];
   explanation?: string;
 }
 const { question, options, answer, explanation } = Astro.props;
@@ -19,12 +25,20 @@ import { loadCourse } from "../lib/loadCourse.ts";
 import { courseGraph } from "../lib/courseGraph.ts";
 import Icon from "./Icon.astro";
 
-// Build-time guard: an out-of-range/fractional answer would ship a quiz no
-// choice can ever grade "riktig" — fail the build naming the question instead.
-if (!Number.isInteger(answer) || answer < 0 || answer >= options.length) {
+const multi = Array.isArray(answer);
+const answers = multi ? answer : [answer];
+
+// Build-time guard: an out-of-range/fractional/duplicate answer would ship a
+// quiz no choice can ever grade "riktig" — fail the build naming the question.
+const valid =
+  answers.length > 0 &&
+  new Set(answers).size === answers.length &&
+  answers.every((a) => Number.isInteger(a) && a >= 0 && a < options.length);
+if (!valid) {
   throw new Error(
-    `study-companion: <Quiz question="${question}"> has answer=${answer}, ` +
-      `which is not an index into its ${options.length} options (0–${options.length - 1}).`,
+    `study-companion: <Quiz question="${question}"> has answer=${JSON.stringify(answer)}, ` +
+      `which is not ${multi ? "a non-empty list of distinct indices" : "an index"} ` +
+      `into its ${options.length} options (0–${options.length - 1}).`,
   );
 }
 
@@ -48,24 +62,55 @@ const ld = quizLd({
 
 <script type="application/ld+json" set:html={serializeLd(ld)} is:inline />
 
-<form class="quiz sc-panel" data-answer={answer}>
+<form
+  class="quiz sc-panel"
+  data-answer={answers.join(",")}
+  data-multi={multi ? "" : undefined}
+>
   <fieldset>
-    <legend class="quiz-q" set:html={renderMathString(question)} />
+    {
+      /* The hint lives inside the legend so the group's accessible name carries
+        it — no id plumbing, and a screen reader hears "…? Flere svar er
+        riktige" before the first checkbox. */
+    }
+    <legend class="quiz-q">
+      <span set:html={renderMathString(question)} />
+      {
+        multi && (
+          <span class="quiz-hint">
+            Flere svar er riktige. Kryss av alle som stemmer.
+          </span>
+        )
+      }
+    </legend>
     <ul class="quiz-options">
       {
         options.map((opt, i) => (
           <li>
-            <button type="button" class="quiz-option" data-index={i}>
+            <button
+              type="button"
+              class="quiz-option"
+              data-index={i}
+              role={multi ? "checkbox" : undefined}
+              aria-checked={multi ? "false" : undefined}
+            >
               <span class="quiz-mark" aria-hidden="true">
                 <Icon name="check" size={13} class="i-correct" />
                 <Icon name="x" size={13} class="i-wrong" />
               </span>
-              <span set:html={renderMathString(opt)} />
+              <span class="quiz-text" set:html={renderMathString(opt)} />
             </button>
           </li>
         ))
       }
     </ul>
+    {
+      multi && (
+        <button type="button" class="quiz-submit sc-btn sc-press" disabled>
+          Sjekk svar
+        </button>
+      )
+    }
   </fieldset>
   <p
     class="quiz-feedback"
@@ -93,11 +138,21 @@ const ld = quizLd({
     border: 0;
     padding: 0;
     margin: 0;
+    /* UA default is min-width: min-content, so one wide formula option would
+       push the whole fieldset (question included) out past the panel. */
+    min-width: 0;
   }
   .quiz-q {
     font-weight: var(--weight-semibold);
     padding: 0;
     margin-bottom: var(--space-3);
+  }
+  .quiz-hint {
+    display: block;
+    margin-top: var(--space-1);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-normal);
+    color: var(--muted);
   }
   .quiz-options {
     list-style: none;
@@ -106,6 +161,12 @@ const ld = quizLd({
     display: flex;
     flex-direction: column;
     gap: var(--space-2);
+  }
+  /* A column-flex item's min-width is auto, i.e. its content's min width, so
+     one wide formula option would widen the list past the panel and clip the
+     question. 0 makes .quiz-text's scroll box the thing that gives instead. */
+  .quiz-options > li {
+    min-width: 0;
   }
   /* Borderless filled rows: each option recesses to --card-nested inside the
      --bg-elevated panel (like every other inset), so the resting affordance is a
@@ -138,6 +199,22 @@ const ld = quizLd({
   .quiz-option:active:not([disabled]) {
     transform: translateY(1px);
   }
+  /* The option text is the row's flexible cell: flex-basis 0 (not min-width:0
+     alone) so a long option never strands the mark on its own line. An option
+     that is a formula must not break inside itself — inline KaTeX is a run of
+     .base spans a browser will wrap between, after an `=` or a comma, and the
+     option then reads as two formulas (maintainer call, 2026-09-20: a
+     scrollbar is fine, a bad break is not). Keep the math on one line and let
+     this cell scroll it; prose options still wrap at spaces as before. */
+  .quiz-text {
+    flex: 1 1 0;
+    min-width: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+  .quiz-text :global(.katex) {
+    white-space: nowrap;
+  }
   .quiz-mark {
     flex: none;
     display: grid;
@@ -147,11 +224,29 @@ const ld = quizLd({
     border: 1px solid var(--border-strong);
     border-radius: 50%;
   }
+  /* Several right answers: square marks, the checkbox shape every form has
+     taught readers means "tick any number", against the round radio for one. */
+  .quiz[data-multi] .quiz-mark {
+    border-radius: var(--radius-xs);
+  }
   /* Both result glyphs are present but hidden until the option is graded, so
      correct/wrong reads from the shape (check / cross), not colour alone. */
   .quiz-mark :global(.i-correct),
   .quiz-mark :global(.i-wrong) {
     display: none;
+  }
+  /* A ticked (not yet graded) checkbox: accent-filled square with the check,
+     and an accent wash on the row so the selection reads from across the room. */
+  .quiz-option[aria-checked="true"] {
+    background: color-mix(in srgb, var(--accent) 14%, var(--card-nested));
+  }
+  .quiz-option[aria-checked="true"] .quiz-mark {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+  .quiz-option[aria-checked="true"] .quiz-mark :global(.i-correct) {
+    display: block;
+    color: var(--on-strong);
   }
   .quiz-option[data-state="correct"] {
     background: var(--tip-bg);
@@ -165,16 +260,52 @@ const ld = quizLd({
     display: block;
     color: var(--on-strong);
   }
+  /* A right answer the reader did not tick: same green row, but a hollow mark
+     with a green check — "this one too", distinct from the filled tick they
+     chose themselves. */
+  .quiz-option[data-state="missed"] {
+    background: var(--tip-bg);
+    color: var(--tip);
+  }
+  .quiz-option[data-state="missed"] .quiz-mark {
+    border-color: var(--tip);
+  }
+  .quiz-option[data-state="missed"] .quiz-mark :global(.i-correct) {
+    display: block;
+    color: var(--tip);
+  }
   .quiz-option[data-state="wrong"] {
     background: var(--wrong-bg);
     color: var(--wrong);
   }
   .quiz-option[data-state="wrong"] .quiz-mark {
+    background: transparent;
     border-color: var(--wrong);
+  }
+  .quiz-option[data-state="wrong"] .quiz-mark :global(.i-correct) {
+    display: none;
   }
   .quiz-option[data-state="wrong"] .quiz-mark :global(.i-wrong) {
     display: block;
     color: var(--wrong);
+  }
+  /* Same recessed fill as the option rows (the shared .sc-btn paper fill
+     equals this panel's own, and would vanish into it), so it reads as one
+     more control of the group; the accent wash on hover matches the rows. */
+  .quiz-submit {
+    margin-top: var(--space-3);
+    padding: var(--space-2) var(--space-4);
+    background: var(--card-nested);
+    color: var(--fg);
+  }
+  .quiz-submit:hover:not([disabled]) {
+    background: color-mix(in srgb, var(--accent) 14%, var(--card-nested));
+    color: var(--accent-ink);
+  }
+  .quiz-submit[disabled] {
+    color: var(--muted);
+    cursor: not-allowed;
+    transform: none;
   }
   .quiz-feedback {
     margin-top: var(--space-3);
@@ -202,10 +333,14 @@ const ld = quizLd({
   import { onPage } from "../lib/pageLifecycle.ts";
   onPage((signal) => {
     document.querySelectorAll<HTMLFormElement>(".quiz").forEach((quiz) => {
-      const answer = Number(quiz.dataset.answer);
+      const answers = new Set(
+        (quiz.dataset.answer ?? "").split(",").map(Number),
+      );
+      const multi = "multi" in quiz.dataset;
       const options = [
         ...quiz.querySelectorAll<HTMLButtonElement>(".quiz-option"),
       ];
+      const submit = quiz.querySelector<HTMLButtonElement>(".quiz-submit");
       const feedback = quiz.querySelector<HTMLElement>(".quiz-feedback")!;
       const explain = quiz.querySelector<HTMLElement>(".quiz-explain");
       let done = false;
@@ -215,9 +350,7 @@ const ld = quizLd({
       // aria-hidden visual tree plus the raw LaTeX <annotation>; keep only the
       // MathML text so math reads as symbols, not doubled markup.
       const optionText = (btn: HTMLButtonElement): string => {
-        const label = btn.querySelector<HTMLElement>(
-          ":scope > span:not(.quiz-mark)",
-        );
+        const label = btn.querySelector<HTMLElement>(".quiz-text");
         if (!label) return "";
         const clone = label.cloneNode(true) as HTMLElement;
         clone
@@ -252,66 +385,105 @@ const ld = quizLd({
         );
       });
 
-      options.forEach((btn) => {
-        btn.addEventListener(
-          "click",
-          () => {
-            if (done) return;
-            done = true;
-            const chosen = Number(btn.dataset.index);
-            const correct = chosen === answer;
+      // Grade a set of chosen indices: every option ends up right (chosen and
+      // in the key), wrong (chosen, not in the key), missed (in the key, not
+      // chosen — only possible with several answers) or plain (neither).
+      const grade = (chosen: Set<number>) => {
+        if (done) return;
+        done = true;
+        const correct =
+          chosen.size === answers.size &&
+          [...chosen].every((c) => answers.has(c));
 
-            // Disabling every option (including a focused one) would blur focus
-            // to <body>. If an option had focus, hand it to the feedback line
-            // instead so keyboard users keep a landing spot; pointer users never
-            // had widget focus, so they're untouched.
-            const hadFocus = options.includes(
-              document.activeElement as HTMLButtonElement,
-            );
-
-            options.forEach((b, i) => {
-              b.disabled = true;
-              if (i === answer) {
-                b.dataset.state = "correct";
-                addSrState(b, "riktig svar");
-              } else if (i === chosen) {
-                b.dataset.state = "wrong";
-                addSrState(b, "ditt svar");
-              }
-            });
-
-            feedback.hidden = false;
-            feedback.dataset.result = correct ? "correct" : "wrong";
-            if (correct) {
-              feedback.textContent = "Riktig!";
-            } else {
-              // Two audiences, one clean sentence each: sighted readers get
-              // "Se riktig svar." (the green row above shows the answer, so
-              // repeating it visibly is redundant); the live region announces
-              // the answer by name instead, since the row's reveal is colour +
-              // an aria-hidden icon — invisible in an announcement. aria-hidden
-              // strips the pointer sentence from the announced text; sr-only
-              // text is announced but not shown.
-              feedback.textContent = "Ikke helt. ";
-              const answerText = optionText(options[answer]);
-              const pointer = document.createElement("span");
-              pointer.textContent = "Se riktig svar.";
-              if (answerText) {
-                pointer.setAttribute("aria-hidden", "true");
-                const sr = document.createElement("span");
-                sr.className = "sr-only";
-                sr.textContent = `Riktig svar: ${answerText}.`;
-                feedback.append(pointer, sr);
-              } else {
-                feedback.append(pointer);
-              }
-            }
-            if (explain) explain.hidden = false;
-            if (hadFocus) feedback.focus({ preventScroll: true });
-          },
-          { signal },
+        // Disabling every option (including a focused one) would blur focus
+        // to <body>. If an option had focus, hand it to the feedback line
+        // instead so keyboard users keep a landing spot; pointer users never
+        // had widget focus, so they're untouched.
+        const hadFocus = [...options, submit].includes(
+          document.activeElement as HTMLButtonElement,
         );
-      });
+
+        options.forEach((b, i) => {
+          b.disabled = true;
+          if (answers.has(i) && (chosen.has(i) || !multi)) {
+            b.dataset.state = "correct";
+            addSrState(b, "riktig svar");
+          } else if (answers.has(i)) {
+            b.dataset.state = "missed";
+            addSrState(b, "riktig svar, ikke valgt");
+          } else if (chosen.has(i)) {
+            b.dataset.state = "wrong";
+            addSrState(b, "ditt svar");
+          }
+        });
+        if (submit) submit.disabled = true;
+
+        feedback.hidden = false;
+        feedback.dataset.result = correct ? "correct" : "wrong";
+        if (correct) {
+          feedback.textContent = "Riktig!";
+        } else {
+          // Two audiences, one clean sentence each: sighted readers get
+          // "Se riktig svar." (the green rows above show the answer, so
+          // repeating it visibly is redundant); the live region announces
+          // the answer by name instead, since the row's reveal is colour +
+          // an aria-hidden icon — invisible in an announcement. aria-hidden
+          // strips the pointer sentence from the announced text; sr-only
+          // text is announced but not shown.
+          feedback.textContent = "Ikke helt. ";
+          const answerText = [...answers]
+            .sort((a, b) => a - b)
+            .map((a) => optionText(options[a]))
+            .filter(Boolean)
+            .join("; ");
+          const pointer = document.createElement("span");
+          pointer.textContent = multi ? "Se riktige svar." : "Se riktig svar.";
+          if (answerText) {
+            pointer.setAttribute("aria-hidden", "true");
+            const sr = document.createElement("span");
+            sr.className = "sr-only";
+            sr.textContent = `${multi ? "Riktige svar" : "Riktig svar"}: ${answerText}.`;
+            feedback.append(pointer, sr);
+          } else {
+            feedback.append(pointer);
+          }
+        }
+        if (explain) explain.hidden = false;
+        if (hadFocus) feedback.focus({ preventScroll: true });
+      };
+
+      if (multi) {
+        // Checkbox rows: a click toggles; «Sjekk svar» grades the ticked set
+        // and stays disabled until something is ticked, so there is nothing to
+        // submit by accident.
+        const ticked = () =>
+          new Set(
+            options
+              .filter((b) => b.getAttribute("aria-checked") === "true")
+              .map((b) => Number(b.dataset.index)),
+          );
+        options.forEach((btn) => {
+          btn.addEventListener(
+            "click",
+            () => {
+              if (done) return;
+              const on = btn.getAttribute("aria-checked") === "true";
+              btn.setAttribute("aria-checked", on ? "false" : "true");
+              if (submit) submit.disabled = ticked().size === 0;
+            },
+            { signal },
+          );
+        });
+        submit?.addEventListener("click", () => grade(ticked()), { signal });
+      } else {
+        options.forEach((btn) => {
+          btn.addEventListener(
+            "click",
+            () => grade(new Set([Number(btn.dataset.index)])),
+            { signal },
+          );
+        });
+      }
     });
   });
 </script>

@@ -162,6 +162,34 @@ test("quizLd splits options into accepted + suggested answers", () => {
   ]);
 });
 
+test("quizLd with several right answers lists each as an acceptedAnswer", () => {
+  const ld = quizLd({
+    question: "Hvilke er primtall?",
+    options: ["2", "4", "5", "9"],
+    answer: [0, 2],
+    explanation: "Fordi.",
+  });
+  const q = ld.hasPart as Record<string, unknown>;
+  // An array only when there are several — one answer stays a bare object
+  // (the test above), so nothing changes for single-answer quizzes.
+  assert.deepEqual(q.acceptedAnswer, [
+    {
+      "@type": "Answer",
+      text: "2",
+      comment: { "@type": "Comment", text: "Fordi." },
+    },
+    {
+      "@type": "Answer",
+      text: "5",
+      comment: { "@type": "Comment", text: "Fordi." },
+    },
+  ]);
+  assert.deepEqual(q.suggestedAnswer, [
+    { "@type": "Answer", text: "4" },
+    { "@type": "Answer", text: "9" },
+  ]);
+});
+
 test("quizLd omits suggestedAnswer + comment when there's nothing to say", () => {
   const ld = quizLd({ question: "Sant?", options: ["Ja"], answer: 0 });
   const q = ld.hasPart as Record<string, unknown>;

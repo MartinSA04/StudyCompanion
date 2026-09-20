@@ -82,7 +82,7 @@ Author under `content/` only. **[`course-template/content/`](course-template/con
 | `<Compare>` / `<CompareCol>` | `<CompareCol title>` | Side-by-side comparison of 2–3 concepts; cards auto-stack on mobile. `title` may contain `$…$`. |
 | `<CodeBlock>` | `code`, `lang?`, `title?`, `id?`, `activeLine?`, `activeLines?` | Shiki-highlighted block (+ auto copy button). `activeLine`/`activeLines` emphasise 1-based line(s); with an `id`, a `<Simulation>` can step the highlight via `api.codeBlock(id)`. |
 | `<SelfCheck>` | `question`, `revealLabel?` | Prompt with answer behind a reveal. `revealLabel` defaults to "Vis svar". |
-| `<Quiz>` | `question`, `options[]`, `answer` (0-based), `explanation?` | Single-answer MCQ; text may contain `$…$`. |
+| `<Quiz>` | `question`, `options[]`, `answer` (0-based index, or an array of indices), `explanation?` | MCQ; text may contain `$…$`. One index = radio rows graded on click; an array = checkbox rows (square marks, «Kryss av alle som stemmer» hint) graded by a «Sjekk svar» button. |
 | `<Simulation>` | `src`, `title?`, `caption?`, `height?`, `host?` (canvas\|dom) | Mounts a course-owned simulation (see below). `host="dom"` gives the module an SVG/HTML stage (`api.stage`) instead of a canvas. `title`/`caption` may contain `$inline$` math. |
 | `<Stepper>` | `src`, `codeId?`, `title?`, `caption?`, `height?` | Generic algorithm trace-player: the framework owns transport/seek/speed/variables + `<CodeBlock>` line-sync; a course module (`public/steppers/`) supplies `run(input)` + `render(stage, frame)`. `title`/`caption` may contain `$inline$` math. See `AUTHORING.md` §5. |
 
