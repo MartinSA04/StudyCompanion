@@ -538,14 +538,29 @@ button {
 }
 
 /* --- KaTeX size ---
-   1.05em, not the shipped 1.21em: Spectral and KaTeX_Main are optically
-   matched (x-height ratio 1.02), so the default reads oversized here. The rem
-   floor is for math inside --text-sm containers (glossary definitions, formula
-   labels, quiz explanations, captions, tables): 0.84rem text would put a
-   second-level subscript at ~7.5px. In prose and display math 1.05em wins and
-   nothing changes; in small text the floor lifts the base to ~15px. */
-.katex {
+   Inline math at 1.05em, not the shipped 1.21em: Spectral and KaTeX_Main are
+   optically matched (x-height ratio 1.02), so the default reads oversized in a
+   line of prose. The rem floor is for math inside --text-sm containers
+   (glossary definitions, formula labels, quiz explanations, captions, tables):
+   0.84rem text would put a second-level subscript at ~7.5px. In prose 1.05em
+   wins and nothing changes; in small text the floor lifts the base to ~15px.
+   Display math (the $ blocks) stands on its own line with no prose to match
+   and keeps KaTeX's 1.21em — maintainer call, 2026-09-21.
+
+   ORDER-INDEPENDENT ON PURPOSE. katex.min.css is linked only on pages that
+   carry math, and Astro's ClientRouter keeps stylesheets already in the head
+   where they are and appends new ones at the end — so after a client-side
+   navigation from a no-math page, katex.min.css sits AFTER this file. Every
+   override of a katex.min.css rule here must therefore beat it on
+   specificity, never on order: the `:root` hop lifts these above KaTeX's
+   `.katex` / `.katex-display > .katex`; the script-size rules below use an
+   extra `.katex-html` hop for the same reason. visual/katex-order.spec.ts
+   asserts both load paths agree. */
+:root .katex {
   font-size: max(1.05em, 0.95rem);
+}
+:root .katex-display > .katex {
+  font-size: 1.21em;
 }
 /* Second-level scripts at 0.6 of the base instead of TeX's 0.5. TeX's 10:7:5
    assumes optically designed 7pt/5pt fonts; KaTeX scales one face linearly, so
@@ -593,17 +608,18 @@ button {
    element that abandoned it, floating a short equation ~80px right of the
    paragraph that introduces it. Left-aligned, narrow math stays tied to its
    column and wide math still extends right into the frame and scrolls — both
-   starting where the reader's eye returns. base.css loads after katex.min.css,
-   so these win the same-specificity tie — and the inner selector is needed
-   because KaTeX left-justifies the glyphs via `.katex-display > .katex`, not
-   the wrapper. */
+   starting where the reader's eye returns. The `:root` hop beats
+   katex.min.css's `text-align: center` regardless of stylesheet order (see
+   the KaTeX size block above) — and the inner selector is needed because
+   KaTeX left-justifies the glyphs via `.katex-display > .katex`, not the
+   wrapper. */
 .katex-display {
   overflow-x: auto;
   overflow-y: hidden;
   padding-block: var(--space-2);
-  text-align: left;
 }
-.katex-display > .katex {
+:root .katex-display,
+:root .katex-display > .katex {
   text-align: left;
 }
 
