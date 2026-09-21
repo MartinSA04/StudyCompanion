@@ -60,7 +60,7 @@ Author under `content/` only. **[`course-template/content/`](course-template/con
 
 | Component | Props | Purpose |
 |---|---|---|
-| `<Formula>` | `tex`, `caption?`, `block?`, `memorize?` | Server-rendered KaTeX. `memorize` adds a "må pugges" badge. |
+| `<Formula>` | `tex`, `caption?`, `block?`, `memorize?` | Server-rendered KaTeX. `memorize` adds a "må pugges" badge. Wide formulas scroll; a top-level `\allowbreak` marks where one may wrap when it does not fit (AUTHORING.md). |
 | `<Figure>` | `src`, `alt`, `caption?`, `number?`, `width?`, `height?`, `full?` | Captioned image/diagram. `width`+`height` reserve the aspect-ratio (no layout shift); lazy-loaded. `caption` may contain `$…$`; `number` → "Figur N". |
 | `<Video>` | `id`, `title`, `channel?`, `duration?`, `caption?`, `number?` | A YouTube video as a click-to-load facade: a text-only card until the reader clicks, then a `youtube-nocookie` player in place. **Nothing third-party loads before the click** (no thumbnail, no Google JS, no cookies). `id` takes a video id or any youtube.com/youtu.be link, including a `?t=` start; a link it cannot parse fails the build. `caption` may contain `$…$`; `number` → "Video N". |
 | `<Statement>` | `kind?` (law\|theorem\|definition\|principle), `name`, `id?` | A named, boxed result with a stable `#` anchor for deep-linking. `name` may contain `$…$`; `id` defaults to a slug of `name`. |

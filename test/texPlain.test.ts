@@ -31,6 +31,11 @@ test("font wrappers are dropped so the letter itself remains", () => {
   assert.equal(texToPlain("\\mathbf{\\hat{x}}"), "x");
 });
 
+test("line-break hints vanish", () => {
+  assert.equal(texToPlain("a\\allowbreak+b"), "a+b");
+  assert.equal(texToPlain("a\\nobreak+b"), "a+b");
+});
+
 test("spacing commands and \\left/\\right vanish; unknown commands keep their name", () => {
   assert.equal(texToPlain("\\partial\\,\\delta p/\\partial t"), "∂δp/∂t");
   assert.equal(texToPlain("\\left( a \\right)"), "(a)");

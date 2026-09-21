@@ -68,6 +68,8 @@ formulas:
   - { tex: "\\sin\\theta_c = \\frac{n_2}{n_1}", label: "Grensevinkel for totalrefleksjon", section: "Geometrisk optikk", memorize: true, onSheet: false }
   - { tex: "d\\sin\\theta = m\\lambda", label: "Maksima i flerspaltinterferens", section: "Bølgeoptikk" }
   - { tex: "\\Delta y = \\frac{\\lambda L}{d}", label: "Stripeavstand i dobbeltspalteforsøket", section: "Bølgeoptikk", memorize: true, onSheet: false }
+  # \allowbreak: the row wraps at that seam only where it does not fit (AUTHORING.md §6).
+  - { tex: "I(\\theta) = I_0 \\cos^2\\!\\left(\\frac{\\pi d\\sin\\theta}{\\lambda}\\right) \\allowbreak \\cdot \\operatorname{sinc}^2\\!\\left(\\frac{\\pi a\\sin\\theta}{\\lambda}\\right)", label: "Dobbeltspalte med enkeltspalte-omhylling", section: "Bølgeoptikk" }
 
 # Exercises <SymbolList> (the Symboler page): grouping by `section`, a row with
 # no unit, a `note`, `term` → Begreper link, `formula` → Formelsamling link, an

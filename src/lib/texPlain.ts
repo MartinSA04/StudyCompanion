@@ -77,6 +77,10 @@ const GLYPHS: Record<string, string> = {
   bigr: "",
   Bigl: "",
   Bigr: "",
+  // Line-break hints (`\allowbreak` lets a wide formula wrap on a phone — see
+  // base.css) carry no glyph either.
+  allowbreak: "",
+  nobreak: "",
 };
 
 /**

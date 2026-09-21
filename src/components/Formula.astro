@@ -122,6 +122,9 @@ const html = ignoreInSearch(
        broken (maintainer call, 2026-09-20: a scrollbar is fine, a bad break
        is not), so keep the run on one line and let overflow-x scroll it. */
     white-space: nowrap;
+    /* An author's `\allowbreak` is the one place the run may wrap (base.css);
+       the continuation line then hangs like a display block's. */
+    text-indent: 1.5em hanging;
     padding-block: var(--space-1);
     padding-inline-end: var(--space-1);
     color: var(--fg);

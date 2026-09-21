@@ -297,7 +297,8 @@ In addition to the definition-of-done in `AUTHORING.md` §8:
       from this module plus prerequisites; answers checked against the official solution; every
       multiple-choice task is a `<Quiz>` with the paper's alternatives, never a list in prose.
 - [ ] **No formula broken at an unnatural place.** A wide formula scrolls, which is fine; one that
-      wraps after `=` or at a `\qquad` comma reads as broken. `aligned` only at natural seams.
+      wraps after `=` or at a `\qquad` comma reads as broken. `aligned` only at natural seams;
+      a continuation that should wrap only on phones gets `\allowbreak` (AUTHORING.md §6).
 - [ ] **No forward reference to a week, module number or date** anywhere, including `course.yaml`
       entries and simulation captions.
 - [ ] **Every sim checked at phone width** (≈390 px, both themes, slider extremes): no clipped or

@@ -623,6 +623,34 @@ button {
   text-align: left;
 }
 
+/* One formula, one line — unless the line can't hold it. Every math cell is
+   nowrap (display blocks by KaTeX's own `.katex-display > .katex`, widget cells
+   by their components), so a wide formula scrolls instead of wrapping after an
+   `=` or at a `\qquad` comma (AUTHORING.md). That also swallows an author's
+   explicit `\allowbreak` — TeX's "you may break here" — which is the one break
+   that IS wanted: on a phone the continuation takes a second line, on a wider
+   screen the formula stays whole. KaTeX ends a top-level chunk (`.base`) at
+   each `\allowbreak`, so the chunk carrying one becomes an inline run —
+   `display: inline` drops its inline-block, whose min-content sizing would
+   otherwise take the break unconditionally — closed by a pair of zero-width
+   spaces in a normal-white-space pseudo: the only soft-wrap opportunity on
+   the line, taken only when the line overflows. The pseudo sits after the
+   chunk's trailing operator glue, so the continuation starts at the operator.
+   The hanging indent marks a taken break as a continuation, the way an
+   `aligned` `&\quad` row would, and is inert while the formula fits.
+   test/katex-allowbreak.test.ts pins the KaTeX structure this leans on;
+   visual/katex-allowbreak.spec.ts measures both widths in a browser. */
+.katex .katex-html > .base:has(> .allowbreak) {
+  display: inline;
+}
+.katex .katex-html > .base:has(> .allowbreak)::after {
+  content: "\200B\200B";
+  white-space: normal;
+}
+.katex-display > .katex > .katex-html {
+  text-indent: 1.5em hanging;
+}
+
 /* --- Accessibility helper --- */
 .sr-only {
   position: absolute;

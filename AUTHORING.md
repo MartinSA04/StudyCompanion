@@ -370,6 +370,21 @@ Keep `run(input)` deterministic for a given input (shuffle re-calls
   per row, or a continuation that starts with `=`, `+`, `−` or `±`. When the
   wide part is the second row, put `&` at the start of both rows so the
   continuation sits flush left instead of at the `=` column.
+
+  A continuation that only needs its own line on a phone gets `\allowbreak`
+  instead of `aligned`:
+
+  ```latex
+  L = \tfrac12 m_1\dot{\vec r}_1^{\,2} + \tfrac12 m_2\dot{\vec r}_2^{\,2} \allowbreak - V(|\vec r_1 - \vec r_2|)
+  ```
+
+  stays on one line wherever it fits and wraps at exactly that seam, with a
+  hanging indent, where it does not. Put it right before the operator that
+  should start the next line. It works in display math, `<Formula>` and
+  Formelsamling rows, only at the top level of the formula (not inside
+  `\left(…\right)`, braces or a fraction), and a formula may carry several.
+  Keep `aligned` for rows that are separate equations, or a break wanted on
+  every screen.
 - **Explicit numbering.** Figures (`number`), formulas, and statement ids are set
   **by hand**, never auto-derived — so reordering content never silently
   renumbers, and a cross-ref target stays stable. Section display numbers are the
