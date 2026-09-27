@@ -19,3 +19,25 @@ export function assertOneOf(
     );
   }
 }
+
+/**
+ * Build-time guard for a required string prop — the key a reference widget
+ * resolves (`<FormulaRef id>`, `<ExamRef id>`). Left out or misspelt
+ * (`<ExamRef ids="…">`), it reaches the component as `undefined`, and a lookup
+ * like `exams.find((e) => e.id === id)` then matches the first entry WITHOUT an
+ * id: a silently wrong link rather than a dead one. Throwing names the
+ * component and what to write instead.
+ */
+export function assertRequiredString(
+  value: unknown,
+  component: string,
+  prop: string,
+  what: string,
+): asserts value is string {
+  if (typeof value !== "string" || value === "") {
+    throw new Error(
+      `study-companion: <${component}> needs ${prop}="…" — ${what}. ` +
+        `Got ${value === "" ? "an empty string" : String(value)}.`,
+    );
+  }
+}

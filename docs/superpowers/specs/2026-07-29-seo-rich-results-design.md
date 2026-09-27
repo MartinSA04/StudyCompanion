@@ -120,6 +120,12 @@ from a URL host" rule that governs `institution`.
 
 ### `<Quiz>` — component-inline
 
+> **Removed 2026-09-27.** Google retired the practice-problem rich result in
+> January 2026, so the per-quiz markup below restated the form for no reader;
+> `<Quiz>` now emits no JSON-LD and `quizLd` is gone from `lib/jsonLd.ts`. The
+> flashcard deck's Education Q&A markup (next subsection) stays — Google still
+> documents it. Kept below as the record of what shipped in v4.0.0–v4.10.x.
+
 `Quiz.astro` emits its own `<script type="application/ld+json">` beside the
 form:
 

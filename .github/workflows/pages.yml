@@ -3,13 +3,17 @@ name: Deploy hub to GitHub Pages
 on:
   push:
     branches: [main]
+    # Everything the hub build reads: its own page + config, and the framework
+    # files it imports directly. src/lib/** as a whole rather than a list — the
+    # page and its config import color, themeColor, text, jsonLd, countdown,
+    # examCountdown, favicon, pageLifecycle and rasterizeIcons, and those import
+    # further lib modules, so an itemised list silently falls behind.
     paths:
       - "hub/**"
       - "src/styles/**"
+      - "src/lib/**"
       - "src/components/ThemeToggle.astro"
       - "src/components/Icon.astro"
-      - "src/lib/favicon.ts"
-      - "src/lib/pageLifecycle.ts"
       - "astro.config.hub.mjs"
       - ".github/workflows/pages.yml"
   workflow_dispatch:

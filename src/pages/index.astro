@@ -5,6 +5,7 @@ import Icon from "../components/Icon.astro";
 import ImportanceTag from "../components/ImportanceTag.astro";
 import { loadCourse } from "../lib/loadCourse.ts";
 import { validateXrefs } from "../lib/xref.ts";
+import { validateMathSource } from "../lib/mathSource.ts";
 import { daysUntil, formatExamCountdown } from "../lib/countdown.ts";
 import { upcomingDeadlines } from "../lib/deadlines.ts";
 import { dateLeaf } from "../lib/dates.ts";
@@ -24,8 +25,9 @@ const { course, sections, flashcards, tools } = await loadCourse();
 
 // 2.9 — Build-time cross-reference validation. The `/` route is always built,
 // so validating here scans the whole course once and FAILS the build on a dead
-// <Term>/<FormulaRef> target or a duplicate <Statement>/formula anchor. In DEV
-// it only logs (the page must still render; the widgets already warn inline).
+// <Term>/<FormulaRef> target or a duplicate <Statement>/formula anchor — and,
+// in the same pass, on the MDX math traps lib/mathSource.ts knows. In DEV it
+// only logs (the page must still render; the widgets already warn inline).
 {
   const sectionInputs = sections.map((s) => {
     const e = s as { id: string; body?: string; filePath?: string };
@@ -50,6 +52,34 @@ const { course, sections, flashcards, tools } = await loadCourse();
     const msg =
       "study-companion: cross-reference validation failed —\n" +
       report.errors.map((e) => `  • ${e}`).join("\n");
+    if (import.meta.env.DEV) console.error(`[study-companion] ${msg}`);
+    else throw new Error(msg);
+  }
+
+  // Math traps that render wrong with no error of their own (lib/mathSource.ts):
+  // a one-line $$…$$ block, a doubled backslash in a string prop's math. Scans
+  // the whole file, frontmatter included, so the line numbers are exact.
+  const mathErrors = validateMathSource(
+    sections.map((s, i) => {
+      const e = s as { id: string; filePath?: string };
+      let body = "";
+      if (e.filePath) {
+        try {
+          body = readFileSync(e.filePath, "utf8");
+        } catch {
+          /* fall back to the collection body below */
+        }
+      }
+      return {
+        label: e.filePath ?? e.id,
+        body: body || sectionInputs[i].body,
+      };
+    }),
+  );
+  if (mathErrors.length) {
+    const msg =
+      "study-companion: math source check failed —\n" +
+      mathErrors.map((e) => `  • ${e}`).join("\n");
     if (import.meta.env.DEV) console.error(`[study-companion] ${msg}`);
     else throw new Error(msg);
   }

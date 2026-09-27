@@ -218,69 +218,13 @@ export function definedTermSetLd(opts: {
 export const FLASHCARD_LD_LIMIT = 100;
 
 /**
- * One multiple-choice question, as Google's "practice problems" rich result
- * (schema.org `Quiz` + `Question`). Emitted INLINE by `<Quiz>` rather than
- * assembled page-level: quiz instances live inside MDX bodies rendered through
- * `<Content />`, so page frontmatter cannot see them without a remark pass over
- * the MDX AST. JSON-LD in `<body>` is fully supported, and a component that
- * emits its own markup can never drift from what it actually rendered.
- *
- * Text must arrive already stripped of KaTeX delimiters and inline HTML
- * (`stripInline` in lib/seo.ts) — structured data is plain text.
- *
- * `answer` is the 0-based index of the correct option, exactly as `<Quiz>`
- * takes it; out-of-range indices are the component's build-time guard to
- * reject, not this builder's.
- */
-export function quizLd(opts: {
-  question: string;
-  options: string[];
-  /** Index of the right option, or of every right option. */
-  answer: number | number[];
-  explanation?: string;
-  about?: CourseRefOpts;
-}) {
-  const answers = Array.isArray(opts.answer) ? opts.answer : [opts.answer];
-  // schema.org allows several acceptedAnswer values; a single one stays a bare
-  // object (not a one-element array) so existing consumers see no change.
-  const accept = answers.map((i) => {
-    const a: Record<string, unknown> = {
-      "@type": "Answer",
-      text: opts.options[i],
-    };
-    if (opts.explanation) {
-      a.comment = { "@type": "Comment", text: opts.explanation };
-    }
-    return a;
-  });
-  const accepted = accept.length === 1 ? accept[0] : accept;
-  const question: Record<string, unknown> = {
-    "@type": "Question",
-    eduQuestionType: "Multiple choice",
-    learningResourceType: "Practice problem",
-    text: opts.question,
-    acceptedAnswer: accepted,
-  };
-  const wrong = opts.options.filter((_, i) => !answers.includes(i));
-  if (wrong.length) {
-    question.suggestedAnswer = wrong.map((text) => ({
-      "@type": "Answer",
-      text,
-    }));
-  }
-  const ld: Record<string, unknown> = {
-    "@context": CONTEXT,
-    "@type": "Quiz",
-    hasPart: question,
-  };
-  if (opts.about) ld.about = courseRef(opts.about);
-  return ld;
-}
-
-/**
  * The whole flashcard deck as ONE `Quiz` of `eduQuestionType: "Flashcard"`
- * questions — page-level, because `flashcards.yaml` is data the tool page
- * already holds in full (unlike the MDX-embedded `<Quiz>` above).
+ * questions — Google's Education Q&A (flashcard) rich result — page-level,
+ * because `flashcards.yaml` is data the tool page already holds in full.
+ *
+ * The per-question `<Quiz>` widget emits nothing: Google retired the
+ * practice-problem rich result it targeted in January 2026, while flashcard
+ * Education Q&A is still documented.
  *
  * Truncates to `FLASHCARD_LD_LIMIT` cards; pass `onTruncate` to surface that in
  * the build log. Cards arrive already stripped of KaTeX and inline HTML.

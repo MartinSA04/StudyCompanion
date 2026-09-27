@@ -1,5 +1,6 @@
 ---
 import { loadCourse } from "../lib/loadCourse.ts";
+import { assertRequiredString } from "../lib/assertProp.ts";
 import Icon from "./Icon.astro";
 
 /**
@@ -22,6 +23,14 @@ interface Props {
   task?: string;
 }
 const { id, task } = Astro.props;
+// MDX isn't type-checked: an undefined id would match the first exam that has
+// no id and silently open the wrong paper.
+assertRequiredString(
+  id,
+  "ExamRef",
+  "id",
+  "the id of the course.exams entry whose paper it opens",
+);
 const { course } = await loadCourse();
 const exam = course.exams.find((e) => e.id === id);
 

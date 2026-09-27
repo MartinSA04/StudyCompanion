@@ -2,6 +2,7 @@
 /**
  * A collapsible derivation / worked steps block. Native <details>, so it works
  * with no JS. Author the steps as slotted MDX (often a sequence of <Formula>).
+ * `title` may contain `$inline$` math.
  */
 interface Props {
   title?: string;
@@ -9,14 +10,21 @@ interface Props {
 }
 const { title = "Utledning", open = false } = Astro.props;
 import Icon from "./Icon.astro";
+import { renderMathString } from "../lib/katex.ts";
+import { mathStringToText } from "../lib/mathText.ts";
+import { stringsHaveMath } from "../lib/hasMath.ts";
+
+// Chrome leaves KaTeX's MathML out of the summary's accessible name, so a
+// title with math is named from its plain-text reading instead.
+const label = stringsHaveMath([title]) ? mathStringToText(title) : undefined;
 ---
 
 <details class="derivation sc-panel" open={open}>
-  <summary class="sc-summary" data-pagefind-ignore>
+  <summary class="sc-summary" data-pagefind-ignore aria-label={label}>
     <span class="derivation-chevron sc-chev" aria-hidden="true">
       <Icon name="chevron-right" size={13} />
     </span>
-    <span>{title}</span>
+    <span set:html={renderMathString(title)} />
   </summary>
   <div class="derivation-body"><slot /></div>
 </details>

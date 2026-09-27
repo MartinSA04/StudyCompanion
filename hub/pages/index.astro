@@ -4,7 +4,10 @@ import { ClientRouter } from "astro:transitions";
 import ThemeToggle from "../../src/components/ThemeToggle.astro";
 import { faviconDataUri, OG_WIDTH, OG_HEIGHT } from "../../src/lib/favicon.ts";
 import { contrastText } from "../../src/lib/color.ts";
-import { THEME_COLOR_LIGHT } from "../../src/lib/themeColor.ts";
+import {
+  THEME_COLOR_LIGHT,
+  THEME_COLOR_DARK,
+} from "../../src/lib/themeColor.ts";
 import { plain } from "../../src/lib/text.ts";
 import {
   hubCollectionLd,
@@ -147,8 +150,9 @@ const accentVars =
 
     {
       /* Chrome/native-control theming, trimmed from CourseLayout: one
-        un-mediaed theme-color owned by the theme script above (tokens.css has
-        no prefers-color-scheme fallback, so a media-keyed dark meta would paint
+        un-mediaed theme-color owned by the theme script below, which repaints
+        it on load, on an OS flip and on a toggle (tokens.css has no
+        prefers-color-scheme fallback, so a media-keyed dark meta would paint
         dark chrome on a light page for a no-JS dark-OS reader). */
     }
     <meta name="theme-color" content={THEME_COLOR_LIGHT} />
@@ -189,28 +193,53 @@ const accentVars =
       set:html={serializeLd(hubLd)}
       is:inline
     />
-    <script is:inline define:vars={{ themeKey }}>
+    <script
+      is:inline
+      define:vars={{
+        themeKey,
+        themeColorLight: THEME_COLOR_LIGHT,
+        themeColorDark: THEME_COLOR_DARK,
+      }}
+    >
       // No-flash theme init — trimmed from CourseLayout (single page: no
       // view-transition swaps to re-apply across). An explicit stored choice
       // wins; otherwise the OS preference does, tracked live. The OS path
       // dispatches sc:themechange so ThemeToggle can mirror aria-pressed.
       (function () {
         function isDark() {
+          // Only the storage read can throw (policy-blocked storage); the OS
+          // fallback must survive it, or a dark-OS reader gets a light hub.
+          let saved = null;
           try {
-            const saved = localStorage.getItem(themeKey);
-            return saved
-              ? saved === "dark"
-              : matchMedia("(prefers-color-scheme: dark)").matches;
+            saved = localStorage.getItem(themeKey);
           } catch (e) {
-            return false;
+            /* storage blocked — fall through to the OS preference */
           }
+          return saved
+            ? saved === "dark"
+            : matchMedia("(prefers-color-scheme: dark)").matches;
+        }
+        // Browser chrome follows the APPLIED theme (a stored toggle choice can
+        // hold against the OS), so paint it from data-theme, never the OS.
+        function paintChrome() {
+          const dark =
+            document.documentElement.getAttribute("data-theme") === "dark";
+          const meta = document.querySelector('meta[name="theme-color"]');
+          if (meta)
+            meta.setAttribute(
+              "content",
+              dark ? themeColorDark : themeColorLight,
+            );
         }
         function applyTheme() {
           if (isDark())
             document.documentElement.setAttribute("data-theme", "dark");
           else document.documentElement.removeAttribute("data-theme");
+          paintChrome();
         }
         applyTheme();
+        // ThemeToggle dispatches this after applying + persisting a flip.
+        document.addEventListener("sc:themechange", paintChrome);
         matchMedia("(prefers-color-scheme: dark)").addEventListener(
           "change",
           function () {

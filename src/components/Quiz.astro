@@ -9,6 +9,11 @@
  * «Sjekk svar»; grading then marks each row as chosen-and-right,
  * chosen-and-wrong or missed. This is a study aid, not a graded test, so the
  * answer being present in the DOM is fine.
+ *
+ * No structured data: Google retired the practice-problem rich result this
+ * once emitted (schema.org `Quiz`) in January 2026, so the markup would only
+ * restate the form for no reader. The flashcard deck's Education Q&A markup
+ * stays — Google still documents that one (see lib/jsonLd.ts).
  */
 interface Props {
   question: string;
@@ -19,10 +24,7 @@ interface Props {
 }
 const { question, options, answer, explanation } = Astro.props;
 import { renderMathString } from "../lib/katex.ts";
-import { stripInline } from "../lib/seo.ts";
-import { quizLd, serializeLd } from "../lib/jsonLd.ts";
-import { loadCourse } from "../lib/loadCourse.ts";
-import { courseGraph } from "../lib/courseGraph.ts";
+import { mathStringToText } from "../lib/mathText.ts";
 import Icon from "./Icon.astro";
 
 const multi = Array.isArray(answer);
@@ -42,46 +44,29 @@ if (!valid) {
   );
 }
 
-// Google's "practice problems" rich result, emitted inline beside the form.
-// Component-level rather than page-level because a <Quiz> lives inside an MDX
-// body rendered through <Content />, where page frontmatter can't see it —
-// see lib/jsonLd.ts. Course context follows the <FormulaRef>/<Term> precedent
-// of reading the collection from a component.
-const { course } = await loadCourse();
-const ld = quizLd({
-  question: stripInline(question),
-  options: options.map(stripInline),
-  answer,
-  explanation: explanation ? stripInline(explanation) : undefined,
-  // The same course reference every page-level node uses, rather than a second
-  // hand-built literal that could drift from it (it just had: this one kept the
-  // raw title, soft hyphens and all, where structured data wants `plain()`).
-  about: courseGraph(course).course,
-});
+// Accessible names, as plain text. Chrome leaves KaTeX's MathML out of a
+// control's name (and a group's, from its legend), so "Bølgelengden $\lambda$
+// blir kortere" would be announced as "Bølgelengden blir kortere". The option
+// labels are also what the graded live region reads back (script below).
+const hint = "Flere svar er riktige. Kryss av alle som stemmer.";
+const groupLabel = mathStringToText(question) + (multi ? ` ${hint}` : "");
+const optionLabels = options.map(mathStringToText);
 ---
-
-<script type="application/ld+json" set:html={serializeLd(ld)} is:inline />
 
 <form
   class="quiz sc-panel"
   data-answer={answers.join(",")}
   data-multi={multi ? "" : undefined}
 >
-  <fieldset>
+  <fieldset aria-label={groupLabel}>
     {
-      /* The hint lives inside the legend so the group's accessible name carries
-        it — no id plumbing, and a screen reader hears "…? Flere svar er
-        riktige" before the first checkbox. */
+      /* The hint shows under the question and ends the group's name
+        (groupLabel), so a screen reader hears "…? Flere svar er riktige"
+        before the first checkbox. */
     }
     <legend class="quiz-q">
       <span set:html={renderMathString(question)} />
-      {
-        multi && (
-          <span class="quiz-hint">
-            Flere svar er riktige. Kryss av alle som stemmer.
-          </span>
-        )
-      }
+      {multi && <span class="quiz-hint">{hint}</span>}
     </legend>
     <ul class="quiz-options">
       {
@@ -93,12 +78,23 @@ const ld = quizLd({
               data-index={i}
               role={multi ? "checkbox" : undefined}
               aria-checked={multi ? "false" : undefined}
+              aria-label={optionLabels[i]}
             >
               <span class="quiz-mark" aria-hidden="true">
                 <Icon name="check" size={13} class="i-correct" />
                 <Icon name="x" size={13} class="i-wrong" />
               </span>
-              <span class="quiz-text" set:html={renderMathString(opt)} />
+              {/* tabindex="-1": a wide formula makes this span a scroll
+                  container, and Chrome then gives it a Tab stop of its own
+                  INSIDE the button — Enter there grades with focus stranded in
+                  a disabled button. -1 keeps it out of the Tab order; the
+                  script hands a click's focus back to the button and lets ←/→
+                  on the button scroll it. */}
+              <span
+                class="quiz-text"
+                tabindex="-1"
+                set:html={renderMathString(opt)}
+              />
             </button>
           </li>
         ))
@@ -345,31 +341,30 @@ const ld = quizLd({
       const explain = quiz.querySelector<HTMLElement>(".quiz-explain");
       let done = false;
 
-      // Plain-text of an option's label, for the announced feedback. KaTeX
-      // output carries both MathML (what a screen reader gets) and an
-      // aria-hidden visual tree plus the raw LaTeX <annotation>; keep only the
-      // MathML text so math reads as symbols, not doubled markup.
-      const optionText = (btn: HTMLButtonElement): string => {
-        const label = btn.querySelector<HTMLElement>(".quiz-text");
-        if (!label) return "";
-        const clone = label.cloneNode(true) as HTMLElement;
-        clone
-          .querySelectorAll(".katex-html, annotation, .sr-only")
-          .forEach((n) => n.remove());
-        return clone.textContent?.replace(/\s+/g, " ").trim() ?? "";
+      // Each option's plain-text name, built at build time (aria-label, see
+      // the frontmatter) — the one source for the announced feedback too.
+      const labels = options.map((b) => b.getAttribute("aria-label") ?? "");
+
+      // State suffix on the accessible name, so a graded option says what the
+      // colour + icon show ("…, riktig svar" / "…, ditt svar").
+      const addSrState = (i: number, text: string) => {
+        options[i].setAttribute("aria-label", `${labels[i]}, ${text}`);
       };
 
-      // Visually-hidden state suffix, so a graded option's accessible name says
-      // what the colour + icon show ("…, riktig svar" / "…, ditt svar").
-      const addSrState = (btn: HTMLButtonElement, text: string) => {
-        const s = document.createElement("span");
-        s.className = "sr-only quiz-sr-state";
-        s.textContent = `, ${text}`;
-        btn.appendChild(s);
-      };
-
-      // ↑/↓ moves focus between options (arrow-key group navigation)
       options.forEach((btn, i) => {
+        // The text span is a tabindex=-1 scroller (see the markup): a click on
+        // it would focus the span, not the button, so hand focus back.
+        const text = btn.querySelector<HTMLElement>(".quiz-text");
+        text?.addEventListener(
+          "focus",
+          () => btn.focus({ preventScroll: true }),
+          { signal },
+        );
+        // ↑/↓ moves focus between options (arrow-key group navigation); ←/→
+        // scroll an option too wide for its row, which takes no focus itself —
+        // and, like Stepper's arrows, stop there instead of reaching the
+        // page's global ←/→ module paging. An option that fits leaves ←/→ to
+        // the paging, as before.
         btn.addEventListener(
           "keydown",
           (e) => {
@@ -379,6 +374,14 @@ const ld = quizLd({
             } else if (e.key === "ArrowUp") {
               e.preventDefault();
               options[(i - 1 + options.length) % options.length]?.focus();
+            } else if (
+              (e.key === "ArrowRight" || e.key === "ArrowLeft") &&
+              text &&
+              text.scrollWidth > text.clientWidth
+            ) {
+              e.preventDefault();
+              e.stopPropagation();
+              text.scrollBy({ left: e.key === "ArrowRight" ? 40 : -40 });
             }
           },
           { signal },
@@ -407,13 +410,13 @@ const ld = quizLd({
           b.disabled = true;
           if (answers.has(i) && (chosen.has(i) || !multi)) {
             b.dataset.state = "correct";
-            addSrState(b, "riktig svar");
+            addSrState(i, "riktig svar");
           } else if (answers.has(i)) {
             b.dataset.state = "missed";
-            addSrState(b, "riktig svar, ikke valgt");
+            addSrState(i, "riktig svar, ikke valgt");
           } else if (chosen.has(i)) {
             b.dataset.state = "wrong";
-            addSrState(b, "ditt svar");
+            addSrState(i, "ditt svar");
           }
         });
         if (submit) submit.disabled = true;
@@ -433,7 +436,7 @@ const ld = quizLd({
           feedback.textContent = "Ikke helt. ";
           const answerText = [...answers]
             .sort((a, b) => a - b)
-            .map((a) => optionText(options[a]))
+            .map((a) => labels[a])
             .filter(Boolean)
             .join("; ");
           const pointer = document.createElement("span");

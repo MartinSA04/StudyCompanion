@@ -276,8 +276,8 @@ if (props.kind === "section") {
     );
   }
   if (props.kind === "flashcards" && flashcards.length) {
-    // Google's practice-problem rich result. Stripped of KaTeX/inline HTML —
-    // structured data is plain text (see lib/jsonLd.ts).
+    // Google's Education Q&A (flashcard) rich result. Stripped of KaTeX/inline
+    // HTML — structured data is plain text (see lib/jsonLd.ts).
     jsonLd.push(
       flashcardQuizLd({
         url: pageUrl,

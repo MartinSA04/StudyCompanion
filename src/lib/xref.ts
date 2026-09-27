@@ -14,6 +14,8 @@ import { slugify } from "./slug.ts";
  *   - `<ExamRef id>`       → a `course.exams[]` entry with that `id` AND a `url`
  *                            (the link opens the paper itself).
  *   - `<FormulaRef id>`    → a `course.formulas[]` entry with that `id`.
+ *   - `<ExamRef>`/`<FormulaRef>` with no `id="…"` string at all is an error
+ *                            too (see `missingIdError`).
  *   - `<Statement … id?>`  → anchor (explicit `id` or `slugify(name)`) is unique.
  *   - `course.formulas[].id` values are unique.
  *   - `course.exams[].id` values are unique.
@@ -64,6 +66,27 @@ function attr(tag: string, name: string): string | null {
 /** Every opening tag of `<Comp …>` (or self-closing) in a body. */
 function openingTags(body: string, comp: string): string[] {
   return body.match(new RegExp(`<${comp}\\b[^>]*?/?>`, "g")) ?? [];
+}
+
+/**
+ * A `<FormulaRef>`/`<ExamRef>` opening tag with no `id="…"` string is a real
+ * reference with its key missing — misspelt (`ids=`), left out, or passed as an
+ * `id={…}` expression this scan can't read — and the component then resolves
+ * `undefined`, which for ExamRef matches the first exam WITHOUT an id: a
+ * silently wrong link. Only a bare `<FormulaRef>` with no attributes, not
+ * self-closing and never closed is left alone, as prose naming the widget.
+ */
+function missingIdError(
+  label: string,
+  tag: string,
+  comp: string,
+  text: string,
+  target: string,
+): string | null {
+  const bare = new RegExp(`^<${comp}\\s*>$`).test(tag);
+  if (bare && !text.includes(`</${comp}>`)) return null;
+  const shown = tag.replace(/\s+/g, " ");
+  return `${label}: ${shown} has no id="…" — without one the link resolves to the wrong target (or none). Give it the id of the ${target} entry it means, as a plain string: <${comp} id="…" />.`;
 }
 
 /**
@@ -176,7 +199,17 @@ export function validateXrefs(input: XrefInput): XrefReport {
 
     for (const tag of openingTags(text, "FormulaRef")) {
       const id = attr(tag, "id");
-      if (id == null) continue;
+      if (id == null) {
+        const err = missingIdError(
+          label,
+          tag,
+          "FormulaRef",
+          text,
+          "course.formulas",
+        );
+        if (err) errors.push(err);
+        continue;
+      }
       if (!formulaIds.has(id)) {
         errors.push(
           `${label}: <FormulaRef id="${id}"> matches no formula with that id in course.formulas.`,
@@ -186,7 +219,11 @@ export function validateXrefs(input: XrefInput): XrefReport {
 
     for (const tag of openingTags(text, "ExamRef")) {
       const id = attr(tag, "id");
-      if (id == null) continue;
+      if (id == null) {
+        const err = missingIdError(label, tag, "ExamRef", text, "course.exams");
+        if (err) errors.push(err);
+        continue;
+      }
       if (!examIds.has(id)) {
         errors.push(
           `${label}: <ExamRef id="${id}"> matches no exam with that id in course.exams.`,

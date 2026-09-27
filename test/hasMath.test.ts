@@ -21,6 +21,23 @@ test("bodyHasMath: inline $…$ and display $$…$$ both count", () => {
   assert.equal(bodyHasMath("$$\\int_0^1 x\\,dx$$"), true);
 });
 
+test("bodyHasMath: math only in a <Callout>/<Derivation> title still counts", () => {
+  // Both titles typeset through renderMathString; the `$…$` sits in the raw
+  // attribute, which the delimiter test sees, so no widget-tag entry is needed.
+  assert.equal(
+    bodyHasMath(
+      '<Callout type="warning" title="$H$ er ikke energien">\nTekst.\n</Callout>',
+    ),
+    true,
+  );
+  assert.equal(
+    bodyHasMath(
+      '<Derivation title="Konturintegralet bak $G_R$">\nTekst.\n</Derivation>',
+    ),
+    true,
+  );
+});
+
 test("bodyHasMath: prose with a lone `$` (a price) does not count", () => {
   assert.equal(bodyHasMath("The book costs $5 at the store."), false);
 });

@@ -42,6 +42,10 @@ jobs:
       # generation, Pagefind indexing, demo MDX). sharp and Pagefind need no
       # extra setup on the ubuntu runner (see lighthouse.yml, same build).
       - run: pnpm build
+      # The hub imports framework components, lib modules and styles directly
+      # (not through the integration), so a change there can break it with the
+      # demo build still green. pages.yml builds it only on main, after merge.
+      - run: pnpm hub:build
 
   # The `check` build above exercises the framework through the repo's own
   # `link:.` dep — a SYMLINKED install, which happens to dodge Vite's SSR module

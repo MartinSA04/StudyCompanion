@@ -1,6 +1,5 @@
 ---
-import katex from "katex";
-import { renderMathString, ignoreInSearch } from "../lib/katex.ts";
+import { renderMathString, renderTex, ignoreInSearch } from "../lib/katex.ts";
 import MemorizeBadge from "./MemorizeBadge.astro";
 
 /**
@@ -33,9 +32,10 @@ const { tex, caption, block = true, memorize = false } = Astro.props;
 // horizontal scrollbar. Inline prose math (block=false) stays text-style so it
 // sits on the line with the surrounding sentence.
 const html = ignoreInSearch(
-  katex.renderToString(block ? `\\displaystyle ${tex}` : tex, {
+  // A TeX error renders red in place and fails the production build (see
+  // renderTex in lib/katex.ts).
+  renderTex(block ? `\\displaystyle ${tex}` : tex, {
     displayMode: false,
-    throwOnError: false, // render the offending TeX in red instead of failing build
     output: "htmlAndMathml",
   }),
 );

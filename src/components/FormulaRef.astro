@@ -1,8 +1,9 @@
 ---
-import katex from "katex";
-import { ignoreInSearch } from "../lib/katex.ts";
+import { ignoreInSearch, renderTex } from "../lib/katex.ts";
+import { texToText } from "../lib/mathText.ts";
 import { loadCourse } from "../lib/loadCourse.ts";
 import { TOOL_SLUGS } from "../lib/nav.ts";
+import { assertRequiredString } from "../lib/assertProp.ts";
 
 /**
  * Inline cross-reference from prose to a formula's row in the Formelsamling.
@@ -15,6 +16,13 @@ interface Props {
   id: string;
 }
 const { id } = Astro.props;
+// MDX isn't type-checked: without an id the link would point at "#undefined".
+assertRequiredString(
+  id,
+  "FormulaRef",
+  "id",
+  "the id of the course.formulas entry it links to",
+);
 const { course } = await loadCourse();
 const formula = course.formulas.find((f) => f.id === id);
 
@@ -28,13 +36,12 @@ const href = `/${TOOL_SLUGS.formulas}#${id}`;
 const hasText = Astro.slots.has("default");
 const texHtml =
   formula && !hasText
-    ? ignoreInSearch(
-        katex.renderToString(formula.tex, {
-          displayMode: false,
-          throwOnError: false,
-        }),
-      )
+    ? ignoreInSearch(renderTex(formula.tex, { displayMode: false }))
     : null;
+// Chrome leaves KaTeX's MathML out of a link's accessible name, so a math-only
+// ref would be announced as an unnamed link; name it from the formula's
+// plain-text reading.
+const texLabel = texHtml && formula ? texToText(formula.tex) : undefined;
 ---
 
 {
@@ -43,7 +50,12 @@ const texHtml =
       <slot />
     </a>
   ) : texHtml ? (
-    <a class="formula-ref formula-ref--math" href={href} set:html={texHtml} />
+    <a
+      class="formula-ref formula-ref--math"
+      href={href}
+      aria-label={texLabel}
+      set:html={texHtml}
+    />
   ) : (
     <a class="formula-ref" href={href}>
       {id}
@@ -66,8 +78,29 @@ const texHtml =
      through the dashes. inline-block wraps the true box and drops the border
      below the whole formula. Scoped to this branch on purpose: text-slotted
      refs must keep wrapping across lines, and their math is shallow enough to
-     clear the border. */
+     clear the border.
+     It is also the .formula-inline recipe (Formula.astro): nowrap keeps the
+     formula whole, so one wider than the column scrolls inside the link
+     instead of widening the whole page on a phone. The link is its own scroll
+     container and already a Tab stop, so no extra focus stop appears. Once
+     overflow isn't visible the box's baseline is its bottom edge; `bottom`
+     seats that on the line box's bottom, where the plain inline span sat.
+     A scroll container also counts KaTeX's invisible layout struts (the
+     vlist .pstrut spans above, the 2px .vlist-s after a subscript) and a
+     denominator's few px of descent as overflow, which would summon
+     scrollbars on a formula that fits. overflow-y: hidden drops the struts;
+     the end paddings give the rest room inside the box, and the matching
+     negative margins keep the formula and the text around it exactly where
+     they sat — only the dashed rule drops those few px, below the ink. */
   .formula-ref--math {
     display: inline-block;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    vertical-align: bottom;
+    padding-block-end: 0.15em;
+    margin-block-end: -0.15em;
+    padding-inline-end: 0.15em;
+    margin-inline-end: -0.15em;
   }
 </style>

@@ -247,3 +247,65 @@ test("print hides sim/stepper controls but keeps their stages", async ({
     ).not.toBe("none");
   }
 });
+
+/**
+ * On paper every external link spells out its URL (`a[href^="http"]::after`).
+ * The Eksamen list's links sat nowrap in an unshrinkable inline-flex column, so
+ * that URL became one more unbreakable flex item: with a real NTNU-length URL
+ * the column outgrew the A4 measure (739–1430px on a 718px column), labels
+ * printed one letter per line and «Løsning» was clipped. The demo's short
+ * example.com URLs hid it, so this swaps in realistic ones. Viewport = the A4
+ * content column at 96dpi.
+ */
+test("print keeps exam links and their long URLs inside the column", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 718, height: 1000 });
+  await page.goto("/eksamen");
+  await page.waitForLoadState("networkidle");
+  await page.evaluate(() => {
+    const base =
+      "https://www.ntnu.no/documents/1265565549/1297339329/TFY4220_Faste_stoffers_fysikk_eksamen_2025_desember_bokmaal";
+    document
+      .querySelectorAll<HTMLAnchorElement>(".exam-list a")
+      .forEach((a, i) => {
+        a.href = `${base}_${i}_med_losningsforslag_og_vedlegg.pdf`;
+      });
+  });
+  await page.emulateMedia({ media: "print" });
+  await page.evaluate(() => window.dispatchEvent(new Event("beforeprint")));
+
+  const layout = await page.evaluate(() => {
+    const list = document.querySelector(".exam-list")!;
+    const right = list.getBoundingClientRect().right;
+    const links = [...list.querySelectorAll<HTMLAnchorElement>("a")];
+    return {
+      overflow: list.scrollWidth - list.clientWidth,
+      pastEdge: links
+        .filter((a) => a.getBoundingClientRect().right > right + 0.5)
+        .map((a) => a.textContent?.trim()),
+      // A label must print on ONE line: its text node's fragments share a top.
+      brokenLabels: links
+        .filter((a) => {
+          const label = [...a.childNodes].find(
+            (n) => n.nodeType === Node.TEXT_NODE && n.textContent!.trim(),
+          );
+          if (!label) return false;
+          const range = document.createRange();
+          range.selectNodeContents(label);
+          const tops = new Set(
+            [...range.getClientRects()].map((r) => Math.round(r.top)),
+          );
+          return tops.size > 1;
+        })
+        .map((a) => a.textContent?.trim()),
+      urlShown: getComputedStyle(links[0], "::after").content.includes(
+        "ntnu.no",
+      ),
+    };
+  });
+  expect(layout.urlShown, "the URL still prints after the link").toBe(true);
+  expect(layout.overflow).toBeLessThanOrEqual(0);
+  expect(layout.pastEdge).toEqual([]);
+  expect(layout.brokenLabels).toEqual([]);
+});

@@ -20,13 +20,13 @@ npx degit MartinSA04/StudyCompanion/course-template course-mycode
 
 It ships the framework pin, a GitHub Pages deploy workflow, an annotated `content/course.yaml`, and example sections. Then read **`AUTHORING.md`** — the content author's guide (archetypes, widget decision guide, conventions, per-section definition-of-done).
 
-You author **only** under `content/` — `course.yaml` (metadata, formulas, symbols, glossary, exams, deadlines, features, analytics, ui strings), `flashcards.yaml`, and `sections/NN-slug.mdx` — and drop static assets in `public/` (`figures/`, `sims/`; the favicon, app icons and share card are auto-generated from the course `accent`). See `course-template/` for the exact file layout and an annotated `course.yaml`.
+You author **only** under `content/` — `course.yaml` (metadata, formulas, symbols, glossary, exams, deadlines, feature flags — progress/search/flashcards/theme, each independently switchable — analytics, ui strings), `flashcards.yaml`, and `sections/NN-slug.mdx` — and drop static assets in `public/` (`figures/`, `sims/`; the favicon, app icons and share card are auto-generated from the course `accent`). See `course-template/` for the exact file layout and an annotated `course.yaml`.
 
 > For local framework development, point the `study-companion` dependency at a `link:../path/to/study-companion` instead of the git tag (see `course-template/package.json`).
 
-Run `pnpm dev` to preview, `pnpm build` for static output to `dist/`. Search (Pagefind) is built into `dist/pagefind/` and only works in `build`/`preview`, not `dev`.
+Run `pnpm dev` to preview, `pnpm build` for static output to `dist/`. Search (Pagefind) is built into `dist/pagefind/` and only works in `build`/`preview`, not `dev`; pass `studyCompanion({ pagefind: false })` in `astro.config.mjs` to skip that step on an environment where the Pagefind binary can't run (the search UI then simply finds no index).
 
-`pnpm build` also **validates cross-references** and fails on any dead link: a `<Term name>` / `<FormulaRef id>` / `<ExamRef id>` with no matching `course.yaml` entry (or an `<ExamRef>` to a paper with no `url`), a `symbols[]` row whose `term` / `formula` matches nothing, or a duplicate `<Statement>` / formula / symbol / exam anchor. The error names the section file and the unresolved target.
+`pnpm build` also **validates cross-references** and fails on any dead link: a `<Term name>` / `<FormulaRef id>` / `<ExamRef id>` with no matching `course.yaml` entry (or an `<ExamRef>` to a paper with no `url` — `<ExamRef>` opens `exams[].url` directly, it does not jump to an anchor on the paper's row), a `<FormulaRef>` / `<ExamRef>` tag with no string `id` at all (a misspelt `ids=` or an `id={…}` expression — without one the link would silently open the wrong target), a `symbols[]` row whose `term` / `formula` matches nothing, or a duplicate `<Statement>` / formula / symbol anchor or exam id. The error names the section file and the unresolved target. It fails, too, on math that would render wrong with no error of its own — a one-line `$$…$$` block, a doubled backslash in a string prop's `$…$` math, and any TeX KaTeX cannot parse (AUTHORING.md §6).
 
 ---
 
@@ -199,8 +199,9 @@ strips them at every boundary where a title becomes machine-read data — the
 `<title>`, OG/Twitter meta, JSON-LD, and the web manifest. Anything new that
 turns a course or section title into metadata must call it too.
 
-`<Quiz>` and the flashcards page emit schema.org `Quiz` (Google's "practice
-problems" rich result); the glossary and the symbol list each emit a
+The flashcards page emits schema.org `Quiz` of `Flashcard` questions (Google's
+Education Q&A rich result); `<Quiz>` emits none, since Google retired the
+practice-problem rich result in January 2026. The glossary and the symbol list each emit a
 `DefinedTermSet` (a symbol's name is its plain spelling, "Nc" for `N_c`, and only
 rows with an `id` get a `#` url); every page gets a `BreadcrumbList`. The flashcard deck is capped at `FLASHCARD_LD_LIMIT` (100)
 questions, logged when it truncates.

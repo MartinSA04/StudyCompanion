@@ -2,7 +2,7 @@ import type { AstroIntegration } from "astro";
 import { fileURLToPath } from "node:url";
 import { join } from "node:path";
 import { readFileSync } from "node:fs";
-import { readdir, stat, unlink } from "node:fs/promises";
+import { readdir, readFile, stat, unlink } from "node:fs/promises";
 import { parse as parseYaml } from "yaml";
 import mdx from "@astrojs/mdx";
 import remarkMath from "remark-math";
@@ -11,6 +11,8 @@ import { flexokiDark } from "./lib/shiki-flexoki.ts";
 import { rehypeTableScroll } from "./lib/rehype-table-scroll.ts";
 import { rehypeKatexScroll } from "./lib/rehype-katex-scroll.ts";
 import { rehypeKatexHeading } from "./lib/rehype-katex-heading.ts";
+import { rehypeKatexErrors } from "./lib/rehype-katex-errors.ts";
+import { findKatexErrors } from "./lib/katex.ts";
 
 /**
  * After rehype-katex, tag KaTeX's `.katex-mathml` (the visually-hidden MathML +
@@ -155,6 +157,38 @@ async function removeKatexDeadWeight(
   }
 }
 
+/**
+ * Fail the build on any KaTeX error that reached a page. Component-rendered
+ * math (renderMathString, Formula, FormulaSheet, …) renders a TeX error as red
+ * source and marks it (renderTex in lib/katex.ts) rather than throwing, so
+ * `astro dev` keeps showing the page; here, with every page written, those
+ * marks become one build error naming each page, the source TeX and KaTeX's
+ * message. MDX-body math already failed earlier, at its file and line
+ * (rehypeKatexErrors).
+ */
+async function failOnKatexErrors(outDir: string): Promise<void> {
+  const entries = await readdir(outDir, { recursive: true });
+  const problems: string[] = [];
+  for (const entry of entries.sort()) {
+    if (!entry.endsWith(".html")) continue;
+    const html = await readFile(join(outDir, entry), "utf8");
+    const path = entry
+      .split(/[/\\]/)
+      .join("/")
+      .replace(/\.html$/, "");
+    const page = path === "index" ? "/" : `/${path}`;
+    for (const { tex, message } of findKatexErrors(html)) {
+      problems.push(`${page}: KaTeX could not render "${tex}" — ${message}`);
+    }
+  }
+  if (problems.length) {
+    throw new Error(
+      "study-companion: KaTeX errors on built pages (fix the TeX in the prop or course.yaml entry that renders it) —\n" +
+        problems.map((p) => `  • ${p}`).join("\n"),
+    );
+  }
+}
+
 export interface StudyCompanionOptions {
   /**
    * Build a Pagefind search index over the emitted static output in
@@ -187,7 +221,12 @@ export default function studyCompanion(
   return {
     name: "study-companion",
     hooks: {
-      "astro:config:setup": ({ config, updateConfig, injectRoute }) => {
+      "astro:config:setup": ({
+        config,
+        command,
+        updateConfig,
+        injectRoute,
+      }) => {
         projectRoot = config.root;
         // The framework emits root-absolute URLs everywhere (nav hrefs,
         // manifest icons, canonical/og/sitemap entries) and nothing consults
@@ -218,6 +257,9 @@ export default function studyCompanion(
             remarkPlugins: [remarkMath],
             rehypePlugins: [
               rehypeKatex,
+              // A TeX error in MDX math fails `astro build` at its file:line
+              // (rehype-katex itself only renders it red); dev just warns.
+              [rehypeKatexErrors, { fail: command === "build" }],
               // Prune inline-math heading subtrees before Astro's appended
               // rehypeHeadingIds collects heading text (see the plugin doc).
               rehypeKatexHeading,
@@ -297,6 +339,9 @@ export default function studyCompanion(
 
       "astro:build:done": async ({ dir, logger }) => {
         const outDir = fileURLToPath(dir);
+
+        // First, so a page with broken TeX fails before any asset work.
+        await failOnKatexErrors(outDir);
 
         // Per-course raster icon set. Independent of the Pagefind step, and
         // hard-fails the build if sharp can't run: the manifest and the

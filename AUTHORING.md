@@ -343,6 +343,14 @@ Keep `run(input)` deterministic for a given input (shuffle re-calls
   LaTeX scalars must be **double-quoted with escaped backslashes**:
   `tex: "\\dfrac{a}{b}"`.
 
+  The build fails on three math traps that would otherwise ship silently: a
+  one-line `$$…$$` block (it renders inline — put each `$$` on a line of its
+  own); a doubled backslash in the `$…$` math of a quoted MDX prop
+  (`question="$\\Theta$"` — string props take single backslashes, and `\\` is a
+  KaTeX line break; an expression prop `{"…"}` takes doubled ones); and any
+  TeX KaTeX cannot parse (a typo'd command, an unbalanced brace), reported at
+  its file and line, or for a prop or `course.yaml` string at its page.
+
   **Props that render `$…$` with KaTeX.** Every reader-visible string prop below
   goes through the same renderer, so put math in the prop rather than working
   around it in the body:
@@ -350,9 +358,9 @@ Keep `run(input)` deterministic for a given input (shuffle re-calls
   | Where | Props |
   |---|---|
   | `course.yaml` | formula `label`, symbol `meaning` + `unit` + `note`, glossary `term` + `definition`, flashcard `front` + `back` |
-  | Captions | `<Figure>`, `<Formula>`, `<Table>`, `<Simulation>`, `<Stepper>` |
+  | Captions | `<Figure>`, `<Formula>`, `<Table>`, `<Simulation>`, `<Stepper>`, `<Video>` |
   | Tables | `<Table columns>` and every cell in `rows` |
-  | Headings | `<Statement name>`, `<Step title>`, `<CompareCol title>` |
+  | Headings/titles | `<Statement name>`, `<Step title>`, `<CompareCol title>`, `<Example title>`, `<Simulation title>`, `<Stepper title>`, `<Callout title>`, `<Derivation title>` |
   | Self-tests | `<Quiz question / options / explanation>`, `<SelfCheck question>` |
 
   Everything else is escaped, except the simple inline tags

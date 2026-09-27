@@ -31,3 +31,49 @@ for (const theme of THEMES) {
     });
   });
 }
+
+/**
+ * The hub's browser-chrome colour (<meta name="theme-color">) follows the
+ * APPLIED theme — on load, and on a toggle flip — the way a course site's does
+ * (CourseLayout paintChrome). Values mirror lib/themeColor.ts.
+ */
+const CHROME = { light: "#fffcf0", dark: "#100f0f" };
+const themeColor = (page: import("@playwright/test").Page) =>
+  page.locator('meta[name="theme-color"]').getAttribute("content");
+
+test("hub theme-color follows the applied theme and the toggle", async ({
+  page,
+}) => {
+  await page.route("https://gc.zgo.at/**", (route) => route.abort());
+  await page.addInitScript(() => {
+    try {
+      localStorage.setItem("sc:theme:hub", "dark");
+    } catch {
+      /* storage blocked */
+    }
+  });
+  await page.goto(HUB);
+  await page.waitForLoadState("networkidle");
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  expect(await themeColor(page)).toBe(CHROME.dark);
+
+  await page.locator(".theme-toggle").click();
+  await expect(page.locator("html")).not.toHaveAttribute("data-theme", "dark");
+  expect(await themeColor(page)).toBe(CHROME.light);
+});
+
+test("hub: blocked storage still follows a dark OS", async ({ page }) => {
+  await page.route("https://gc.zgo.at/**", (route) => route.abort());
+  await page.emulateMedia({ colorScheme: "dark" });
+  // Policy-blocked storage throws on access; the OS preference must survive it.
+  await page.addInitScript(() => {
+    Object.defineProperty(window, "localStorage", {
+      get() {
+        throw new DOMException("blocked", "SecurityError");
+      },
+    });
+  });
+  await page.goto(HUB);
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  expect(await themeColor(page)).toBe(CHROME.dark);
+});

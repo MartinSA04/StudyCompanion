@@ -8,18 +8,21 @@
  * background tint plus the coloured kicker + icon (the Flexoki aside treatment).
  *
  * Internal primitive (not in mdx-components) wrapped by `<Callout>`,
- * `<LearningGoals>`, `<KeyTakeaways>` and `<ExamFocus>`.
+ * `<LearningGoals>`, `<KeyTakeaways>` and `<ExamFocus>`. `title` may contain
+ * `$inline$` math; the landmark's label is its plain-text reading.
  */
 import Icon from "./Icon.astro";
 import { assertOneOf } from "../lib/assertProp.ts";
+import { renderMathString } from "../lib/katex.ts";
+import { mathStringToText } from "../lib/mathText.ts";
 
 interface Props {
   tone: "note" | "tip" | "warning" | "goals" | "takeaways" | "exam";
   /** Icon name shown in the kicker. */
   icon: string;
-  /** Kicker label (rendered uppercase). */
+  /** Kicker label (rendered uppercase); may contain `$inline$` math. */
   title: string;
-  /** Accessible label; defaults to the title. */
+  /** Accessible label; defaults to the title as plain text. */
   ariaLabel?: string;
 }
 const { tone, icon, title, ariaLabel } = Astro.props;
@@ -44,13 +47,13 @@ const t = TONES[tone];
 <aside
   class="admonition"
   role="note"
-  aria-label={ariaLabel ?? title}
+  aria-label={ariaLabel ?? mathStringToText(title)}
   style={`--c:${t.c};--c-bg:${t.bg}`}
 >
   <p class="adm-kicker">
     <span class="adm-icon" aria-hidden="true"
       ><Icon name={icon} size={15} /></span
-    ><span class="adm-label">{title}</span>
+    ><span class="adm-label" set:html={renderMathString(title)} />
   </p>
   <div class="adm-body"><slot /></div>
 </aside>
@@ -75,6 +78,13 @@ const t = TONES[tone];
     letter-spacing: var(--tracking);
     font-weight: var(--weight-semibold);
     color: var(--c);
+  }
+  /* The kicker's uppercase + tracking must not reach math: an uppercased `$s$`
+     is a different symbol. KaTeX's own font shorthand already resets the
+     weight and family. */
+  .adm-label :global(.katex) {
+    text-transform: none;
+    letter-spacing: normal;
   }
   .adm-icon {
     display: inline-flex;

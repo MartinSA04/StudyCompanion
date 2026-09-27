@@ -1,7 +1,6 @@
 ---
-import katex from "katex";
 import type { SymbolEntry } from "../schema.ts";
-import { ignoreInSearch, renderMathString } from "../lib/katex.ts";
+import { ignoreInSearch, renderMathString, renderTex } from "../lib/katex.ts";
 import { groupBySection } from "../lib/groupBySection.ts";
 import { texToPlain } from "../lib/texPlain.ts";
 import { slugify } from "../lib/slug.ts";
@@ -56,10 +55,7 @@ const groups = groupBySection(symbols, labels.otherGroup);
 
 // Inline (text-style) KaTeX: a symbol is a letter with decorations, not a
 // display formula, so it sits on the row's baseline at prose size.
-const tex = (t: string) =>
-  ignoreInSearch(
-    katex.renderToString(t, { displayMode: false, throwOnError: false }),
-  );
+const tex = (t: string) => ignoreInSearch(renderTex(t, { displayMode: false }));
 
 // Author text → what a reader would type: markup dropped, inline math
 // flattened to its plain spelling ("$N_c$" → "Nc").

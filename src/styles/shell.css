@@ -318,6 +318,11 @@
 
 .content {
   min-width: 0;
+  /* <main id="content"> is the skip link's target. Land it where it rests at
+     scroll 0 — the topbar plus the layout's top padding (--gap-7, the offset
+     the sidebar docks at below) — so the h1 never slides under the sticky
+     topbar, and the skip link at the top of a page moves focus only. */
+  scroll-margin-top: calc(var(--topbar-h) + var(--gap-7));
 }
 
 /* ====== right "on this page" rail ======
@@ -1178,15 +1183,17 @@ summary,
   }
 
   /* Wide content scrolls horizontally on screen (code blocks, display math,
-     table wrappers, inline-formula spans); on paper there's no scrollbar to
-     reach the overflow, so overflow-x: auto just clips it at the page edge.
-     Let these boxes spill to their natural width instead. The scoped table/
-     formula classes outrank a bare selector, so force it. */
+     table wrappers, inline-formula spans, math-only formula links); on paper
+     there's no scrollbar to reach the overflow, so overflow-x: auto just clips
+     it at the page edge. Let these boxes spill to their natural width
+     instead. The scoped table/formula classes outrank a bare selector, so
+     force it. */
   pre,
   .katex-display,
   .table-scroll,
   .data-table-scroll,
-  .formula-inline {
+  .formula-inline,
+  .formula-ref--math {
     overflow: visible !important;
   }
   /* Long code lines can't scroll on paper — wrap them so nothing runs off the

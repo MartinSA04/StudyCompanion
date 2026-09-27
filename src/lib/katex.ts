@@ -1,4 +1,76 @@
-import katex from "katex";
+import katex, { type KatexOptions } from "katex";
+
+const escapeAttr = (s: string) =>
+  s
+    .replace(/&/g, "&amp;")
+    .replace(/"/g, "&quot;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+const unescapeAttr = (s: string) =>
+  s
+    .replace(/&quot;/g, '"')
+    .replace(/&#x27;|&#39;/g, "'")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&amp;/g, "&");
+
+/**
+ * TeX → KaTeX HTML for every component-rendered formula (renderMathString,
+ * Formula, FormulaRef, FormulaSheet, SymbolList) — the one place those call
+ * KaTeX, so a TeX error is caught the same way everywhere.
+ *
+ * With `throwOnError: false` alone, a typo (`\thetq`, an unbalanced brace)
+ * ships as red source text on a green build. So this renders strictly first;
+ * on a parse error it still renders KaTeX's red fallback in place — `astro dev`
+ * must keep showing the page while an author types — but MARKS it:
+ * `data-katex-error` (KaTeX's message) and `data-katex-tex` (the source) on the
+ * output's outer element. The integration scans the built pages for that mark
+ * in astro:build:done (`findKatexErrors`) and fails the build naming page,
+ * source and message. MDX-body math never comes through here; the rehype check
+ * in src/index.ts covers it at the file and line.
+ */
+export function renderTex(tex: string, options: KatexOptions = {}): string {
+  try {
+    return katex.renderToString(tex, { ...options, throwOnError: true });
+  } catch (err) {
+    let html: string;
+    try {
+      html = katex.renderToString(tex, { ...options, throwOnError: false });
+    } catch {
+      // Not a ParseError (KaTeX handles only those itself): mirror its markup.
+      html = `<span class="katex-error">${escapeAttr(tex)}</span>`;
+    }
+    const message = err instanceof Error ? err.message : String(err);
+    const mark = `<span data-katex-error="${escapeAttr(message)}" data-katex-tex="${escapeAttr(tex)}"`;
+    return html.replace(/^<span\b/, () => mark);
+  }
+}
+
+/**
+ * Every KaTeX error in a built page: `renderTex`'s marks, plus any bare
+ * `.katex-error` span (KaTeX's own error markup, with the message in `title`)
+ * from a path that bypassed it. Pure, for the astro:build:done scan.
+ */
+export function findKatexErrors(
+  html: string,
+): { tex: string; message: string }[] {
+  const found: { tex: string; message: string }[] = [];
+  const marked =
+    /<span\b[^>]*?\bdata-katex-error="([^"]*)"[^>]*?\bdata-katex-tex="([^"]*)"/g;
+  for (const m of html.matchAll(marked)) {
+    found.push({ tex: unescapeAttr(m[2]), message: unescapeAttr(m[1]) });
+  }
+  const bare =
+    /<span\b(?![^>]*\bdata-katex-error=)([^>]*\bclass="[^"]*\bkatex-error\b[^"]*"[^>]*)>([^<]*)</g;
+  for (const m of html.matchAll(bare)) {
+    const title = /\btitle="([^"]*)"/.exec(m[1]);
+    found.push({
+      tex: unescapeAttr(m[2]),
+      message: title ? unescapeAttr(title[1]) : "KaTeX error",
+    });
+  }
+  return found;
+}
 
 /**
  * Render `$inline$` and `$$display$$` math inside an otherwise-plain author
@@ -17,18 +89,12 @@ export function renderMathString(text: string): string {
     .map((part) => {
       if (part.startsWith("$$") && part.endsWith("$$") && part.length > 4) {
         return ignoreInSearch(
-          katex.renderToString(part.slice(2, -2), {
-            displayMode: true,
-            throwOnError: false,
-          }),
+          renderTex(part.slice(2, -2), { displayMode: true }),
         );
       }
       if (part.startsWith("$") && part.endsWith("$") && part.length > 2) {
         return ignoreInSearch(
-          katex.renderToString(part.slice(1, -1), {
-            displayMode: false,
-            throwOnError: false,
-          }),
+          renderTex(part.slice(1, -1), { displayMode: false }),
         );
       }
       return escapeKeepingInlineTags(part);

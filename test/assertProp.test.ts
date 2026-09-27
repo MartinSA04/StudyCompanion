@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { assertOneOf } from "../src/lib/assertProp.ts";
+import { assertOneOf, assertRequiredString } from "../src/lib/assertProp.ts";
 
 /**
  * `assertOneOf` is the build-time enum-prop guard behind Admonition/Statement/
@@ -29,4 +29,25 @@ test("assertOneOf: a disallowed value throws naming component, prop and allowed 
       return true;
     },
   );
+});
+
+test("assertRequiredString: a non-empty string passes", () => {
+  assert.doesNotThrow(() =>
+    assertRequiredString("snells", "FormulaRef", "id", "the formula's id"),
+  );
+});
+
+test("assertRequiredString: a missing or empty prop throws naming component and prop", () => {
+  for (const bad of [undefined, ""]) {
+    assert.throws(
+      () =>
+        assertRequiredString(
+          bad,
+          "ExamRef",
+          "id",
+          "the id of a course.exams entry",
+        ),
+      /<ExamRef> needs id="…" — the id of a course\.exams entry/,
+    );
+  }
 });

@@ -359,3 +359,62 @@ test("an <ExamRef> shown in a code span is documentation, not a reference", () =
   });
   assert.deepEqual(errors, []);
 });
+
+// ── A reference tag with no id="…" string (a missing / misspelt key) ─────────
+
+test("an <ExamRef> or <FormulaRef> tag with no id is an error, naming file and tag", () => {
+  // Without an id the component resolves `undefined`, which for ExamRef
+  // matches the first exam WITHOUT an id — a silently wrong link.
+  const { errors } = validateXrefs({
+    glossaryTerms: [],
+    formulaIds: ["snells"],
+    exams: [
+      { url: "https://example.com/2019.pdf" },
+      { id: "2025-des", url: "https://example.com/2025.pdf" },
+    ],
+    sections: [
+      {
+        label: "04-bolger",
+        body:
+          '<ExamRef ids="2025-des" task="3b" /> og <ExamRef task="1a" />\n' +
+          "<FormulaRef>Snells lov</FormulaRef> og <FormulaRef />\n" +
+          '<FormulaRef id={"snells"} />',
+      },
+    ],
+  });
+  assert.equal(errors.length, 5);
+  for (const e of errors) {
+    assert.match(e, /^04-bolger: <(ExamRef|FormulaRef)\b/);
+    assert.match(e, /has no id="…"/);
+  }
+  const exam = errors.find((e) => e.includes('<ExamRef ids="2025-des"'));
+  assert.match(exam ?? "", /<ExamRef ids="2025-des" task="3b" \/>/);
+  assert.match(exam ?? "", /course\.exams/);
+  const formula = errors.find((e) => e.includes("<FormulaRef />"));
+  assert.match(formula ?? "", /course\.formulas/);
+});
+
+test("a bare, never-closed <FormulaRef> in prose is still not a reference", () => {
+  const { errors } = validateXrefs({
+    glossaryTerms: [],
+    formulaIds: [],
+    exams: [],
+    sections: [{ label: "01", body: "Bruk <FormulaRef> og <ExamRef> slik." }],
+  });
+  assert.deepEqual(errors, []);
+});
+
+test("an id-less reference shown in a code span or fence is documentation", () => {
+  const { errors } = validateXrefs({
+    glossaryTerms: [],
+    formulaIds: [],
+    exams: [],
+    sections: [
+      {
+        label: "doc",
+        body: 'Skriv `<ExamRef task="3b" />`.\n\n```mdx\n<FormulaRef />\n```\n',
+      },
+    ],
+  });
+  assert.deepEqual(errors, []);
+});

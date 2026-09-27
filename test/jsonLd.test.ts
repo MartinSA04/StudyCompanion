@@ -7,7 +7,6 @@ import {
   studyGuideLd,
   learningResourceLd,
   definedTermSetLd,
-  quizLd,
   flashcardQuizLd,
   hubCollectionLd,
   guideId,
@@ -134,68 +133,6 @@ test("learningResourceLd omits every optional it wasn't given", () => {
   ]) {
     assert.ok(!(k in ld), `${k} should be absent`);
   }
-});
-
-test("quizLd splits options into accepted + suggested answers", () => {
-  const ld = quizLd({
-    question: "Hva er 2+2?",
-    options: ["3", "4", "5"],
-    answer: 1,
-    explanation: "Fordi.",
-    about: { code: "DEMO101", title: "Demokurs" },
-  });
-  assert.equal(ld["@type"], "Quiz");
-  const q = ld.hasPart as Record<string, unknown>;
-  assert.equal(q["@type"], "Question");
-  assert.equal(q.eduQuestionType, "Multiple choice");
-  assert.equal(q.learningResourceType, "Practice problem");
-  assert.equal(q.text, "Hva er 2+2?");
-  assert.deepEqual(q.acceptedAnswer, {
-    "@type": "Answer",
-    text: "4",
-    comment: { "@type": "Comment", text: "Fordi." },
-  });
-  // The wrong options, in order, and never the correct one.
-  assert.deepEqual(q.suggestedAnswer, [
-    { "@type": "Answer", text: "3" },
-    { "@type": "Answer", text: "5" },
-  ]);
-});
-
-test("quizLd with several right answers lists each as an acceptedAnswer", () => {
-  const ld = quizLd({
-    question: "Hvilke er primtall?",
-    options: ["2", "4", "5", "9"],
-    answer: [0, 2],
-    explanation: "Fordi.",
-  });
-  const q = ld.hasPart as Record<string, unknown>;
-  // An array only when there are several — one answer stays a bare object
-  // (the test above), so nothing changes for single-answer quizzes.
-  assert.deepEqual(q.acceptedAnswer, [
-    {
-      "@type": "Answer",
-      text: "2",
-      comment: { "@type": "Comment", text: "Fordi." },
-    },
-    {
-      "@type": "Answer",
-      text: "5",
-      comment: { "@type": "Comment", text: "Fordi." },
-    },
-  ]);
-  assert.deepEqual(q.suggestedAnswer, [
-    { "@type": "Answer", text: "4" },
-    { "@type": "Answer", text: "9" },
-  ]);
-});
-
-test("quizLd omits suggestedAnswer + comment when there's nothing to say", () => {
-  const ld = quizLd({ question: "Sant?", options: ["Ja"], answer: 0 });
-  const q = ld.hasPart as Record<string, unknown>;
-  assert.ok(!("suggestedAnswer" in q));
-  assert.ok(!("comment" in (q.acceptedAnswer as object)));
-  assert.ok(!("about" in ld));
 });
 
 test("flashcardQuizLd maps every card to a Flashcard Question", () => {
