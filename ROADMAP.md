@@ -1,6 +1,6 @@
 # study-companion — Roadmap
 
-_Last updated: 2026-07-14._
+_Last updated: 2026-09-27._
 
 The framework is feature-complete for its six consuming courses: every planned
 widget, the SEO/social/PWA surface, the authoring kit, and the v3 schema
@@ -30,10 +30,10 @@ the value at the time, or waiting on a real consumer that needs it.
   pages), registered in production only, no network beacons. Hand-rolled to keep
   deps lean. A revision guide is exactly what a student wants offline.
 - **Long-tail Apple/social polish** — `patch`. The cheap head wins already
-  shipped (`<meta name="author">` landed with the v4 SEO tranche); still open:
-  generated `apple-touch-startup-image` splash screens and
-  `@media (display-mode: standalone)` chrome tweaks. Pull individually as
-  demand appears.
+  shipped: `<meta name="author">` (v4 SEO tranche), generated
+  `apple-touch-startup-image` splash screens, and
+  `@media (display-mode: standalone)` chrome tweaks (all three, #7). Nothing
+  outstanding here; pull new items individually as demand appears.
 
 ## Speculative (only if a consumer needs them)
 
@@ -64,7 +64,9 @@ Guard-tightening on already-shipped CI, safe to do once the baselines settle.
 
 ---
 
-_History (shipped items P0–P5, the §4 SEO/social/PWA tranche, and the v3 schema
-overhaul) lives in git. The next `major` — `SCHEMA_VERSION` 4 + a `MIGRATIONS.md`
-entry — is triggered only by the first change that forces existing courses to
-restructure content._
+_History (shipped items P0–P5, the §4 SEO/social/PWA tranche, the v3 schema
+overhaul, and the v4.0.0 `SCHEMA_VERSION` 4 bump — required `summary`, the
+`author`/`authorUrl` fields, see `MIGRATIONS.md`) lives in git. The next
+`major` — a `SCHEMA_VERSION` 5 bump + a new `MIGRATIONS.md` entry — is
+triggered only by the first change that forces existing courses to restructure
+content._

@@ -41,6 +41,12 @@ courseUrl: "https://example.com/emne/CODE101"
 # (explicit, never guessed from a URL). Omit to emit no provider.
 institution: "Example University"
 
+# Who wrote this guide → the JSON-LD `author` + `<meta name="author">`.
+# `authorUrl` links it (personal site, GitHub profile, …). Explicit only — omit
+# both and no author is emitted, the same no-guessing rule `institution` follows.
+# author: "Your Name"
+# authorUrl: "https://example.com/you"
+
 # Source repo of THIS course → per-page «Foreslå endring» prefilled-issue links
 # + the footer's report-an-error issue link.
 # repoUrl: "https://github.com/you/course-code101"
@@ -136,9 +142,10 @@ glossary:
 # Link UNIVERSITY-HOSTED PDFs when they exist; only vendor in public/ as a
 # fallback (then use a "/exams/…" path).
 exams:
-  # `id` (valgfri) gjør raden til et ankermål for en `<ExamRef id="v2025" />` i
-  # en modul, som lenker en sitert eksamensoppgave til settet sitt. Samme
-  # ASCII-regel som formulas[].id. Se AUTHORING.md §3.
+  # `id` (valgfri) er nøkkelen en `<ExamRef id="v2025" />` i en modul slår opp
+  # for å lenke en sitert eksamensoppgave rett til `url`-en til settet sitt —
+  # ikke et anker på selve raden. Samme ASCII-regel som formulas[].id. Se
+  # AUTHORING.md §3.
   - {
       label: "Eksamen V2025",
       id: "v2025",
@@ -171,6 +178,13 @@ exams:
 #   label: "Hele eksamensarkivet"
 
 # ── Feature flags ────────────────────────────────────────────────────────────
+# progress:   false hides the topbar reading-progress bar + its N/M counter.
+# search:     false hides the topbar search button/palette (the Pagefind index
+#             itself still builds unless the integration is given `pagefind: false`).
+# flashcards: false hides Flashcards from the tools nav, even with cards in
+#             `flashcards.yaml`. Defaults to false — set true once you have cards.
+# theme:      false hides the light/dark toggle and locks the course to light
+#             mode (there is no OS-preference fallback without it).
 features: { progress: true, search: true, flashcards: true, theme: true }
 
 # ── Privacy-friendly analytics (optional) ────────────────────────────────────

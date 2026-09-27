@@ -95,8 +95,9 @@ glossary:
 
 # Exercises <ExamList>: newest first, with and without a solution link.
 exams:
-  # `id` makes the row a deep-link target for an inline <ExamRef id="v2025" />
-  # (a task quoted in a module). Same ASCII rule as formulas[].id.
+  # `id` is the key an inline <ExamRef id="v2025" /> (a task quoted in a
+  # module) resolves to this paper's url — it opens the paper directly, not a
+  # same-page anchor on the row. Same ASCII rule as formulas[].id.
   - { label: "Eksamen V2025", id: "v2025", date: 2025-06-02, url: "https://example.com/exams/2025.pdf", solutionUrl: "https://example.com/exams/2025-losning.pdf" }
   - { label: "Eksamen V2024", id: "v2024", date: 2024-05-28, url: "https://example.com/exams/2024.pdf" }
   # Månedspresisjon: settet har ingen dato på forsiden, så bare måneden er kjent.

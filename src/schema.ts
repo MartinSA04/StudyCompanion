@@ -33,15 +33,16 @@ const examDateSchema = z.union([
 const examPaperSchema = z.strictObject({
   label: z.string(),
   /**
-   * Stable anchor id for deep-linking from prose via `<ExamRef id>`. When set,
-   * the paper's row on the Eksamen page becomes a `#id` target. Must be unique.
-   * Same shape rule as `formulas[].id` (emitted verbatim as a DOM id).
+   * Lookup key an `<ExamRef id>` resolves against `course.exams` to link a
+   * quoted task straight to this paper's `url` (opened in a new tab) — not a
+   * same-page anchor; `<ExamList>` renders no id on the row. Must be unique.
+   * Same shape rule as `formulas[].id`.
    */
   id: z
     .string()
     .regex(
       /^[A-Za-z0-9_-]+$/,
-      'An exam id is emitted verbatim as a DOM id and an <ExamRef> "#fragment", so it must be ASCII letters, digits, "-" or "_" (e.g. "2025-des" or "kont-2024") — no spaces, punctuation or non-ASCII.',
+      'An exam id is a lookup key an <ExamRef id> resolves against course.exams (same shape rule as formulas[].id), so it must be ASCII letters, digits, "-" or "_" (e.g. "2025-des" or "kont-2024") — no spaces, punctuation or non-ASCII.',
     )
     .optional(),
   /** May be an absolute URL or a path into the course's public/ folder. */

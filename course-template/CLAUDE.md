@@ -44,7 +44,7 @@ lockstep with the pinned tag.
 2. Outline sections by `order` (and optional `part`), one file per module.
 3. Draft each module against an archetype (see `AUTHORING.md` / the example
    sections in this template). Wire cross-refs: `<Term>`, `<FormulaRef>`,
-   `<Statement>` ids.
+   `<ExamRef>`, `<Statement>` ids.
 4. Verify against the section definition-of-done.
 
 ## Run
@@ -52,10 +52,12 @@ lockstep with the pinned tag.
 ```bash
 pnpm install
 pnpm dev      # preview (search needs build/preview)
-pnpm build    # static output to dist/ — FAILS on any dead <Term>/<FormulaRef>
+pnpm build    # static output to dist/ — FAILS on any dead <Term>/<FormulaRef>/<ExamRef>
 pnpm preview  # preview the build (search works here)
 ```
 
-The build validates every cross-reference: a `<Term name>` / `<FormulaRef id>`
-with no matching `course.yaml` entry, or a duplicate `<Statement>`/formula
-anchor, fails `pnpm build` with a message naming the file and target.
+The build validates every cross-reference: a `<Term name>` / `<FormulaRef id>` /
+`<ExamRef id>` with no matching `course.yaml` entry (or an `<ExamRef>` to a paper
+with no `url`), a `symbols[]` row whose `term` / `formula` matches nothing, or a
+duplicate `<Statement>` / formula / symbol / exam anchor, fails `pnpm build`
+with a message naming the file and target.
