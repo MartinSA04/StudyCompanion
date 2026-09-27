@@ -3,10 +3,11 @@ import assert from "node:assert/strict";
 import { validateMathSource } from "../src/lib/mathSource.ts";
 
 /**
- * `validateMathSource` fails the build on two MDX math traps that render
+ * `validateMathSource` fails the build on three MDX math traps that render
  * wrong with no error of their own: a one-line `$$…$$` block (remark-math
- * makes that INLINE math) and a doubled backslash inside `$…$` math in a
- * quoted string prop (there `\\` is a KaTeX line break). Messages name the
+ * makes that INLINE math), a doubled backslash inside `$…$` math in a
+ * quoted string prop (there `\\` is a KaTeX line break), and inline math
+ * wrapped onto a line that starts like a list item. Messages name the
  * file and line, like validateXrefs's.
  */
 const check = (body: string) =>
@@ -74,4 +75,32 @@ test("a doubled backslash outside math, or in a lowercase HTML tag, is not check
     ),
     [],
   );
+});
+
+test("inline math wrapped onto a line that starts like a list item is an error", () => {
+  const body = [
+    "Da blir $\\phi = -\\vec E_0 \\cdot \\vec r",
+    "+ \\vec E_0 \\cdot \\vec r = 0$. Begge settene",
+  ].join("\n");
+  const [error, ...rest] = validateMathSource([{ label: "s.mdx", body }]);
+  assert.equal(rest.length, 0);
+  assert.match(error, /^s\.mdx:2: this line starts with "\+ "/);
+});
+
+test("a real list, closed math and display fences are not list-marker traps", () => {
+  const body = [
+    "Tre ting gjelder for $x$:",
+    "",
+    "- $x > 0$",
+    "- $y = 1$",
+    "",
+    "$$",
+    "a = b",
+    "- c",
+    "$$",
+    "",
+    "Summen $a +",
+    "b$ er grei.",
+  ].join("\n");
+  assert.deepEqual(validateMathSource([{ label: "s.mdx", body }]), []);
 });

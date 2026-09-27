@@ -1,5 +1,5 @@
 /**
- * Build-time checks for two math traps in MDX source that render WRONG without
+ * Build-time checks for three math traps in MDX source that render WRONG without
  * any error — so a production build ships them green unless something looks.
  * Called next to validateXrefs (src/pages/index.astro), which fails the build
  * on any message here and only logs in DEV.
@@ -12,8 +12,11 @@
  *      the TeX really is `\\Theta`: a KaTeX line break followed by the letters
  *      "Theta". Expression props (`{"…$\\Theta$…"}`) are JS strings, where the
  *      doubled form IS right, and are not checked.
+ *   3. Inline `$…$` math wrapped onto a line that starts like a list item
+ *      ("+ \vec E_0 …$"). Markdown starts a list there, splitting the formula
+ *      and mis-pairing every `$` after it: raw TeX and italic prose ship.
  *
- * TeX that fails to parse at all is the third trap; KaTeX reports that itself
+ * TeX that fails to parse at all is the fourth trap; KaTeX reports that itself
  * and the integration fails the build on it (lib/katex.ts `renderTex`, the
  * rehype check in src/index.ts).
  *
@@ -123,6 +126,23 @@ export function validateMathSource(sections: MathSourceInput[]): string[] {
         );
       }
     }
+
+    // 3. Inline math still open where a line starts like a list item.
+    let open = false;
+    text.split("\n").forEach((line, i) => {
+      if (!line.trim())
+        open = false; // a blank line ends the paragraph
+      else if (/^\s*\$\$\s*$/.test(line))
+        return; // a display-math fence
+      else if (open && /^\s*([+*-]|\d+[.)])\s/.test(line)) {
+        const marker = line.trim().split(/\s/)[0];
+        errors.push(
+          `${label}:${i + 1}: this line starts with "${marker} ", which Markdown reads as a list item — it splits the inline $…$ math opened on the line above and mis-pairs every $ after it. Rewrap so the formula doesn't continue onto a line that starts with +, -, * or a numbered-list marker.`,
+        );
+      }
+      const dollars = line.replace(/\\\$|\$\$/g, "").match(/\$/g)?.length ?? 0;
+      if (dollars % 2) open = !open;
+    });
   }
   return errors;
 }

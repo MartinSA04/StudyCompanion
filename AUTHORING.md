@@ -343,13 +343,16 @@ Keep `run(input)` deterministic for a given input (shuffle re-calls
   LaTeX scalars must be **double-quoted with escaped backslashes**:
   `tex: "\\dfrac{a}{b}"`.
 
-  The build fails on three math traps that would otherwise ship silently: a
+  The build fails on four math traps that would otherwise ship silently: a
   one-line `$$…$$` block (it renders inline — put each `$$` on a line of its
   own); a doubled backslash in the `$…$` math of a quoted MDX prop
   (`question="$\\Theta$"` — string props take single backslashes, and `\\` is a
-  KaTeX line break; an expression prop `{"…"}` takes doubled ones); and any
-  TeX KaTeX cannot parse (a typo'd command, an unbalanced brace), reported at
-  its file and line, or for a prop or `course.yaml` string at its page.
+  KaTeX line break; an expression prop `{"…"}` takes doubled ones); inline
+  `$…$` math wrapped onto a line that starts with `+`, `-`, `*` or `1.`
+  (Markdown starts a list there and splits the formula — rewrap the source);
+  and any TeX KaTeX cannot parse (a typo'd command, an unbalanced brace),
+  reported at its file and line, or for a prop or `course.yaml` string at its
+  page.
 
   **Props that render `$…$` with KaTeX.** Every reader-visible string prop below
   goes through the same renderer, so put math in the prop rather than working

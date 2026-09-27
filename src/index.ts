@@ -13,6 +13,7 @@ import { rehypeKatexScroll } from "./lib/rehype-katex-scroll.ts";
 import { rehypeKatexHeading } from "./lib/rehype-katex-heading.ts";
 import { rehypeKatexErrors } from "./lib/rehype-katex-errors.ts";
 import { findKatexErrors } from "./lib/katex.ts";
+import { findDuplicateIds } from "./lib/pageIds.ts";
 
 /**
  * After rehype-katex, tag KaTeX's `.katex-mathml` (the visually-hidden MathML +
@@ -158,17 +159,21 @@ async function removeKatexDeadWeight(
 }
 
 /**
- * Fail the build on any KaTeX error that reached a page. Component-rendered
- * math (renderMathString, Formula, FormulaSheet, …) renders a TeX error as red
- * source and marks it (renderTex in lib/katex.ts) rather than throwing, so
- * `astro dev` keeps showing the page; here, with every page written, those
- * marks become one build error naming each page, the source TeX and KaTeX's
- * message. MDX-body math already failed earlier, at its file and line
- * (rehypeKatexErrors).
+ * Fail the build on what only the finished pages show, in one pass over them:
+ *
+ * - a KaTeX error. Component-rendered math (renderMathString, Formula,
+ *   FormulaSheet, …) renders a TeX error as red source and marks it (renderTex
+ *   in lib/katex.ts) rather than throwing, so `astro dev` keeps showing the
+ *   page; here those marks become build errors naming the page, the source TeX
+ *   and KaTeX's message. MDX-body math already failed earlier, at its file and
+ *   line (rehypeKatexErrors).
+ * - a duplicate id (lib/pageIds.ts) — in practice a <Statement> whose name
+ *   slugs to the same anchor as a heading on its page.
  */
-async function failOnKatexErrors(outDir: string): Promise<void> {
+async function checkBuiltPages(outDir: string): Promise<void> {
   const entries = await readdir(outDir, { recursive: true });
   const problems: string[] = [];
+  const duplicates: string[] = [];
   for (const entry of entries.sort()) {
     if (!entry.endsWith(".html")) continue;
     const html = await readFile(join(outDir, entry), "utf8");
@@ -180,11 +185,26 @@ async function failOnKatexErrors(outDir: string): Promise<void> {
     for (const { tex, message } of findKatexErrors(html)) {
       problems.push(`${page}: KaTeX could not render "${tex}" — ${message}`);
     }
+    for (const { id, elements } of findDuplicateIds(html)) {
+      duplicates.push(`${page}: id "${id}" on ${elements.join(" and ")}`);
+    }
   }
+  const sections: string[] = [];
   if (problems.length) {
-    throw new Error(
-      "study-companion: KaTeX errors on built pages (fix the TeX in the prop or course.yaml entry that renders it) —\n" +
+    sections.push(
+      "KaTeX errors on built pages (fix the TeX in the prop or course.yaml entry that renders it) —\n" +
         problems.map((p) => `  • ${p}`).join("\n"),
+    );
+  }
+  if (duplicates.length) {
+    sections.push(
+      `duplicate ids on built pages — a #link lands on the first, and the other never highlights. When one is a <Statement> (<aside class="statement …">), give it an explicit id="…" —\n` +
+        duplicates.map((d) => `  • ${d}`).join("\n"),
+    );
+  }
+  if (sections.length) {
+    throw new Error(
+      `study-companion: ${sections.join("\n\nstudy-companion: ")}`,
     );
   }
 }
@@ -340,8 +360,9 @@ export default function studyCompanion(
       "astro:build:done": async ({ dir, logger }) => {
         const outDir = fileURLToPath(dir);
 
-        // First, so a page with broken TeX fails before any asset work.
-        await failOnKatexErrors(outDir);
+        // First, so a page with broken TeX or a clashing anchor fails before
+        // any asset work.
+        await checkBuiltPages(outDir);
 
         // Per-course raster icon set. Independent of the Pagefind step, and
         // hard-fails the build if sharp can't run: the manifest and the
