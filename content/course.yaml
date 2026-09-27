@@ -73,8 +73,9 @@ formulas:
 
 # Exercises <SymbolList> (the Symboler page): grouping by `section`, a row with
 # no unit, a `note`, `term` → Begreper link, `formula` → Formelsamling link, an
-# `id` anchor, Greek + \mathcal TeX, and one section-less entry (the trailing
-# "Andre symboler" bucket).
+# `id` anchor, Greek + \mathcal TeX, a group with no units at all (it renders
+# without the unit column), a wide two-symbol row (it stacks on a phone), and
+# one section-less entry (the trailing "Andre symboler" bucket).
 symbols:
   - { tex: "n", meaning: "Brytningsindeks", section: "Geometrisk optikk", id: n, term: "Brytningsindeks", formula: snells, note: "Dimensjonsløs, $n = c/v$." }
   - { tex: "\\theta_c", meaning: "Grensevinkel for totalrefleksjon", unit: "rad", section: "Geometrisk optikk", term: "Totalrefleksjon" }
@@ -83,6 +84,8 @@ symbols:
   - { tex: "\\lambda", meaning: "Bølgelengde", unit: "nm", section: "Bølgeoptikk", id: lambda }
   - { tex: "\\mathcal{E}", meaning: "Elektrisk feltstyrke i lysbølgen", unit: "V/m", section: "Bølgeoptikk", note: "Ikke energien $E$." }
   - { tex: "I", meaning: "Intensitet (irradians), $I \\propto \\mathcal{E}^2$", unit: "W/m²", section: "Bølgeoptikk" }
+  - { tex: "n_1,\\ n_2", meaning: "Brytningsindeksene på hver side av grenseflaten", section: "Notasjon", formula: snells }
+  - { tex: "\\hat{\\mathbf{n}}", meaning: "Enhetsnormalen til grenseflaten", section: "Notasjon", note: "Vinklene i Snells lov måles fra den." }
   - { tex: "c", meaning: "Lysfarten i vakuum", unit: "m/s", note: "$2{,}998 \\times 10^{8}$ m/s" }
 
 # Exercises the <Glossary> tool page + inline <Term> links: grouped by `section`,

@@ -51,7 +51,12 @@ const labels = {
   formulaLink: ui?.formulaLink ?? "Vis formelen i formelsamlingen",
 };
 
-const groups = groupBySection(symbols, labels.otherGroup);
+// A group where no row has a unit (notation, operators, an algorithms course)
+// renders without the unit column rather than an empty one.
+const groups = groupBySection(symbols, labels.otherGroup).map((g) => ({
+  ...g,
+  hasUnits: g.items.some((s) => s.unit),
+}));
 
 // Inline (text-style) KaTeX: a symbol is a letter with decorations, not a
 // display formula, so it sits on the row's baseline at prose size.
@@ -102,24 +107,30 @@ const haystack = (s: SymbolEntry) =>
           </h2>
         )}
         <div class="sym-card">
-          <table class="sym-table">
-            <thead>
-              <tr>
-                <th scope="col" class="sc-kicker">
+          {/* The explicit roles restate what the elements already are: on a
+              phone the rows are restyled (display: grid), and browsers then
+              drop the native table semantics a screen reader relies on. */}
+          <table class="sym-table" role="table">
+            <thead role="rowgroup">
+              <tr role="row">
+                <th scope="col" class="sc-kicker" role="columnheader">
                   {labels.colSymbol}
                 </th>
-                <th scope="col" class="sc-kicker">
+                <th scope="col" class="sc-kicker" role="columnheader">
                   {labels.colMeaning}
                 </th>
-                <th scope="col" class="sc-kicker">
-                  {labels.colUnit}
-                </th>
+                {g.hasUnits && (
+                  <th scope="col" class="sc-kicker" role="columnheader">
+                    {labels.colUnit}
+                  </th>
+                )}
               </tr>
             </thead>
-            <tbody>
+            <tbody role="rowgroup">
               {g.items.map((s) => (
                 <tr
                   class="sym-row"
+                  role="row"
                   id={s.id}
                   tabindex={s.id ? "-1" : undefined}
                   data-text={haystack(s)}
@@ -127,10 +138,10 @@ const haystack = (s: SymbolEntry) =>
                   {/* No visible "#" anchor: beside a symbol it reads as part
                       of the math. Rows with an id are still deep-link targets
                       (:target flash + focus), exactly like the formula sheet. */}
-                  <th scope="row" class="sym-tex">
+                  <th scope="row" class="sym-tex" role="rowheader">
                     <span class="sym-render" set:html={tex(s.tex)} />
                   </th>
-                  <td class="sym-meaning">
+                  <td class="sym-meaning" role="cell">
                     {s.term ? (
                       <a
                         class="sym-term-link"
@@ -157,9 +168,11 @@ const haystack = (s: SymbolEntry) =>
                       />
                     )}
                   </td>
-                  <td class="sym-unit">
-                    {s.unit && <span set:html={renderMathString(s.unit)} />}
-                  </td>
+                  {g.hasUnits && (
+                    <td class="sym-unit" role="cell">
+                      {s.unit && <span set:html={renderMathString(s.unit)} />}
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>
@@ -342,27 +355,63 @@ const haystack = (s: SymbolEntry) =>
     padding: var(--space-3) 0;
   }
 
+  /* A phone-width card is ~330px, too narrow for three columns: the symbol
+     column takes the width of the group's widest symbol ("a₁, a₂, a₃"), and
+     the meaning beside it breaks every few syllables. So each row stacks — the
+     symbol and its unit share the first line, the meaning and note get the
+     card's full width below — like a glossary entry. The column headers stay
+     for screen readers only; the markup's explicit roles keep this a table
+     for them after the display change (Adrian Roselli, "Tables, CSS Display
+     Properties, and ARIA"). */
   @media (max-width: 640px) {
-    .sym-table thead th {
-      padding: var(--space-2) var(--space-3) var(--space-1);
+    .sym-table,
+    .sym-table tbody {
+      display: block;
+    }
+    .sym-table thead {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+    .sym-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      grid-template-areas:
+        "tex unit"
+        "meaning meaning";
+      column-gap: var(--space-3);
+      row-gap: var(--space-1);
+      padding: var(--space-3);
+      border-bottom: 1px dashed var(--border);
+    }
+    /* display: grid would otherwise override the UA [hidden] rule and keep a
+       filtered-out row on screen. */
+    .sym-row[hidden] {
+      display: none;
+    }
+    .sym-row:not([hidden]):not(:has(~ .sym-row:not([hidden]))) {
+      border-bottom: 0;
     }
     .sym-row > th,
     .sym-row > td {
-      padding: var(--space-3) var(--space-3);
+      padding: 0;
+      border-bottom: 0;
     }
-    /* A phone-width card is ~330px. The symbol and unit columns are nowrap, so
-       if the meaning's longest word cannot fit beside them the table overflows
-       the card and the unit is clipped at its edge. `anywhere` lets a long
-       Norwegian compound break (hyphenated) instead — it is the one column
-       that is allowed to give — and the symbol cell may wrap after a comma
-       ("N_d^+, N_a^-": KaTeX splits its output at punctuation) so a two-symbol
-       row does not widen the whole column. */
     .sym-tex {
+      grid-area: tex;
+      width: auto;
       white-space: normal;
     }
+    .sym-unit {
+      grid-area: unit;
+      width: auto;
+    }
     .sym-meaning {
-      overflow-wrap: anywhere;
-      hyphens: auto;
+      grid-area: meaning;
+      overflow-wrap: break-word;
     }
   }
 </style>
