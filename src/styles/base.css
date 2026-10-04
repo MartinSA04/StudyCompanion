@@ -638,6 +638,13 @@ button {
    chunk's trailing operator glue, so the continuation starts at the operator.
    The hanging indent marks a taken break as a continuation, the way an
    `aligned` `&\quad` row would, and is inert while the formula fits.
+   WebKit (every iPhone browser) never takes this break: it lets the
+   white-space of the nowrap `.katex-html` govern the seam before the next
+   chunk's inline-block, which CSS Text 3 permits. There the formula scrolls
+   like any wide one. That is deliberate (maintainer, 2026-10-04): a
+   `display: contents` variant does wrap in WebKit, but only through observed
+   engine behaviour, not the spec, and a stable scrollbar beats a break that a
+   WebKit update could turn into a bad one.
    test/katex-allowbreak.test.ts pins the KaTeX structure this leans on;
    visual/katex-allowbreak.spec.ts measures both widths in a browser. */
 .katex .katex-html > .base:has(> .allowbreak) {

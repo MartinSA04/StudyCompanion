@@ -394,8 +394,9 @@ Keep `run(input)` deterministic for a given input (shuffle re-calls
   should start the next line. It works in display math, `<Formula>` and
   Formelsamling rows, only at the top level of the formula (not inside
   `\left(…\right)`, braces or a fraction), and a formula may carry several.
-  Keep `aligned` for rows that are separate equations, or a break wanted on
-  every screen.
+  Safari (every iPhone browser) never takes the break: there the formula
+  stays on one line and scrolls like any wide formula. Keep `aligned` for
+  rows that are separate equations, or a break wanted on every screen.
 - **Explicit numbering.** Figures (`number`), formulas, and statement ids are set
   **by hand**, never auto-derived — so reordering content never silently
   renumbers, and a cross-ref target stays stable. Section display numbers are the
