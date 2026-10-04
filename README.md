@@ -148,6 +148,9 @@ glyph goes missing. KaTeX fonts are already bundled from its stylesheet.
 full-page screenshots per route × theme. Baselines are platform-specific — generate
 them once on Linux with `pnpm test:visual:update` and commit
 `visual/*-snapshots/`; CI (`.github/workflows/visual.yml`) compares against them.
+Specs that depend on the browser engine also run in WebKit (the `webkit` project),
+because iPhones render math with it. Install it once with
+`pnpm exec playwright install --with-deps webkit`.
 
 `pnpm test` uses Node's built-in test runner (the toolchain pins **Node 22**,
 which strips the TS types behind the experimental type-stripping flag) — no extra

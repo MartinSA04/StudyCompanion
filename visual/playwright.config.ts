@@ -53,6 +53,15 @@ export default defineConfig({
       use: { ...devices["Pixel 5"] },
       testMatch: "**/mobile.spec.ts",
     },
+    // iOS readers get WebKit, which lays out some CSS differently from
+    // Chromium: the hanging indent on display math spread every fraction and
+    // accent on iPhones while every Chromium check passed (v4.10.0–v4.12.1).
+    // Engine-sensitive specs run here as well; no screenshot baselines.
+    {
+      name: "webkit",
+      use: { ...devices["Desktop Safari"] },
+      testMatch: "**/katex-indent.spec.ts",
+    },
   ],
   // One `build && preview` per site so a fresh checkout (or CI) needs no manual
   // build step first. cwd is the repo root so pnpm scripts find their configs.

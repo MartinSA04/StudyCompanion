@@ -650,6 +650,16 @@ button {
 .katex-display > .katex > .katex-html {
   text-indent: 1.5em hanging;
 }
+/* The indent belongs to the `.katex-html` lines only, and it has to sit
+   inside KaTeX's own `.katex { text-indent: 0 }` reset, so its children
+   restore that reset for everything below them. Otherwise every nested
+   KaTeX box inherits it, and WebKit sizes each box whose line starts with an
+   inline-block (fraction rows, accents, limits, `aligned` cells) as if the
+   indent applied, even under `hanging`: on iOS every such formula spread
+   1.5em per box. visual/katex-indent.spec.ts checks both engines. */
+.katex-display > .katex > .katex-html > * {
+  text-indent: 0;
+}
 
 /* --- Accessibility helper --- */
 .sr-only {
