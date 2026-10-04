@@ -67,7 +67,7 @@ Reach for a widget by intent. All are global in MDX — **no imports**.
 
 | Want to … | Use |
 |---|---|
-| State a formula (with caption / "må pugges" badge) | `<Formula>` |
+| State a formula (with caption / «Ikke på formelarket» tag) | `<Formula>` |
 | Show a captioned, numbered diagram/image | `<Figure>` |
 | Point at a YouTube video that shows something you cannot draw | `<Video>` — see below |
 | Frame a named law / theorem / definition / principle (anchored) | `<Statement>` |
@@ -461,10 +461,16 @@ not ad-hoc `links[]` entries:
   PDF first; vendor in `public/` only as a fallback.
 - **`course.exam.formulaSheet`** — defaults to `true`. Set `false` for a
   **closed-book / no-aids exam**: the Formelsamling page then shows a clear
-  "no sheet is provided" notice and drops the on-sheet / must-memorize chips and
-  per-row badges (they are meaningless when nothing is on a sheet). Use this
-  instead of marking every `formulas[]` entry `onSheet: false` / `memorize: true`.
+  "no sheet is provided" notice and drops the on/off-sheet chips and the
+  off-sheet tags (they are meaningless when nothing is on a sheet). Use this
+  instead of marking every `formulas[]` entry `onSheet: false`.
   Override the notice wording with `ui.noFormulaSheetNote` for `nn`/`en` courses.
+- **`formulas[].onSheet`** — defaults to `true`. Set `false` on a formula that is
+  not on the official sheet: its Formelsamling row gets the «Ikke på
+  formelarket» tag above the formula, and the page offers on/off-sheet filter
+  chips. Do the same in a module with `<Formula onSheet={false}>`. Only mark a
+  formula after checking it against the official sheet; with no sheet in hand,
+  leave every entry at the default.
 
 > **Accuracy is non-negotiable — these pages are a source of truth.** Never seed a
 > placeholder or guessed value (an exam date, a duration, a room, a syllabus

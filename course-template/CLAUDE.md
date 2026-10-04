@@ -38,7 +38,7 @@ lockstep with the pinned tag.
 
 1. Fill `content/course.yaml` (identity, accent, `courseUrl`, exam, formulas,
    glossary). Keep `schemaVersion` at the framework's `SCHEMA_VERSION` (currently
-   **4**). Both `course.yaml` and section frontmatter use a **strict** schema, so
+   **5**). Both `course.yaml` and section frontmatter use a **strict** schema, so
    a typo'd key fails the build naming the key. Every section needs a `summary`
    (required since v4) — it is the module's meta description and search snippet.
 2. Outline sections by `order` (and optional `part`), one file per module.

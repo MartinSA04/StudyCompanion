@@ -1,0 +1,48 @@
+---
+import { loadCourse } from "../lib/loadCourse.ts";
+
+/**
+ * The off-sheet tag: `ui.offSheetLabel` («Ikke på formelarket») on a formula
+ * whose `onSheet` is false. Shared by <Formula> (module panels) and
+ * <FormulaSheet> (rows) so the treatment lives in ONE place. Renders nothing
+ * when the exam hands out no sheet at all (`exam.formulaSheet: false`).
+ *
+ * The parent stacks it ABOVE the formula, in the formula's own column — never
+ * beside the description. On a desktop row the description is already the
+ * narrowest cell (next to TFE4146's Hall formula it gets 246 px), and a tag
+ * beside it took another ~176 px. The outer span is zero-width, so the tag
+ * never widens the formula column either: the formula alone sets it, and the
+ * tag paints at its natural width, about the column's 150 px floor.
+ */
+const { course } = await loadCourse();
+---
+
+{
+  course.exam?.formulaSheet !== false && (
+    <span class="off-sheet" data-pagefind-ignore>
+      <span class="off-sheet-tag sc-kicker">{course.ui.offSheetLabel}</span>
+    </span>
+  )
+}
+
+<style>
+  .off-sheet {
+    display: block;
+    width: 0;
+    white-space: nowrap;
+  }
+  /* Mono uppercase kicker recipe comes from .sc-kicker. The fill is the ink
+     tint --wash is made of, not a fixed paper tone: a formula nested in a card
+     recesses to --card-nested (base.css), and a fixed --card-nested fill would
+     vanish there, while the tint steps off whatever panel holds it. */
+  .off-sheet-tag {
+    display: inline-flex;
+    align-items: center;
+    font-size: var(--text-xs);
+    line-height: var(--leading-snug);
+    color: var(--muted);
+    background: var(--wash);
+    border-radius: var(--radius-xs);
+    padding: 0.2em 0.6em;
+  }
+</style>

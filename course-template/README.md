@@ -39,7 +39,7 @@ Then:
    canonical link, social cards and the sitemap).
 3. Edit `content/course.yaml` → identity, accent, `courseUrl`, `institution`,
    `author`, exam, formulas, glossary. Keep `schemaVersion` equal to the
-   framework's `SCHEMA_VERSION` (currently **4**); a mismatch fails the build.
+   framework's `SCHEMA_VERSION` (currently **5**); a mismatch fails the build.
    The schema is strict — an unknown or misspelled key fails the build naming
    the key.
 4. Replace the example sections under `content/sections/` with your modules.

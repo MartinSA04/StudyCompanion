@@ -1,6 +1,6 @@
 ---
 import { renderMathString, renderTex, ignoreInSearch } from "../lib/katex.ts";
-import MemorizeBadge from "./MemorizeBadge.astro";
+import OffSheetTag from "./OffSheetTag.astro";
 
 /**
  * A labelled, server-rendered KaTeX formula. Zero client JS — the TeX is
@@ -11,18 +11,27 @@ import MemorizeBadge from "./MemorizeBadge.astro";
  * not a centred display equation. Consecutive `<Formula>` blocks merge into one
  * continuous panel with dashed dividers (see the sibling rules below). Use
  * `block={false}` for inline math inside prose. The caption may itself contain
- * `$inline$` math. Set `memorize` to flag a formula that is NOT on the exam
- * sheet and must be learned by heart — it gets a "må pugges" badge instead of
- * spelling that out in every caption.
+ * `$inline$` math. Set `onSheet={false}` on a formula that is NOT on the
+ * exam's formula sheet — it gets the same «Ikke på formelarket» tag as its
+ * Formelsamling row, above the formula, instead of spelling that out in every
+ * caption.
  */
 interface Props {
   tex: string;
   caption?: string;
   block?: boolean;
-  /** Not on the exam sheet — show a "må pugges" badge. */
-  memorize?: boolean;
+  /** `false`: not on the exam sheet — tag it (see OffSheetTag). */
+  onSheet?: boolean;
 }
-const { tex, caption, block = true, memorize = false } = Astro.props;
+const { tex, caption, block = true, onSheet = true } = Astro.props;
+// `memorize` was removed in v5 (SCHEMA_VERSION 5). MDX isn't type-checked, so
+// a leftover prop would otherwise drop the mark without a word.
+if ("memorize" in Astro.props) {
+  throw new Error(
+    "study-companion: <Formula memorize> was removed in v5 — write " +
+      "onSheet={false} instead (see MIGRATIONS.md).",
+  );
+}
 
 // Block formulas: render with a \displaystyle prefix in *inline* mode rather
 // than display mode. This keeps fractions full-size and lets \left(…\right)
@@ -45,9 +54,15 @@ const html = ignoreInSearch(
   block ? (
     <figure class="formula">
       <div class="formula-row">
-        <span class="fx" set:html={html} tabindex="0" />
+        {onSheet ? (
+          <span class="fx" set:html={html} tabindex="0" />
+        ) : (
+          <span class="fx-stack">
+            <OffSheetTag />
+            <span class="fx" set:html={html} tabindex="0" />
+          </span>
+        )}
         {caption && <span class="desc" set:html={renderMathString(caption)} />}
-        {memorize && <MemorizeBadge />}
       </div>
     </figure>
   ) : (
@@ -132,6 +147,22 @@ const html = ignoreInSearch(
   .fx :global(.katex) {
     font-size: 1.15em;
   }
+  /* An off-sheet formula stacks its tag above it (OffSheetTag). The stack takes
+     over the cell's place in the row — its shrink, floor and cap — and the cell
+     fills the stack, so a wide formula still scrolls inside it. */
+  .fx-stack {
+    flex: 0 1 auto;
+    min-width: 150px;
+    max-width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-1);
+  }
+  .fx-stack .fx {
+    min-width: 0;
+    align-self: stretch;
+  }
   .desc {
     flex: 1;
     font-size: var(--text-sm);
@@ -170,8 +201,12 @@ const html = ignoreInSearch(
       align-items: flex-start;
       gap: var(--space-2);
     }
-    .fx {
+    .fx,
+    .fx-stack {
       min-width: 0;
+    }
+    .fx-stack {
+      align-self: stretch;
     }
   }
 </style>

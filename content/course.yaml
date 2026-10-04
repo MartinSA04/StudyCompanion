@@ -1,4 +1,4 @@
-schemaVersion: 4
+schemaVersion: 5
 code: DEMO101
 title: Demokurs
 subtitle: Kitchen-sink for study-companion
@@ -60,14 +60,14 @@ links:
   - { label: "Kompendium (PDF)", url: "https://example.com/kompendium.pdf", group: "Ressurser" }
   - { label: "study-companion (GitHub)", url: "https://github.com/MartinSA04/StudyCompanion" }
 
-# Exercises <FormulaSheet>: grouping by `section`, plus must-memorize rows
-# (memorize + onSheet:false) that get the star badge and the off-sheet stripe.
+# Exercises <FormulaSheet>: grouping by `section`, plus off-sheet rows
+# (onSheet: false) that get the «Ikke på formelarket» tag and turn on the chips.
 formulas:
   - { tex: "n_1\\sin\\theta_1 = n_2\\sin\\theta_2", label: "<b>Snells lov</b> for brytning i en grenseflate", section: "Geometrisk optikk", id: snells }
   - { tex: "\\frac{1}{f} = \\frac{1}{s} + \\frac{1}{s'}", label: "Tynnlinseformelen", section: "Geometrisk optikk", id: tynnlinse }
-  - { tex: "\\sin\\theta_c = \\frac{n_2}{n_1}", label: "Grensevinkel for totalrefleksjon", section: "Geometrisk optikk", memorize: true, onSheet: false }
+  - { tex: "\\sin\\theta_c = \\frac{n_2}{n_1}", label: "Grensevinkel for totalrefleksjon", section: "Geometrisk optikk", onSheet: false }
   - { tex: "d\\sin\\theta = m\\lambda", label: "Maksima i flerspaltinterferens", section: "Bølgeoptikk" }
-  - { tex: "\\Delta y = \\frac{\\lambda L}{d}", label: "Stripeavstand i dobbeltspalteforsøket", section: "Bølgeoptikk", memorize: true, onSheet: false }
+  - { tex: "\\Delta y = \\frac{\\lambda L}{d}", label: "Stripeavstand i dobbeltspalteforsøket", section: "Bølgeoptikk", onSheet: false }
   # \allowbreak: the row wraps at that seam only where it does not fit (AUTHORING.md §6).
   - { tex: "I(\\theta) = I_0 \\cos^2\\!\\left(\\frac{\\pi d\\sin\\theta}{\\lambda}\\right) \\allowbreak \\cdot \\operatorname{sinc}^2\\!\\left(\\frac{\\pi a\\sin\\theta}{\\lambda}\\right)", label: "Dobbeltspalte med enkeltspalte-omhylling", section: "Bølgeoptikk" }
 

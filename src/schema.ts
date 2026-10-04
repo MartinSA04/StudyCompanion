@@ -8,7 +8,7 @@ import { z } from "zod";
  *
  * SemVer mapping (see CLAUDE.md): breaking schema change => MAJOR release.
  */
-export const SCHEMA_VERSION = 4;
+export const SCHEMA_VERSION = 5;
 
 /** A single exam paper / past-exam reference (rendered by <ExamList>). */
 /**
@@ -57,10 +57,13 @@ const formulaEntrySchema = z.strictObject({
   label: z.string().optional(),
   /** Free-text grouping, e.g. a section title. */
   section: z.string().optional(),
-  /** Is this on the provided exam formula sheet? */
+  /**
+   * Is this formula on the formula sheet handed out at the exam? The one
+   * per-formula sheet switch: `false` puts a «Ikke på formelarket» tag
+   * (`ui.offSheetLabel`) above the formula and enables the on/off-sheet filter
+   * chips. Ignored when `exam.formulaSheet` is `false` (no sheet at all).
+   */
   onSheet: z.boolean().default(true),
-  /** Must be memorized (not on the sheet) — gets a "må pugges" badge. */
-  memorize: z.boolean().default(false),
   /**
    * Stable anchor id for deep-linking from prose via `<FormulaRef id>`. When set,
    * the formula's row in the sheet becomes a `#id` target. Must be unique.
@@ -187,10 +190,10 @@ export const courseSchema = z.strictObject({
       /**
        * Does the exam hand out a formula sheet at all? Default `true`. Set
        * `false` for closed-book / no-aids exams: the Formelsamling page then
-       * shows a clear "no sheet is provided" notice and drops the
-       * on-sheet/must-memorize chips and per-row badges (they are meaningless
-       * when nothing is on a sheet — everything must be known). Prefer this over
-       * marking every `formulas[]` entry `onSheet: false` / `memorize: true`.
+       * shows a clear "no sheet is provided" notice and drops the on/off-sheet
+       * chips and the off-sheet tags (they are meaningless when nothing is on a
+       * sheet — everything must be known). Prefer this over marking every
+       * `formulas[]` entry `onSheet: false`.
        */
       formulaSheet: z.boolean().default(true),
       /** Portal that owns the authoritative exam facts. Every surface that renders
@@ -388,8 +391,11 @@ export const courseSchema = z.strictObject({
       sheetSearchLabel: z.string().default("Søk i formler"),
       /** Filter chip: only formulas that ARE on the exam sheet. */
       onSheetLabel: z.string().default("På formelarket"),
-      /** Filter chip + per-row badge: off-sheet formulas that must be memorized. */
-      memorizeLabel: z.string().default("Må pugges"),
+      /**
+       * Filter chip + the tag above every `onSheet: false` formula (on the
+       * Formelsamling and on a module `<Formula onSheet={false}>`).
+       */
+      offSheetLabel: z.string().default("Ikke på formelarket"),
       /** Empty state when no formula matches the sheet search. */
       sheetEmptyLabel: z.string().default("Ingen formler matcher søket."),
       /** Heading for section-less formulas when the sheet is otherwise grouped. */

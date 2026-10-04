@@ -7,7 +7,7 @@
 # need). See AUTHORING.md in the framework repo for the full guide.
 # ─────────────────────────────────────────────────────────────────────────────
 
-schemaVersion: 4 # MUST equal the framework's SCHEMA_VERSION (the build checks it).
+schemaVersion: 5 # MUST equal the framework's SCHEMA_VERSION (the build checks it).
 
 # ── Identity (required) ──────────────────────────────────────────────────────
 code: CODE101 # Course code, e.g. "TFY4195".
@@ -72,7 +72,7 @@ exam:
   formulaSheetUrl: "https://example.com/exam/formelark.pdf"
   # Does the exam hand out a formula sheet at all? Default true. Set false for a
   # closed-book / no-aids exam → the Formelsamling page shows a "no sheet given"
-  # notice and drops the on-sheet / must-memorize chips + badges (so you don't
+  # notice and drops the on/off-sheet chips + off-sheet tags (so you don't
   # mark every formula). Override the wording with ui.noFormulaSheetNote.
   formulaSheet: true
   # Portal that owns the AUTHORITATIVE exam facts — every exam-facts surface
@@ -95,8 +95,7 @@ formulas:
       label: "Løsningsformelen for andregradslikning",
       section: "Eksempeldel",
       id: andregrad,
-      memorize: true, # Gets a "må pugges" badge …
-      onSheet: false, # … and an off-sheet stripe (not on the exam sheet).
+      onSheet: false, # Not on the exam's formula sheet → «Ikke på formelarket» tag.
     }
 
 # ── Symbols (optional → Symboler page) ───────────────────────────────────────
@@ -221,7 +220,7 @@ features: { progress: true, search: true, flashcards: true, theme: true }
 #   sheetSearchPlaceholder: "Søk i formler …"
 #   sheetSearchLabel: Søk i formler
 #   onSheetLabel: På formelarket
-#   memorizeLabel: Må pugges
+#   offSheetLabel: Ikke på formelarket
 #   sheetEmptyLabel: Ingen formler matcher søket.
 #   formulaSheetOtherGroupLabel: Andre formler
 #   symbolsLabel: Symboler

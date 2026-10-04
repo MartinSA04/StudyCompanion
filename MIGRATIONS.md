@@ -162,3 +162,39 @@ Additive since 4.0 (no migration, available when present):
   duplicate id, or on a reference to a paper with no `url`. `ui.examTaskLabel`
   (default «oppgave») is the word before the task number. `AUTHORING.md` §3
   makes quoting past-exam tasks this way standard practice.
+
+---
+
+## SCHEMA_VERSION 5 — `onSheet` is the only formula-sheet switch
+
+`course.formulas[].memorize` and its «må pugges» badge are gone. A formula now
+carries one sheet fact, `onSheet`: is it on the formula sheet handed out at the
+exam? `onSheet: false` puts a «Ikke på formelarket» tag above the formula.
+
+«Må pugges» was an instruction, and often a wrong one: an off-sheet formula that
+follows from formulas on the sheet need not be learned by heart, so courses left
+it unflagged and the reader saw nothing. «Ikke på formelarket» is a fact that
+holds for every off-sheet row. The tag sits on its own line above the formula,
+in the formula's column, because a badge beside the description took ~100–180 px
+from the narrowest cell in the row (on TFE4146's Formelsamling, 37 of 38 marked
+rows grew taller, 24 % of the list).
+
+In the same release:
+
+- `ui.memorizeLabel` is replaced by `ui.offSheetLabel` (default «Ikke på
+  formelarket»). It names both the third filter chip and the tag, so a course
+  in `nn`/`en` translates both at once — the old badge text was hard-coded.
+- The filter chips appear when the list has both on- and off-sheet formulas
+  (they used to need a `memorize` row).
+- The tag never appears when `exam.formulaSheet` is `false`, in modules too.
+
+Migrate:
+
+1. Delete every `memorize:` key from `content/course.yaml` `formulas[]`. **The
+   build fails until you do** (strict schema). Keep `onSheet: false` on those
+   rows; they get the tag.
+2. If you overrode `ui.memorizeLabel`, rename it to `ui.offSheetLabel` and
+   reword it as a fact («Ikke på formelarket»), not an instruction.
+3. In MDX, replace `<Formula … memorize />` with `<Formula … onSheet={false} />`.
+   A leftover `memorize` prop fails the build with that hint.
+4. Set `schemaVersion: 5` in `content/course.yaml`.

@@ -84,6 +84,31 @@ test("a formula id must be a fragment-safe token (letters/digits/-/_ only)", () 
   }
 });
 
+test("onSheet is the only per-formula sheet switch: it defaults to true and memorize is gone", () => {
+  const parsed = courseSchema.parse({
+    ...base,
+    formulas: [{ tex: "x" }, { tex: "y", onSheet: false }],
+  });
+  assert.equal(parsed.formulas[0].onSheet, true);
+  assert.equal(parsed.formulas[1].onSheet, false);
+  // Removed in SCHEMA_VERSION 5: the strict object turns a leftover flag into a
+  // build failure instead of a silently ignored key.
+  const stale = courseSchema.safeParse({
+    ...base,
+    formulas: [{ tex: "x", onSheet: false, memorize: true }],
+  });
+  assert.equal(stale.success, false);
+  assert.equal(
+    courseSchema.safeParse({ ...base, ui: { memorizeLabel: "Må pugges" } })
+      .success,
+    false,
+  );
+  assert.equal(
+    courseSchema.parse(base).ui.offSheetLabel,
+    "Ikke på formelarket",
+  );
+});
+
 test("a typo'd / unknown course key fails the build (strictObject)", () => {
   const result = courseSchema.safeParse({ ...base, titel: "typo" });
   assert.equal(result.success, false);

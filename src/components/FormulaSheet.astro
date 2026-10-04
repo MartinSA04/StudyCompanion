@@ -3,21 +3,22 @@ import type { FormulaEntry } from "../schema.ts";
 import { renderMathString, renderTex, ignoreInSearch } from "../lib/katex.ts";
 import { groupBySection } from "../lib/groupBySection.ts";
 import Icon from "./Icon.astro";
-import MemorizeBadge from "./MemorizeBadge.astro";
+import OffSheetTag from "./OffSheetTag.astro";
 
 /**
  * A scannable reference sheet of the course's formulas, grouped by their
  * optional `section`. Rendered from `course.formulas`. Server-side KaTeX, so
  * zero client cost. A search box filters by formula/description text and the
- * chips narrow to what's on the exam sheet vs. must-memorize; each row has a
- * copy-LaTeX button (enhanced client-side).
+ * chips narrow to what is on the exam sheet vs. not (`onSheet`); an off-sheet
+ * row carries the OffSheetTag above its formula. Each row has a copy-LaTeX
+ * button (enhanced client-side).
  */
 interface Props {
   formulas: FormulaEntry[];
   /**
-   * Whether the exam hands out a formula sheet. When `false`, the on-sheet /
-   * must-memorize distinction is meaningless (nothing is on a sheet), so the
-   * filter chips and per-row badges are dropped and a notice is shown instead.
+   * Whether the exam hands out a formula sheet. When `false`, the on/off-sheet
+   * distinction is meaningless (nothing is on a sheet), so the filter chips and
+   * off-sheet tags are dropped and a notice is shown instead.
    */
   examFormulaSheet?: boolean;
   /** Notice text shown when `examFormulaSheet` is false. */
@@ -27,7 +28,7 @@ interface Props {
     searchPlaceholder?: string;
     searchLabel?: string;
     onSheet?: string;
-    memorize?: string;
+    offSheet?: string;
     empty?: string;
     otherGroup?: string;
   };
@@ -42,7 +43,7 @@ const labels = {
   searchPlaceholder: ui?.searchPlaceholder ?? "Søk i formler og symboler …",
   searchLabel: ui?.searchLabel ?? "Søk i formler",
   onSheet: ui?.onSheet ?? "På formelarket",
-  memorize: ui?.memorize ?? "Må pugges",
+  offSheet: ui?.offSheet ?? "Ikke på formelarket",
   empty: ui?.empty ?? "Ingen formler matcher søket.",
   otherGroup: ui?.otherGroup ?? "Andre formler",
 };
@@ -72,10 +73,16 @@ const haystack = (f: FormulaEntry) =>
       .replace(/\\[a-zA-Z]+/g, " ")
   ).toLowerCase();
 
-// The on-sheet / must-memorize distinction only makes sense when the exam
-// actually provides a sheet. Closed-book courses (examFormulaSheet=false) get a
-// plain reference list — no chips, no per-row "off the sheet" badges.
-const hasMemorize = examFormulaSheet && formulas.some((f) => f.memorize);
+// The on/off-sheet distinction only makes sense when the exam actually provides
+// a sheet. Closed-book courses (examFormulaSheet=false) get a plain reference
+// list — no chips, no off-sheet tags. The chips also need both kinds present: a
+// sheet where every row is on (the default) or every row is off has nothing to
+// narrow.
+const showTags = examFormulaSheet;
+const hasSplit =
+  examFormulaSheet &&
+  formulas.some((f) => f.onSheet) &&
+  formulas.some((f) => !f.onSheet);
 ---
 
 {
@@ -99,7 +106,7 @@ const hasMemorize = examFormulaSheet && formulas.some((f) => f.memorize);
     />
   </div>
   {
-    hasMemorize && (
+    hasSplit && (
       <div
         class="fs-filter"
         role="group"
@@ -125,10 +132,10 @@ const hasMemorize = examFormulaSheet && formulas.some((f) => f.memorize);
         <button
           type="button"
           class="fs-chip sc-press sc-chip"
-          data-filter="memorize"
+          data-filter="off"
           aria-pressed="false"
         >
-          {labels.memorize}
+          {labels.offSheet}
         </button>
       </div>
     )
@@ -152,14 +159,19 @@ const hasMemorize = examFormulaSheet && formulas.some((f) => f.memorize);
               id={f.id}
               tabindex="-1"
               data-onsheet={String(f.onSheet)}
-              data-memorize={String(examFormulaSheet && f.memorize)}
               data-text={haystack(f)}
             >
-              <span class="fs-render" set:html={html(f.tex)} tabindex="0" />
+              {showTags && !f.onSheet ? (
+                <span class="fs-stack">
+                  <OffSheetTag />
+                  <span class="fs-render" set:html={html(f.tex)} tabindex="0" />
+                </span>
+              ) : (
+                <span class="fs-render" set:html={html(f.tex)} tabindex="0" />
+              )}
               {f.label && (
                 <span class="fs-label" set:html={renderMathString(f.label)} />
               )}
-              {examFormulaSheet && f.memorize && <MemorizeBadge />}
               <button
                 type="button"
                 class="fs-copy sc-copy sc-press"
@@ -204,7 +216,7 @@ const hasMemorize = examFormulaSheet && formulas.some((f) => f.memorize);
     color: var(--accent-ink);
   }
 
-  /* Controls: a search field plus the on-sheet / must-memorize chips. */
+  /* Controls: a search field plus the on/off-sheet chips. */
   .fs-controls {
     display: flex;
     flex-wrap: wrap;
@@ -352,6 +364,23 @@ const hasMemorize = examFormulaSheet && formulas.some((f) => f.memorize);
   .fs-render :global(.katex) {
     font-size: 1.15em;
   }
+  /* An off-sheet row stacks the OffSheetTag above its formula, in the formula's
+     column, so the description keeps its full width. The stack takes over the
+     cell's place in the row (shrink, floor, cap) and the cell fills the stack,
+     so a wide formula still scrolls inside it. Same rule as Formula.astro. */
+  .fs-stack {
+    flex: 0 1 auto;
+    min-width: 150px;
+    max-width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-1);
+  }
+  .fs-stack .fs-render {
+    min-width: 0;
+    align-self: stretch;
+  }
   .fs-label {
     flex: 1;
     font-size: var(--text-sm);
@@ -394,7 +423,8 @@ const hasMemorize = examFormulaSheet && formulas.some((f) => f.memorize);
       gap: var(--space-2);
       padding-right: 40px;
     }
-    .fs-render {
+    .fs-render,
+    .fs-stack {
       min-width: 0;
       /* Fill the stacked row so the cell's own overflow-x scrolls a wide
          formula, rather than the cell growing past the row and the card
@@ -437,7 +467,7 @@ const hasMemorize = examFormulaSheet && formulas.some((f) => f.memorize);
     });
 
     // Combined filter: free-text search AND the active chip (all / on the exam
-    // sheet / must-memorize). Empty groups and the whole sheet collapse cleanly.
+    // sheet / not on it). Empty groups and the whole sheet collapse cleanly.
     const rows = [...document.querySelectorAll<HTMLElement>(".fs-row")];
     const groups = [
       ...document.querySelectorAll<HTMLElement>("[data-fs-group]"),
@@ -464,7 +494,7 @@ const hasMemorize = examFormulaSheet && formulas.some((f) => f.memorize);
           const matchMode =
             mode === "all" ||
             (mode === "sheet" && r.dataset.onsheet === "true") ||
-            (mode === "memorize" && r.dataset.memorize === "true");
+            (mode === "off" && r.dataset.onsheet === "false");
           const matchTerm = !term || (r.dataset.text ?? "").includes(term);
           return matchMode && matchTerm;
         },
