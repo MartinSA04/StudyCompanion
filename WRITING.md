@@ -274,11 +274,14 @@ The framework owns the design. A course-owned sim must look like it was drawn by
   extremes: axis titles short enough not to clip, few enough ticks that labels cannot collide, and
   in-drawing labels that shorten or drop when their region gets too narrow. If a label does not fit
   on a phone, the fix is fewer words in the drawing, not smaller type.
-- **A video is an aside, never the argument.** `<Video>` borrows an explanation someone else made,
-  which is a good trade when the subject moves and your prose cannot. But the module has to work for
-  the reader who never clicks: never write "se videoen for utledningen". One video in a module is
-  usually enough; if you want three, write the explanation instead. The card is built from text you
-  type, so `title`, `channel` and `duration` follow the same rules as any other reader-visible text.
+- **A video is optional, never the argument.** A good video is a reward: edutainment that makes the
+  idea stick, or simply a cool or fun watch that gives the reader a break. It may restate what the
+  module says. The module has to work for the reader who never clicks, so never write "se videoen for
+  utledningen". Choose it as `AUTHORING.md` §3 describes: about the very idea of the passage it sits
+  next to, a good watch from a channel that will last. Most modules have none, and one is usually
+  enough. The card is built from text you type, so `title`, `channel`, `duration` and `caption`
+  follow the same rules as any other reader-visible text. The caption says what in the video is worth
+  it for this module, and only what you have checked the video contains.
 - **Captions render inline math.** Since v4.4.2 `<Simulation caption>` and `<Stepper caption>` run
   the same `$…$` renderer as `<Figure caption>`, so write `$\Delta k$`, not a bare Unicode `Δ`.
   `AUTHORING.md` §6 lists every prop that renders math.
@@ -314,7 +317,8 @@ In addition to the definition-of-done in `AUTHORING.md` §8:
       Symboler and Begreper pages independently of the module, so a phrase fixed only in the `.mdx`
       still ships.
 - [ ] **Sims use framework classes and tokens only.**
-- [ ] **Every `<Video>` link opened and still playing**, and the module reads complete without it.
+- [ ] **Every `<Video>` checked**: link opened and still playing, caption matched against what the
+      video contains, video about the passage it sits next to, and the module reads complete without it.
 - [ ] `pnpm build` green.
 
 Read the built page before shipping. Prose that looked fine in the editor often reads as padding on the

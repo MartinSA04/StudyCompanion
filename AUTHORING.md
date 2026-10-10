@@ -69,7 +69,7 @@ Reach for a widget by intent. All are global in MDX — **no imports**.
 |---|---|
 | State a formula (with caption / «Ikke på formelarket» tag) | `<Formula>` |
 | Show a captioned, numbered diagram/image | `<Figure>` |
-| Point at a YouTube video that shows something you cannot draw | `<Video>` — see below |
+| Offer an optional good watch on the passage's own topic (edutainment welcome) | `<Video>` — see below |
 | Frame a named law / theorem / definition / principle (anchored) | `<Statement>` |
 | Link a word in prose to the glossary | `<Term name="…">` |
 | Link prose to a formula's row in the Formelsamling | `<FormulaRef id="…">` |
@@ -92,37 +92,59 @@ Reach for a widget by intent. All are global in MDX — **no imports**.
 When in doubt, prefer the most specific widget: it carries the consistent design,
 a11y, and (for `<Statement>`/`<Term>`/`<FormulaRef>`) the cross-ref anchors.
 
-### `<Video>` — borrowed explanation, on two conditions
+### `<Video>` — an optional good watch
 
-Some things are far easier to watch than to read, and someone has often already
-made that video. `<Video>` embeds one as a click-to-load facade: a text-only card
-until the reader clicks, so nothing reaches Google on a plain page view.
+A video is a reward for the reader, not a teaching device the module depends on:
+edutainment that makes the idea they just read stick, or simply a cool or fun
+watch that gives a long module a break. It does not have to show anything the
+module cannot; restating the module's idea in another voice, or overlapping its
+simulation, is fine. `<Video>` embeds it as a click-to-load facade: a text-only
+card until the reader clicks, so nothing reaches Google on a plain page view.
 
 ```mdx
 <Video
-  id="https://youtu.be/WUvTyaaNkzM?t=95"
-  title="The essence of calculus"
-  channel="3Blue1Brown"
-  duration="17:04"
-  caption="Hvorfor arealet under en kurve og stigningstallet er samme spørsmål."
+  id="https://www.youtube.com/watch?v=1VPfZ_XzisU"
+  title="The Bizarre Behavior of Rotating Bodies"
+  channel="Veritasium"
+  duration="14:48"
+  caption="Gjenstander som snur seg om og om igjen i vektløs tilstand, og en forklaring på hvorfor rotasjon om den midterste aksen er ustabil."
   number={1}
 />
 ```
+
+That is the reference case: it sits right after a simulation of the same
+instability in a module that derives the result itself, and it adds real footage
+and a second, intuitive explanation.
 
 Paste the share link as `id` — a watch URL, a youtu.be link, with or without a
 `?t=` timestamp. The build reads the video id out of it and fails on a link it
 cannot parse. Type `title`, `channel` and `duration` from the video page: the
 card is built from your text, not from YouTube's thumbnail.
 
-Two conditions on using it at all:
+One hard rule, and three that decide which video:
 
 1. **The module must stand alone.** A reader who never clicks must still get the
    full argument from your prose. Never write "see the video for the derivation".
-   The video adds intuition or motion; it never carries the load.
-2. **The link can rot and nothing will tell you.** Unlike `<Figure>`, which fails
-   the build on a missing file, a video that is deleted or set to private cannot
-   be detected at build time. Prefer stable channels with a long track record,
-   and re-check your `<Video>` links when you revise a course.
+2. **It fits the passage it sits next to.** The video is about the very idea of
+   that passage: the module's own example done for real, its central theorem,
+   the history of that paragraph. A tangent (an application in another field, a
+   related topic the module does not teach, industry history) does not fit,
+   however good the video is. Place it right after the prose or simulation it
+   belongs to.
+3. **It is a good watch from a channel that will last.** Polished edutainment
+   with real depth, of the kind Veritasium, PBS Space Time, 3Blue1Brown, Looking
+   Glass Universe or Physics Girl make. Not lectures, tutoring or exam-prep
+   channels, talking heads at a desk, school-level basics or one-off uploads, and
+   never a video that contradicts how the course frames the subject. Unlike
+   `<Figure>`, which fails the build on a missing file, a video that is deleted
+   or set to private cannot be detected at build time, so prefer channels with a
+   long track record and re-check `<Video>` links when you revise a course.
+4. **Its card tells the truth.** Check what the video contains from the live
+   page (description, chapters) before you write about it. The caption says what
+   the reader gets out of it for this module, and nothing you have not confirmed.
+
+Most modules have no video, and one is usually enough. `WRITING.md` §6 has the
+rules for the caption's words.
 
 ### Exam tasks — quoted, cited, solvable here
 
