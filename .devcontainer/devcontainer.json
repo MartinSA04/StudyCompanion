@@ -33,9 +33,10 @@
   // `gh auth login`. Read-write on purpose: gh rewrites hosts.yml on token
   // refresh. Requires ~/.config/gh on the host (run `gh auth login` there once).
   //
-  // The last five binds expose the consuming course repos from the host at their
+  // The last six binds expose the consuming course repos from the host at their
   // ~/School/<CODE>/companion paths (mirrored 1:1 in-container, so CLAUDE.md's
-  // release paths resolve as-is). optics/TFY4195 is FROZEN and is not mounted.
+  // release paths resolve as-is). optics/TFY4195 lives under archive/26v on the
+  // host but mounts at the same ~/School/TFY4195/companion path.
   // NOTE: each host source must exist at rebuild time — Docker silently creates
   // an empty root-owned dir at the target for any missing source.
   "mounts": [
@@ -46,7 +47,8 @@
     "source=${localEnv:HOME}/School/TFY4345/companion,target=/home/vscode/School/TFY4345/companion,type=bind",
     "source=${localEnv:HOME}/School/TFE4146/companion,target=/home/vscode/School/TFE4146/companion,type=bind",
     "source=${localEnv:HOME}/School/TFY4220/companion,target=/home/vscode/School/TFY4220/companion,type=bind",
-    "source=${localEnv:HOME}/School/FY2045/companion,target=/home/vscode/School/FY2045/companion,type=bind"
+    "source=${localEnv:HOME}/School/FY2045/companion,target=/home/vscode/School/FY2045/companion,type=bind",
+    "source=${localEnv:HOME}/School/archive/26v/TFY4195/companion,target=/home/vscode/School/TFY4195/companion,type=bind"
   ],
 
   // Provisioning (dep-dir ownership, mise toolchain, pnpm install, the Playwright
@@ -73,7 +75,10 @@
       ],
       "settings": {
         "editor.defaultFormatter": "esbenp.prettier-vscode",
-        "editor.formatOnSave": true
+        "editor.formatOnSave": true,
+        "[mdx]": {
+          "editor.formatOnSave": false
+        }
       }
     }
   }
