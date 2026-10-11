@@ -152,6 +152,12 @@ information, keep it. If you only lost music, delete it.
 
 Every definite noun and pronoun needs an antecedent the reader can point at. «stykket» → «materialet».
 
+«Det» is the usual offender: name the noun. «For den plane pendelen er det snordraget» → «For den
+plane pendelen er føringskraften snordraget»; «Det gir hver hendelse fire tall» → «Referansesystemet
+gir …». A «dette» that points forward at a formula the reader has not seen yet does not resolve
+either: say what it is in the sentence itself. And a thing that stands on its own needs no
+back-reference: «den plane pendelen», not «den plane pendelen fra starten av seksjonen».
+
 ### 3.6 Be willing to be plain
 
 "Gitterkonstanten i silisium er 5,431 Å." Full stop. Not every sentence has to work.
@@ -173,6 +179,42 @@ wins, because that is the notation the reader must produce on the exam. Apply th
 the reader sees it — prose, formula collection, symbol list, glossary, sim readouts. The symbol list
 (`course.yaml` `symbols[]`) is where a collision gets its one-line warning («ikke energien $E$»),
 so the reader who meets $\mathcal{E}$ mid-formula has somewhere to look it up.
+
+### 3.9 Earn every step
+
+The reader follows the text one step at a time. A number, formula or condition that arrives without
+its source stops them.
+
+- **Construct a formula; do not announce it.** A formula with a specific shape needs the reason for
+  that shape: say what it must do, then show which requirement forces which term. If it is the most
+  general form, prove that too. A check afterwards («og Lagranges ligninger gir Lorentzkraften»)
+  confirms a formula, it does not explain it. The charged-particle Lagrangian is built from
+  $\vec E = -\nabla\phi - \partial\vec A/\partial t$: the $-q\,\partial\vec A/\partial t$ term is a
+  time derivative, only $\frac{d}{dt}\partial U/\partial\dot{\vec r}$ can produce one, so $U$ needs
+  $-q\,\dot{\vec r}\cdot\vec A$.
+- **Derive properly, in one place.** A derivation goes either fully in the text or fully in a
+  `<Derivation>` dropdown, never stated in one place and half-derived in another. Keep it in the text
+  when it *is* the point of the section (building the Lagrangian); fold it when it supports the point
+  (why the gauge transformation has its form). A derivation the reader did in a prerequisite course
+  goes in one dropdown, and the text states the result plainly, with no «Målet er …» framing.
+- **Show the object before counting it.** Write $t' = At + Bx$, $x' = Dt + Ex$ before saying «fire
+  konstanter».
+- **Each step, then its result.** Not «to krav fjerner to konstanter», but the requirement followed by
+  what it gives: origo i $K'$ har $x' = 0$ ved $x = vt$, så $D = -Ev$.
+- **Name what is «the same», and what is «sufficient» for what.** «gir samme svar» → «arbeidet er det
+  samme». A sufficiency claim says which statement it secures and how it can fail (the hole in a region
+  that is not simply connected).
+- **Write a derivation as a chain**: «Hvis …, er … ⇒ …. Dette betyr at …, ettersom …. Da kan … skrives
+  som …». Premise, implication, consequence, reason. Put ⇒ chains in display math; inline, they wrap
+  mid-equation.
+- **Check the direction of every «ettersom».** «∇ × ∇f = 0» shows that a gradient has zero curl, not
+  that a field with zero curl is a gradient. The argument usually needs the second.
+- **Definition first, remark after.** «En kraft er konservativ når …», then «De fleste kreftene i
+  mekanikken er konservative».
+- **Check every side claim before writing it.** «Friksjonen har ingen Lagrangefunksjon» is false
+  ($L = e^{\gamma t}(T - V)$ gives damped motion). Never assert what the rest of the course does
+  («resten av emnet bruker Galilei-transformasjonen», in a course whose last three weeks are special
+  relativity); state facts about the subject instead.
 
 ---
 
@@ -221,6 +263,11 @@ that you notice it as a device, it is doing the damage described here, whatever 
   filler hides.
 - **Do not avoid the copula.** When *er* or *har* is the right verb, use it. Not *utgjør, fungerer som,
   representerer, rommer, kjennetegnes ved, danner grunnlaget for*.
+- **Address the reader as «du»**, never «vi». Imperatives are fine («Skriv feltene med …»).
+- **Modern word order and plain verbs.** «og forlater den så» reads as old-fashioned; «lette» means
+  lifting upwards, not leaving a surface («mister kontakten med overflaten»).
+- **No abstract noun doing a person's thing.** «Argumentet spør hvilke systemer …»: arguments do not
+  ask. Say what the reader does or what follows.
 
 ---
 
@@ -309,7 +356,9 @@ In addition to the definition-of-done in `AUTHORING.md` §8:
 - [ ] **Zero long dashes** in the module *and* in the `course.yaml` entries it added.
 - [ ] **One word per concept** throughout; no synonym introduced for variety.
 - [ ] **No coined metaphor or vocabulary**; every analogy is standard and cashed out.
-- [ ] **Every pronoun and definite noun resolves.**
+- [ ] **Every pronoun and definite noun resolves**, every «det» included.
+- [ ] **Every formula with a specific shape is constructed or derived** (§3.9), fully in the text or
+      fully in a `<Derivation>`; every «ettersom» checked for direction; every side claim checked.
 - [ ] **§4 read against the finished text**, including reader-visible props: captions, `<Quiz>` options
       and explanations, `<Callout>` titles, `<Answer>`, `<Statement>`, `<LearningGoals>`,
       `<KeyTakeaways>`. Read it, do not just count it.
