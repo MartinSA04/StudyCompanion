@@ -300,6 +300,15 @@ The framework owns the design. A course-owned sim must look like it was drawn by
 - **Only framework tokens** for colour, radius, spacing and type: `var(--accent)`, `var(--muted)`,
   `var(--border)`, `var(--bg-elevated)`, `var(--radius)`, `var(--font-mono)`, `var(--text-sm)`. No
   hardcoded hex, rgb, pixel radii or font stacks — they break one of the two themes.
+- **A rigid body whose turning is the subject is drawn solid.** When the sim is about how an
+  extended body turns (a tumbling book, a heavy top, the coin that carries the Euler angles), build it
+  like the real object and give it opaque faces shaded from one fixed light: mix the material toward
+  `var(--solid-shade)` by how far the face turns from the light, continuously, never in steps that
+  snap while it turns; `var(--solid-paper)` is the neutral material. Cut lines, arcs and vectors into
+  short pieces and draw each piece behind or in front of the body by where it really is, so the body
+  never covers a line that passes in front of it; pieces behind show through as faint dashed ghost
+  lines. TFY4345's `public/sims/_solid.js` and `_painter.js` are the reference. This is not a
+  general style: point masses, wires, lattices, planes and reference surfaces keep the flat drawing.
 - **Match the existing sims.** Read the sims already in the course's `public/sims/` before adding one.
   They are the house style.
 - **One idea per sim.** A simulation exists to show the thing prose cannot. If prose can carry it, use
