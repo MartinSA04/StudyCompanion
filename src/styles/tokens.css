@@ -90,6 +90,12 @@
   --answer-bg: #edeecf; /* Flexoki green-low */
   --wrong-bg: #ffe1d5; /* Flexoki red-low */
   --canvas-bg: var(--bg-elevated);
+  /* Solid bodies in course sims: a face turns from its material toward
+     --solid-shade as it faces away from the light, so shade is a dark ink in
+     BOTH themes (the light --fg here, the dark --bg in the dark block).
+     --solid-paper is the neutral material (page edges, painted stripes). */
+  --solid-shade: var(--fg);
+  --solid-paper: color-mix(in oklab, var(--fg) 5%, var(--bg));
 
   /* --- Typography ---
      "Fraunces Fallback" / "Spectral Fallback" are metric-override @font-face
@@ -264,6 +270,8 @@
   --answer-bg: #252d09; /* Flexoki green-low (dark) */
   --wrong-bg: #3e1715; /* Flexoki red-low (dark) */
   --canvas-bg: var(--bg-elevated);
+  --solid-shade: var(--bg);
+  --solid-paper: color-mix(in oklab, var(--fg) 52%, var(--bg));
 
   /* Warm near-black (#100f0f, Flexoki black — the dark theme's own --bg),
      mixed in srgb like the light theme's shadows above; a bare rgba(0,0,0,…)
