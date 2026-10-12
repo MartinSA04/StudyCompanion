@@ -57,6 +57,11 @@ awk 'NR>1 && /^---$/{fm=1; next} fm' FILE \
 **A companion is not a textbook.** If a module is over budget, the fix is to cut, not to split into more
 modules: splitting bloated text produces more bloated text with more navigation.
 
+**Applications of a result go in dropdowns.** Once a section has derived its result, the phenomena it
+explains (the Earth's bulge, the water in a rotating bucket, the Roche limit) each go in their own
+`<Derivation title="…">`, with a small sim of the system inside when one shows it better than words.
+The main text stays the line of argument; the reader opens the applications they want.
+
 ### Scope discipline
 
 Cover **exactly** the syllabus for that week, and nothing adjacent. Do not pull in the next week's
@@ -192,6 +197,11 @@ its source stops them.
   $\vec E = -\nabla\phi - \partial\vec A/\partial t$: the $-q\,\partial\vec A/\partial t$ term is a
   time derivative, only $\frac{d}{dt}\partial U/\partial\dot{\vec r}$ can produce one, so $U$ needs
   $-q\,\dot{\vec r}\cdot\vec A$.
+- **Derive first, take apart after.** Components, sizes and special cases of a result come after the
+  derivation that produces it. A paragraph that splits the centrifugal term into components and then
+  says «Lagt til $\vec g$ gir …» hands the reader $\vec g_\text{eff}$ without a reason. Start from
+  the physical situation (a plumb bob at rest in $K'$, Newton's second law there) and let the formula
+  fall out.
 - **Derive properly, in one place.** A derivation goes either fully in the text or fully in a
   `<Derivation>` dropdown, never stated in one place and half-derived in another. Keep it in the text
   when it *is* the point of the section (building the Lagrangian); fold it when it supports the point
@@ -201,6 +211,14 @@ its source stops them.
   konstanter».
 - **Each step, then its result.** Not «to krav fjerner to konstanter», but the requirement followed by
   what it gives: origo i $K'$ har $x' = 0$ ved $x = vt$, så $D = -Ev$.
+- **Say what you substitute and which term it changes.** Not «Brukt på $\vec\omega$ selv gir
+  sammenhengen $\vec\omega \times \vec\omega = 0$», which leaves the reader to work out what goes
+  where, and claims the formula «gives» a fact it only uses. Write «Sett $\vec A = \vec\omega$. Da er
+  det siste leddet $\vec\omega \times \vec\omega = 0$, ettersom …», then the consequence.
+- **A «du trenger» names what it is needed for.** «Newtons andre lov gjelder i $K$, så du trenger
+  $\vec a$ uttrykt ved størrelser i $K'$» leaves the reader asking why. Say the goal first, then the
+  route: you measure in $K'$ and want $\vec a\,'$; Newton holds only in $K$, so express $\vec a$ in
+  $K'$ quantities, insert in $m\vec a = \vec F$ and solve for $\vec a\,'$.
 - **Name what is «the same», and what is «sufficient» for what.** «gir samme svar» → «arbeidet er det
   samme». A sufficiency claim says which statement it secures and how it can fail (the hole in a region
   that is not simply connected).
