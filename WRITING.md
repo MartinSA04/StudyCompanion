@@ -219,6 +219,8 @@ its source stops them.
   $\vec a$ uttrykt ved størrelser i $K'$» leaves the reader asking why. Say the goal first, then the
   route: you measure in $K'$ and want $\vec a\,'$; Newton holds only in $K$, so express $\vec a$ in
   $K'$ quantities, insert in $m\vec a = \vec F$ and solve for $\vec a\,'$.
+- **A new method starts with what the old one cannot do.** Show where the reader's current tool loses
+  the answer before the first step, not «Behold alle koordinatene» with no reason.
 - **Name what is «the same», and what is «sufficient» for what.** «gir samme svar» → «arbeidet er det
   samme». A sufficiency claim says which statement it secures and how it can fail (the hole in a region
   that is not simply connected).
