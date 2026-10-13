@@ -22,6 +22,24 @@ export function ogLocale(language: string): string {
 }
 
 /**
+ * The sentence that says what the site is and which course it covers, shared
+ * by the overview's and the tool pages' meta descriptions: "Kompendium i
+ * TDT4120 Algoritmer og datastrukturer ved NTNU". It carries every word
+ * students search a course by: the guide noun (`ui.guideLabel`), the code,
+ * the name and the institution. No trailing punctuation; callers add it.
+ * `title` must already be `plain()` (no soft hyphens).
+ */
+export function guideSentence(o: {
+  guideLabel: string;
+  code: string;
+  title: string;
+  institution?: string;
+}): string {
+  const at = o.institution ? ` ved ${o.institution}` : "";
+  return `${o.guideLabel} i ${o.code} ${o.title}${at}`;
+}
+
+/**
  * Collapse whitespace and soft-truncate to ~`max` chars at a word boundary
  * (Google renders ~155–160). Returns a trimmed single-line string; appends an
  * ellipsis only when it actually cut. Empty/whitespace input → "".

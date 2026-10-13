@@ -5,6 +5,7 @@ import {
   courseRef,
   authorRef,
   studyGuideLd,
+  websiteLd,
   learningResourceLd,
   definedTermSetLd,
   flashcardQuizLd,
@@ -48,6 +49,24 @@ test("courseRef identifies the course and carries provider only when given", () 
   });
   assert.equal(full.url, "https://ntnu.no/emner/DEMO101");
   assert.deepEqual(full.provider, { "@type": "Organization", name: "NTNU" });
+});
+
+test("websiteLd names the site on the home page under its own @id", () => {
+  const ld = websiteLd({
+    name: "DEMO101 Demokurs",
+    url: "https://x/",
+    inLanguage: "nb",
+  });
+  // Google reads the site name from a WebSite node's name + url; the @id
+  // keeps it distinct from the guide's #guide node on the same page.
+  assert.deepEqual(ld, {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "@id": "https://x/#website",
+    name: "DEMO101 Demokurs",
+    url: "https://x/",
+    inLanguage: "nb",
+  });
 });
 
 test("studyGuideLd is a LearningResource ABOUT a course, never a Course", () => {

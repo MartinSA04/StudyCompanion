@@ -443,6 +443,15 @@ export const courseSchema = z.strictObject({
        */
       nextDeadlineLabel: z.string().default("Neste frist"),
       courseLabel: z.string().default("Emneside"),
+      /**
+       * What the site IS, as one noun: in the overview's `<title>`
+       * ("TDT4120 Algoritmer og datastrukturer · Kompendium · NTNU") and in
+       * every page's meta description ("Kompendium i TDT4120 … ved NTNU").
+       * "Kompendium" is the word Norwegian students pair with a course in
+       * search ("algdat kompendium", "kompendium ntnu"); "studieguide" and
+       * "pensumguide" draw no Norwegian searches at all. Override for `en`.
+       */
+      guideLabel: z.string().default("Kompendium"),
       /** Sidebar "up" link to the course hub (only rendered when `hubUrl` is set). */
       hubLinkLabel: z.string().default("Alle emner"),
       tocLabel: z.string().default("Innhold"),
@@ -468,13 +477,17 @@ export const courseSchema = z.strictObject({
 
       /**
        * `<meta name="description">` for the five tool pages, each composed as
-       * `"<phrase> — <code> <title>"`. They exist because the tool pages
+       * `"<phrase>. <guideLabel> i <code> <title> ved <institution>."` (see
+       * `guideSentence` in lib/seo.ts). They exist because the tool pages
        * otherwise shared one `"<Label> — <Course title>"` boilerplate, giving
        * five pages per site the same duplicate description. Phrase the override
        * to describe the PAGE, not the course; the course half is appended.
        *
-       * Unlike the other `ui` strings these carry NO terminal punctuation — a
-       * full stop immediately before the appended " — …" reads as a typo.
+       * Unlike the other `ui` strings these carry NO terminal punctuation: the
+       * page adds the full stop before the appended course sentence.
+       * The exam page puts `"<examsLabel> <exam.date>. "` in front of its
+       * phrase when `exam.date` is set, so start `examsMetaDesc` with a
+       * capital letter.
        */
       formulaSheetMetaDesc: z
         .string()

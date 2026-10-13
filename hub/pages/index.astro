@@ -11,6 +11,7 @@ import {
 import { plain } from "../../src/lib/text.ts";
 import {
   hubCollectionLd,
+  websiteLd,
   authorId,
   serializeLd,
 } from "../../src/lib/jsonLd.ts";
@@ -93,7 +94,7 @@ const termLabel = (t: string) =>
   `${t[0] === "H" ? "Høst" : "Vår"} ${t.slice(1)}`;
 
 const description =
-  "Interaktive studieguider med flashcards, quiz og formelsamling.";
+  "Interaktive kompendier i NTNU-emner, med flashcards, quiz og formelsamling.";
 
 const themeKey = "sc:theme:hub";
 
@@ -102,13 +103,17 @@ const themeKey = "sc:theme:hub";
 // surface a course site does. Absolute URLs resolve against `site` in
 // astro.config.hub.mjs, which is always set for this build (unlike a course,
 // where `site` is the consumer's to configure) — so no degradation path here.
-const HUB_TITLE = "Studieguider — Martin Sundal";
+// "Kompendium" is the word students search with ("kompendium ntnu"); see
+// ui.guideLabel in src/schema.ts. No long dash (WRITING.md).
+const HUB_TITLE = "Kompendier i NTNU-emner · Martin Sundal";
+// The site name: og:site_name, the h1 and the WebSite node below must agree.
+const SITE_NAME = "Kompendier";
 const AUTHOR_NAME = "Martin Sundal";
 const canonical = new URL("/", Astro.site).href;
 const ogImage = new URL("/og-image.png", Astro.site).href;
 const author = { name: AUTHOR_NAME, id: authorId(canonical) };
 const hubLd = hubCollectionLd({
-  name: "Studieguider",
+  name: SITE_NAME,
   description,
   url: canonical,
   inLanguage: "nb",
@@ -122,6 +127,8 @@ const hubLd = hubCollectionLd({
     url: c.url,
   })),
 });
+// Google's site name for the hub's subdomain (see websiteLd).
+const siteLd = websiteLd({ name: SITE_NAME, url: canonical, inLanguage: "nb" });
 
 // Per-theme brand accent — the hub has no course.accent, so it pins its own
 // pair and derives the on-accent text exactly as CourseLayout does for a course
@@ -169,14 +176,14 @@ const accentVars =
     <meta property="og:type" content="website" />
     <meta property="og:title" content={HUB_TITLE} />
     <meta property="og:description" content={description} />
-    <meta property="og:site_name" content="Studieguider" />
+    <meta property="og:site_name" content={SITE_NAME} />
     <meta property="og:locale" content="nb_NO" />
     <meta property="og:url" content={canonical} />
     <meta property="og:image" content={ogImage} />
     <meta property="og:image:type" content="image/png" />
     <meta property="og:image:width" content={String(OG_WIDTH)} />
     <meta property="og:image:height" content={String(OG_HEIGHT)} />
-    <meta property="og:image:alt" content="Studieguider" />
+    <meta property="og:image:alt" content={SITE_NAME} />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={HUB_TITLE} />
     <meta name="twitter:description" content={description} />
@@ -191,6 +198,11 @@ const accentVars =
     <script
       type="application/ld+json"
       set:html={serializeLd(hubLd)}
+      is:inline
+    />
+    <script
+      type="application/ld+json"
+      set:html={serializeLd(siteLd)}
       is:inline
     />
     <script
@@ -283,7 +295,7 @@ const accentVars =
   <body>
     <div class="hub">
       <header class="hub-head">
-        <h1>Studieguider</h1>
+        <h1>{SITE_NAME}</h1>
         <ThemeToggle storageKey={themeKey} />
       </header>
       <p class="hub-intro">{description}</p>
@@ -299,17 +311,23 @@ const accentVars =
                     <a class="hub-tile sc-press sc-tile sc-lift" href={c.url}>
                       <span class="hub-tile-head">
                         <span class="hub-code sc-kicker">{c.code}</span>
+                        {/* data-nosnippet keeps the build-day phrase out of
+                            search snippets (see ExamCard). Google allows it
+                            only on span/div/section, so it wraps the <time>;
+                            display:contents keeps the <time> the flex item. */}
                         {cd && (
-                          <time
-                            class="sc-countdown hub-countdown"
-                            datetime={c.examDate}
-                            data-exam-countdown={cd.iso}
-                            data-past={cd.days < 0}
-                            data-countdown-hide-past
-                            hidden={cd.days < 0}
-                          >
-                            {cd.phrase}
-                          </time>
+                          <span class="hub-countdown-wrap" data-nosnippet>
+                            <time
+                              class="sc-countdown hub-countdown"
+                              datetime={c.examDate}
+                              data-exam-countdown={cd.iso}
+                              data-past={cd.days < 0}
+                              data-countdown-hide-past
+                              hidden={cd.days < 0}
+                            >
+                              {cd.phrase}
+                            </time>
+                          </span>
                         )}
                       </span>
                       <span class="hub-title">{c.title}</span>
@@ -414,6 +432,9 @@ const accentVars =
   /* The pill is fully the shared .sc-countdown; keep it from stretching the row. */
   .hub-countdown {
     flex: none;
+  }
+  .hub-countdown-wrap {
+    display: contents;
   }
   .hub-title {
     font-size: var(--text-lg);

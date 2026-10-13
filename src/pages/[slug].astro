@@ -14,7 +14,12 @@ import ImportanceTag from "../components/ImportanceTag.astro";
 import { loadCourse } from "../lib/loadCourse.ts";
 import { bodyHasMath, stringsHaveMath } from "../lib/hasMath.ts";
 import { readFileSync } from "node:fs";
-import { absoluteUrl, truncateDescription, stripInline } from "../lib/seo.ts";
+import {
+  absoluteUrl,
+  truncateDescription,
+  stripInline,
+  guideSentence,
+} from "../lib/seo.ts";
 import {
   breadcrumbList,
   learningResourceLd,
@@ -26,6 +31,7 @@ import { courseGraph } from "../lib/courseGraph.ts";
 import { sectionIssueUrl } from "../lib/issueUrl.ts";
 import { plain } from "../lib/text.ts";
 import { slugify } from "../lib/slug.ts";
+import { formatDate } from "../lib/dates.ts";
 import { texToPlain } from "../lib/texPlain.ts";
 import { mdxComponents } from "../mdx-components.ts";
 import {
@@ -238,7 +244,19 @@ if (props.kind === "section") {
     flashcards: course.ui.flashcardsMetaDesc,
     exams: course.ui.examsMetaDesc,
   }[props.kind];
-  seoDescription = `${toolDesc} — ${course.code} ${plain(course.title)}`;
+  // The exam page leads with the exam date when there is one. The date is
+  // what a search for "<code> eksamen" wants, and an absolute date stays true
+  // after the build, unlike the card's countdown, which is data-nosnippet.
+  const examDay =
+    props.kind === "exams" && course.exam?.date
+      ? `${course.ui.examsLabel} ${formatDate(course.exam.date, course.language, "full")}. `
+      : "";
+  seoDescription = `${examDay}${toolDesc}. ${guideSentence({
+    guideLabel: course.ui.guideLabel,
+    code: course.code,
+    title: plain(course.title),
+    institution: course.institution,
+  })}.`;
   jsonLd.push(
     breadcrumbList([overviewCrumb, { name: plain(pageTitle), url: pageUrl }]),
   );

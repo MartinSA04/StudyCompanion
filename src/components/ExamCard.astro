@@ -84,8 +84,15 @@ const hasContent = Boolean(examDate) || facts.length > 0 || Boolean(exam.aids);
       )}
       {countdown && (
         <p class="exam-pill-line">
+          {/* data-nosnippet keeps the phrase out of search snippets. Google
+              captures the text on the day it crawls ("om 42 dager") and
+              shows it unchanged for weeks; the script below only fixes it
+              for a human reader. The exam date above stays snippet-eligible.
+              Google allows the attribute only on span/div/section, and only
+              when it is in the served HTML, never added later by JS. */}
           <span
             class="sc-countdown"
+            data-nosnippet
             data-past={daysToExam! < 0}
             data-exam-countdown={exam.date!.toISOString()}
           >

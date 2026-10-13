@@ -176,9 +176,9 @@ surfaced as a tile note — e.g. "Vedlikeholdes ikke lenger" for a frozen course
 file order is display order). `pnpm hub:dev` to work on it locally.
 
 The hub carries the same SEO surface a course site does: canonical, Open Graph
-and Twitter tags, `robots.txt`, `sitemap.xml`, and a `CollectionPage` +
-`ItemList` of every guide. Its one build hook (`hub-icons`) rasterizes the `>_`
-mark via the shared `src/lib/rasterizeIcons.ts`, because `og:image` needs a real
+and Twitter tags, `robots.txt`, `sitemap.xml`, a `WebSite` site name, and a
+`CollectionPage` + `ItemList` of every guide. Its one build hook (`hub-icons`)
+rasterizes the `>_` mark via the shared `src/lib/rasterizeIcons.ts`, because `og:image` needs a real
 file — the page's own favicon is a data URI, which crawlers cannot fetch.
 
 ## SEO & structured data
@@ -201,6 +201,33 @@ a phone (AUTHORING.md §6). Those are display-only: `src/lib/text.ts` `plain()`
 strips them at every boundary where a title becomes machine-read data — the
 `<title>`, OG/Twitter meta, JSON-LD, and the web manifest. Anything new that
 turns a course or section title into metadata must call it too.
+
+The overview also emits a `WebSite` node whose `name` matches `og:site_name`
+(e.g. "TDT4120 Algoritmer og datastrukturer"). Google reads the **site name**
+shown above each result from that node on the subdomain's root page. Without it, a guide falls back to the
+parent domain's site name, which names a different site.
+
+**Nothing relative to the build date may reach a search snippet.** Google
+writes snippets from the HTML it crawled and shows them for weeks. A countdown
+pill ("om 42 dager") is true only on the day of the build: the client script
+corrects it for readers, but not for Google. Every `.sc-countdown` therefore
+sits inside `data-nosnippet`, on a `span`, `div` or `section` (the only
+elements Google honours it on), in the served HTML (Google ignores it when a
+script adds it). `visual/search-snippet.spec.ts` checks the served HTML of the
+overview, the exam page and the hub. Give any new build-relative text the same
+treatment. Absolute dates are fine: the exam page's meta description leads with
+the exam date.
+
+**Titles and descriptions carry the words a course is searched by**: the code,
+the course name, the institution, and `ui.guideLabel` ("Kompendium", the word
+Norwegian students pair with a course in search). Every page title names the
+course in full after the page ("Sortering · TDT4120 Algoritmer og
+datastrukturer"); the overview's is "TDT4120 Algoritmer og datastrukturer ·
+Kompendium · NTNU". The overview and tool-page descriptions end with
+`guideSentence` (`src/lib/seo.ts`): "Kompendium i TDT4120 Algoritmer og
+datastrukturer ved NTNU". The overview's `hero-tag` shows the institution too,
+since Google ranks on the words a page shows. Never join these strings with a
+dash: Norwegian has no long dash (WRITING.md), and the snippet spec checks it.
 
 The flashcards page emits schema.org `Quiz` of `Flashcard` questions (Google's
 Education Q&A rich result); `<Quiz>` emits none, since Google retired the

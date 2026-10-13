@@ -16,7 +16,12 @@ import {
 import { THEME_COLOR_LIGHT, THEME_COLOR_DARK } from "../lib/themeColor.ts";
 import { faviconDataUri, OG_WIDTH, OG_HEIGHT } from "../lib/favicon.ts";
 import { STARTUP_IMAGES } from "../lib/startupImages.ts";
-import { ogLocale, canonicalPathname, warnMissingSiteOnce } from "../lib/seo.ts";
+import {
+  ogLocale,
+  canonicalPathname,
+  warnMissingSiteOnce,
+  guideSentence,
+} from "../lib/seo.ts";
 import { plain } from "../lib/text.ts";
 import { formatDate } from "../lib/dates.ts";
 import { groupBySection } from "../lib/groupBySection.ts";
@@ -283,9 +288,16 @@ const progressKey = progressKeyFor(course.code);
 // `plain()` throughout this block: a title may carry soft hyphens for on-screen
 // wrapping (lib/text.ts), and every string below is machine-read — a tab label,
 // a social card, a search snippet — where the break opportunity is noise.
+// Every title names the course in full ("Sortering · TDT4120 Algoritmer og
+// datastrukturer"), so a search for a topic plus the course name matches. The
+// page comes first, so a browser tab or Google's ~60-character cut only loses
+// the end. The overview adds what the site is and where the course is taught:
+// "TDT4120 Algoritmer og datastrukturer · Kompendium · NTNU". No dashes:
+// Norwegian typography has no long dash (WRITING.md).
+const courseName = `${course.code} ${plain(course.title)}`;
 const title = pageTitle
-  ? `${plain(pageTitle)} · ${course.code}`
-  : `${course.code} · ${plain(course.title)}`;
+  ? `${plain(pageTitle)} · ${courseName}`
+  : [courseName, ui.guideLabel, course.institution].filter(Boolean).join(" · ");
 const ogTitle = plain(pageTitle ?? course.title);
 
 // ---- SEO / social metadata ----
@@ -298,12 +310,19 @@ const canonicalUrl = site
   : null;
 if (import.meta.env.DEV && !site) warnMissingSiteOnce();
 
+// Every injected page passes its own description; the fallback is the same
+// course sentence the overview and tool pages end with.
 const metaDescription = plain(
   seo?.description ??
-    (course.subtitle ? `${course.title} — ${course.subtitle}` : course.title),
+    guideSentence({
+      guideLabel: ui.guideLabel,
+      code: course.code,
+      title: course.title,
+      institution: course.institution,
+    }),
 );
 const ogType = seo?.ogType ?? "website";
-const siteName = `${course.code} ${plain(course.title)}`;
+const siteName = courseName;
 const locale = ogLocale(course.language);
 // The build-time 1200×630 accent card (lib/favicon.ts `ogCardSvg`), NOT one of
 // the square app icons: those carry a transparent margin, so a client would

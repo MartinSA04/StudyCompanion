@@ -12,7 +12,7 @@ schemaVersion: 5 # MUST equal the framework's SCHEMA_VERSION (the build checks i
 # ── Identity (required) ──────────────────────────────────────────────────────
 code: CODE101 # Course code, e.g. "TFY4195".
 title: Kurstittel # Course name.
-subtitle: Interaktiv pensumguide # Optional one-liner under the title.
+subtitle: Interaktivt kompendium # Optional one-liner under the title.
 term: V2026 # Semester label, e.g. "V2026" / "H2025".
 language: nb # nb (bokmål) | nn (nynorsk) | en. Drives chrome + date formats.
 

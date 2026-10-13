@@ -7,7 +7,25 @@ import {
   absoluteUrl,
   trimTrailingSlash,
   canonicalPathname,
+  guideSentence,
 } from "../src/lib/seo.ts";
+
+test("guideSentence names the guide, the course and the institution", () => {
+  assert.equal(
+    guideSentence({
+      guideLabel: "Kompendium",
+      code: "TDT4120",
+      title: "Algoritmer og datastrukturer",
+      institution: "NTNU",
+    }),
+    "Kompendium i TDT4120 Algoritmer og datastrukturer ved NTNU",
+  );
+  // No institution in course.yaml → none invented, no dangling "ved".
+  assert.equal(
+    guideSentence({ guideLabel: "Kompendium", code: "X1", title: "Y" }),
+    "Kompendium i X1 Y",
+  );
+});
 
 test("ogLocale maps the schema languages, defaulting to nb_NO", () => {
   assert.equal(ogLocale("nb"), "nb_NO");

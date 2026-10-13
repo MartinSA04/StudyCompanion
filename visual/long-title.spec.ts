@@ -74,7 +74,7 @@ test("an author's soft hyphen reaches the heading and nothing else", async ({
   }, SHY);
 
   expect(meta.offenders).toEqual([]);
-  expect(meta.title).toBe("Oversikt og grunnbegreper · DEMO101");
+  expect(meta.title).toBe("Oversikt og grunnbegreper · DEMO101 Demokurs");
 });
 
 test("the web manifest names the app without break hints", async ({

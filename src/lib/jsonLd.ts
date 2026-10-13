@@ -116,6 +116,28 @@ export function authorRef(opts: AuthorOpts) {
 }
 
 /**
+ * The site itself — a `WebSite` node on the home page, which is how Google
+ * picks the SITE NAME shown above a search result. It must sit on the root of
+ * the (sub)domain. Without it, a guide on a subdomain falls back to the parent
+ * domain's site name, which names some other site. Keep `name` equal to the
+ * page's `og:site_name`: Google reads both and wants them consistent.
+ */
+export function websiteLd(opts: {
+  name: string;
+  url: string;
+  inLanguage: string;
+}) {
+  return {
+    "@context": CONTEXT,
+    "@type": "WebSite",
+    "@id": `${opts.url}#website`,
+    name: opts.name,
+    url: opts.url,
+    inLanguage: opts.inLanguage,
+  };
+}
+
+/**
  * The guide as a whole — emitted on the overview. A `LearningResource` ABOUT a
  * course, not a `Course`: see the authorship note at the top of this file.
  */
