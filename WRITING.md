@@ -57,10 +57,30 @@ awk 'NR>1 && /^---$/{fm=1; next} fm' FILE \
 **A companion is not a textbook.** If a module is over budget, the fix is to cut, not to split into more
 modules: splitting bloated text produces more bloated text with more navigation.
 
+**Every claim has a job.** A fact earns its place when a later step, a quiz or an exam task uses it.
+A converse, a group property or a side remark kept for completeness is cut, not proved. «Omvendt er
+hver ortogonal matrise med $\det\boldsymbol R = +1$ en rotasjon» and «rotasjonene danner en gruppe,
+SO(3)» stood in the rigid-body module, which used neither; its exam task asks only why a rotation
+cannot have $\det\boldsymbol R = -1$.
+
 **Applications of a result go in dropdowns.** Once a section has derived its result, the phenomena it
 explains (the Earth's bulge, the water in a rotating bucket, the Roche limit) each go in their own
 `<Derivation title="…">`, with a small sim of the system inside when one shows it better than words.
 The main text stays the line of argument; the reader opens the applications they want.
+
+**The running text carries everything it relies on.** A definition, sign rule, condition or reason
+that a later sentence, a `<Statement>` or a quiz uses is said in the running text. A caption names
+what is shown; a `<Quiz>` explanation, `<SelfCheck>`, glossary entry or `<Derivation>` may repeat or
+apply a fact, but is never its only home. Those are exactly what a reader skims before an exam. The
+rule that the dual of $c\,|a\rangle$ is $c^*\langle a|$ stood only in a `<Formula>` caption, while the
+exam quiz on the same page tested it.
+
+**Restate each point in a short callout.** Each point a returning reader must take from a section is
+restated in a `<Callout>` of one or two sentences, placed where the text has made that point. The
+callout repeats the running text and explains nothing new; the explanation is in the text. A long
+section with two results can carry two. Keep them few enough to stand out: if most paragraphs end in
+one, they no longer show what matters. §3.4 applies here too, so the callout states the point, not a
+slogan.
 
 ### Scope discipline
 
@@ -100,9 +120,13 @@ If deferring genuinely helps — usually to stop a reader worrying that somethin
 
 | Don't | Do |
 |---|---|
-| hvilken masse som gjelder når, kommer i uke 35 og 36 | hvilken masse som gjelder når, avhenger av hva du regner på |
+| hvilken masse som gjelder når, kommer i uke 35 og 36 | hvilken masse som gjelder, avhenger av om du teller tilstander eller regner på strøm |
 | de samme ionene bygger romladningssonen i uke 37 | de samme ionene bygger romladningssonen i pn-overgangen |
 | dette utledes i modul 3 | *(omit)* |
+
+A deferral says what the choice depends on, not only that it depends. «avhenger av hva du regner
+på» and «av andre grunner» tell the reader that a rule exists and withhold it; state the dependence,
+or cut the sentence.
 
 The same rule applies to `course.yaml` labels and definitions, and to simulation captions.
 
@@ -137,6 +161,19 @@ is discouraged in technical writing generally.
 Pick the term the course uses (`bånd`, `nivå`, `gitterpunkt`, `bærer`) and repeat it. Repetition is
 correct here.
 
+The same holds for claims. Describe each central object one way, and make every caption, glossary
+entry and later module use that description: a module that calls $\psi(x)$ the components of
+$|\psi\rangle$ in one paragraph and «ulike objekter i ulike vektorrom» in the next leaves the reader
+with nothing to hold. Two different quantities never share one description ($\dot\psi$ and
+$\omega_3$ were both described as the turning about the body's own axis, and a sign depended on
+which was meant). When a
+later passage applies a result outside the conditions an earlier one set, or uses a word or symbol
+in a wider sense, say in one sentence why it holds there: føringskraften «gjør ikke arbeid» is about
+displacements at fixed time, so a ring that a motor turns can still do work on the bead, and
+$\vec g$ that has taken in the centrifugal term is $\vec g_\text{eff}$. A calculation done in a
+non-primitive description (the conventional cube, an extended zone) says how its result maps onto
+the primitive one.
+
 ### 3.2 Verbs, not noun-phrases
 
 Avoid *substantivsyke* — a verb crushed into a noun, what Språkrådet calls a "språklig omvei".
@@ -162,6 +199,11 @@ plane pendelen er føringskraften snordraget»; «Det gir hver hendelse fire tal
 gir …». A «dette» that points forward at a formula the reader has not seen yet does not resolve
 either: say what it is in the sentence itself. And a thing that stands on its own needs no
 back-reference: «den plane pendelen», not «den plane pendelen fra starten av seksjonen».
+
+An antecedent the reader must scroll back for does not resolve. «De tre tallene som er igjen» stood
+after a callout, a tensor paragraph and an exam task, twenty lines below «tre tall er igjen». Past
+the previous paragraph, restate the fact: «Ortogonaliteten binder seks av de ni elementene i R, så
+orienteringen er gitt ved tre tall.»
 
 ### 3.6 Be willing to be plain
 
@@ -197,11 +239,26 @@ its source stops them.
   $\vec E = -\nabla\phi - \partial\vec A/\partial t$: the $-q\,\partial\vec A/\partial t$ term is a
   time derivative, only $\frac{d}{dt}\partial U/\partial\dot{\vec r}$ can produce one, so $U$ needs
   $-q\,\dot{\vec r}\cdot\vec A$.
+- **Show the step that makes the result.** When a model is set up in words, the one inference that
+  produces its headline result is the step to show. «Noen energiintervaller mangler løsning uansett
+  $k$» needs its reason: the equation has the form $\cos ka = f(E)$, and an energy with
+  $|f(E)| > 1$ has no $k$. The same holds for a claim of direction or order («rødt ytterst, fiolett
+  innerst» needs red's lower $n$), and for a learning goal that says «Forklar hvorfor»: the text
+  gives the counting or the invariant, not an assertion or one hand-picked case.
+- **Give the physical reason before the algebra.** When a result has a one-line physical reason,
+  write it: with no torque, $\vec L$ is fixed in space, so its length is constant; a force
+  perpendicular to the velocity does no work. Algebra that cancels indices may confirm the result,
+  but does not replace the reason.
 - **Derive first, take apart after.** Components, sizes and special cases of a result come after the
   derivation that produces it. A paragraph that splits the centrifugal term into components and then
   says «Lagt til $\vec g$ gir …» hands the reader $\vec g_\text{eff}$ without a reason. Start from
   the physical situation (a plumb bob at rest in $K'$, Newton's second law there) and let the formula
   fall out.
+- **Read the result, then check it.** After a result, one clause says what it predicts or how it
+  behaves in a case the reader already knows. $\Omega = (I_3 - I_1)\,\omega_3/I_1$ is zero for a
+  sphere, and its sign says which way $\vec\omega$ circles for a flattened body and for an elongated
+  one. An expectation value is not an outcome: say that no single measurement gives
+  $\langle L_z\rangle = 9\hbar/14$.
 - **Derive properly, in one place.** A derivation goes either fully in the text or fully in a
   `<Derivation>` dropdown, never stated in one place and half-derived in another. Keep it in the text
   when it *is* the point of the section (building the Lagrangian); fold it when it supports the point
@@ -221,9 +278,25 @@ its source stops them.
   $K'$ quantities, insert in $m\vec a = \vec F$ and solve for $\vec a\,'$.
 - **A new method starts with what the old one cannot do.** Show where the reader's current tool loses
   the answer before the first step, not «Behold alle koordinatene» with no reason.
+- **The instance before the machinery.** A section opens on the question its result answers, or on
+  one case the reader can trace; the general definition, recipe or formalism comes after and names
+  what they just watched. Introduce a formalism on the smallest case that can be written out in full:
+  a two-level system before bras and kets in general, one interval-cover problem before the
+  definition of a greedy algorithm, $\vec L \parallel \vec\omega$ before principal axes as
+  eigenvectors. This is usually a reorder, not an addition.
 - **Name what is «the same», and what is «sufficient» for what.** «gir samme svar» → «arbeidet er det
   samme». A sufficiency claim says which statement it secures and how it can fail (the hole in a region
   that is not simply connected).
+- **An approximation comes with its test.** State the inequality that allows it (low injection: the
+  excess is small next to the majority concentration on the lightly doped side), and let the first
+  example that uses it check the inequality with its own numbers. The validity limit is in the
+  running text, not only in a caption.
+- **Say which way.** A sign or direction the reader must use is stated in words, with its reason,
+  not left to sign bookkeeping. «Båndene følger potensialet» says the opposite of the truth; write
+  that the band edge is the electron's potential energy, so the bands lie lowest where the potential
+  is highest. A flow of carriers gets the direction of its electric current in the same sentence.
+  A classical picture of a quantum state (a vector on a cone) says what it draws, the possible
+  outcomes, not where the vector points.
 - **Write a derivation as a chain**: «Hvis …, er … ⇒ …. Dette betyr at …, ettersom …. Da kan … skrives
   som …». Premise, implication, consequence, reason. Put ⇒ chains in display math; inline, they wrap
   mid-equation.
@@ -235,6 +308,16 @@ its source stops them.
   ($L = e^{\gamma t}(T - V)$ gives damped motion). Never assert what the rest of the course does
   («resten av emnet bruker Galilei-transformasjonen», in a course whose last three weeks are special
   relativity); state facts about the subject instead.
+
+### 3.10 Self-checks make the reader take a step
+
+A `<Quiz>` or `<SelfCheck>` written for the guide puts the reader on a case the text did not spell
+out: new numbers, a direction to predict, an instance to classify. It never asks for a sentence the
+module just stated («Et afokalt system kjennetegnes ved …» is a table lookup). Every wrong option is
+a mistake a reader who half understood the module would make, in the same length and form as the
+right one; «finnes bare i vakuum» and «Fjærene er strukket til bristepunktet» test nothing. The
+explanation says why the answer holds and where the tempting wrong option goes wrong. A quoted exam
+task keeps the paper's options (§2).
 
 ---
 
@@ -286,6 +369,12 @@ that you notice it as a device, it is doing the damage described here, whatever 
 - **Address the reader as «du»**, never «vi». Imperatives are fine («Skriv feltene med …»).
 - **Modern word order and plain verbs.** «og forlater den så» reads as old-fashioned; «lette» means
   lifting upwards, not leaving a surface («mister kontakten med overflaten»).
+- **A sentence parses on the first read.** «for» meaning *fordi*, «når» meaning *rekker*, «under»
+  meaning *nedenfor* and «til» meaning *inntil* each read first as the commoner word. When the
+  sentence does not force the intended reading, the reader has to go back and decode it. «Omvendt er
+  … en rotasjon, for Eulervinklene under når den med tre dreininger etter hverandre» stacks three of
+  them. Before rewording such a sentence, ask whether the module needs it at all (§2, every claim has
+  a job); this one was cut.
 - **No abstract noun doing a person's thing.** «Argumentet spør hvilke systemer …»: arguments do not
   ask. Say what the reader does or what follows.
 
@@ -342,6 +431,10 @@ The framework owns the design. A course-owned sim must look like it was drawn by
   sentence naming it, a marked axis tick beats "at 300 K" in text. A readout that never changes with
   the controls is dead weight; delete it. Every number on screen costs attention the shape was
   supposed to earn.
+- **A caption says what is drawn.** A `<Simulation>` caption names the system and what the marks and
+  colours stand for, usually in one or two sentences. It does not say which control to move, since
+  the controls show that, and it never narrates what happens: the result is the reader's to find,
+  and the running text states it.
 - **Plot in the reader's coordinates.** Use the axis the reader thinks in (temperature, distance,
   time), not the axis a textbook's analysis technique uses (reciprocal, mirrored, Arrhenius). The
   analysis form is a skill prose can teach; a sim that requires decoding its own axes explains
@@ -388,6 +481,16 @@ In addition to the definition-of-done in `AUTHORING.md` §8:
 - [ ] **Every pronoun and definite noun resolves**, every «det» included.
 - [ ] **Every formula with a specific shape is constructed or derived** (§3.9), fully in the text or
       fully in a `<Derivation>`; every «ettersom» checked for direction; every side claim checked.
+- [ ] **Every headline result shown, read and checked** (§3.9): the step that produces it is in the
+      text, it gets one clause on what it predicts or a known case it reduces to, every approximation
+      comes with its test, and every sign or direction is stated in words.
+- [ ] **Nothing the text relies on lives only in small print** (§2): no definition, rule or reason
+      only in a caption, quiz explanation, glossary entry or dropdown. Each point a returning reader
+      needs is restated in a short `<Callout>`.
+- [ ] **One account per object** (§3.1): no two descriptions of one thing left unreconciled, and no
+      later passage that quietly breaks an earlier statement.
+- [ ] **Every self-check makes the reader take a step** (§3.10), with distractors that are real
+      mistakes; every sim caption says what is drawn and narrates nothing.
 - [ ] **§4 read against the finished text**, including reader-visible props: captions, `<Quiz>` options
       and explanations, `<Callout>` titles, `<Answer>`, `<Statement>`, `<LearningGoals>`,
       `<KeyTakeaways>`. Read it, do not just count it.
