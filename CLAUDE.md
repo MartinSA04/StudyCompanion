@@ -32,6 +32,10 @@ This is study-companion: an Astro 6 integration + component library for course s
   sims). Both are binding on course repos and live ONLY here, never copied into a
   course. When the maintainer corrects prose, write the general rule into WRITING.md,
   not only into agent memory.
+- Every new module and every larger content change is checked against WRITING.md (and
+  AUTHORING.md) by an independent agent before it is reported done or committed: a
+  separate subagent that did not write the text, read-only, reporting findings. The
+  author verifies each finding and applies the ones that hold.
 - Module rewrites follow WRITING.md §9, the way TFE4146 module 01 was done (October
   2026): from a blank page, intuition first, and shown to the maintainer side by side
   with the current page (an artifact with both built pages) for critique before
