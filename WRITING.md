@@ -32,9 +32,11 @@ scaffolding, and the same sentence can be condescending in one and baffling in t
 right first; a module that runs long or reads dense usually re-teaches what its reader already knows.
 
 Then **assume that background and do not re-teach it.** A paragraph re-deriving a prerequisite is a
-paragraph the reader skips, and it pushes what they came for further down the page. The same holds
-for pictures: a sim of something the reader can already picture teaches nothing («every physics
-student knows a double slit»).
+paragraph the reader skips, and it pushes what they came for further down the page. To a reader
+who knows it, it also reads as condescending: deriving $1 + 2 + \cdots + (n - 1) = n(n - 1)/2$ for
+students in their third year of mathematics is an insult, so state the sum and use it. The same
+holds for pictures: a sim of something the reader can already picture teaches nothing («every
+physics student knows a double slit»).
 
 ---
 
@@ -375,7 +377,11 @@ that. The textbook does not settle it: where book and lecturer disagree, the lec
 wins, because that is the notation the reader must produce on the exam. Apply the choice everywhere
 the reader sees it — prose, formula collection, symbol list, glossary, sim readouts. The symbol list
 (`course.yaml` `symbols[]`) is where a collision gets its one-line warning («ikke energien $E$»),
-so the reader who meets $\mathcal{E}$ mid-formula has somewhere to look it up.
+so the reader who meets $\mathcal{E}$ mid-formula has somewhere to look it up. A clash with a
+convention the reader knows from elsewhere is no reason to depart from the lecturer: TDT4120 writes
+$A[1 : n]$, as the lecture does, although Python's `A[1:n]` stops before `A[n]`, and the module says
+so where the code is translated. Swapping in $A[1 .. n]$ to avoid the clash left the reader with
+notation the exam does not use.
 
 ### 4.9 Every claim is checked
 
@@ -564,8 +570,14 @@ All of these are real, from a rewrite the maintainer rejected.
   against the running sim, at the settings the text names. «Hullet reiser gjennom krystallen» was
   wrong for a sim where, with no field, the hole hops back and forth and gets nowhere. «Sett «Antall
   bindinger» til 8» sent the reader to a setting where half the levels contradicted the next sentence;
-  the text now says 4. Point at a place in a sim by what it is in the physics («der kurven går over
-  fra å bue oppover til å bue nedover»), not by how it is drawn («der det tonede området begynner»).
+  the text now says 4. When the input is random (a shuffle button, a size slider that deals a new
+  instance), the text describes only what holds for every input, or what the reader can read off
+  their own run («siste steg sier hvor mange ganger kortene flyttet seg»). A walkthrough of the
+  starting example («I steg 17 legges 3 på plass 1») is wrong for every reader who has pressed
+  shuffle. Check it in both themes too: «jo mørkere prikken er» was wrong in dark mode, where the
+  dots drawn most opaque are the lightest, and «jo tydeligere prikken er» holds in both. Point at a
+  place in a sim by what it is in the physics («der kurven går over fra å bue oppover til å bue
+  nedover»), not by how it is drawn («der det tonede området begynner»).
 - **Legible at phone width first.** Verify every sim at ≈390 px in both themes, including the slider
   extremes: axis titles short enough not to clip, few enough ticks that labels cannot collide, and
   in-drawing labels that shorten or drop when their region gets too narrow. If a label does not fit
