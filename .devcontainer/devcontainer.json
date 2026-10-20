@@ -58,6 +58,17 @@
   // `mise exec --` (e.g. `mise exec -- pnpm install`).
   "postCreateCommand": "bash .devcontainer/post-create.sh",
 
+  // Join a user-defined network, not Docker's default bridge. On the default
+  // bridge Docker copies the host's *current* upstream DNS servers into the
+  // container once, at start — so after switching networks (e.g. leaving NTNU)
+  // the container keeps the old, now-unreachable resolvers and every lookup
+  // fails until a restart. On a user-defined network the container uses Docker's
+  // embedded DNS (127.0.0.11), which forwards to the host's systemd-resolved
+  // (127.0.0.53) and so follows every network change. initializeCommand runs on
+  // the host before the container is created, so the network exists in time.
+  "initializeCommand": "docker network inspect devcontainers || docker network create devcontainers",
+  "runArgs": ["--network=devcontainers"],
+
   "remoteUser": "vscode",
 
   // Astro dev server.
