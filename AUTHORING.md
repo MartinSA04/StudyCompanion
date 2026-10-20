@@ -5,11 +5,12 @@ primary brief for a content author, including an authoring agent. It tells you
 *how to write a good module* and *which widget to reach for*; for the exhaustive
 prop reference and architecture see `README.md`.
 
-> **Read [`WRITING.md`](WRITING.md) too, before drafting prose.** It is the rules
-> for the *words*: who the reader is, the per-module length budget, plain-language
-> and terminology rules, the register these guides never use, and the design rules
-> a course-owned simulation must follow. This file covers mechanics; that one
-> covers the writing itself, and it is equally binding.
+> **Read [`WRITING.md`](WRITING.md) too, before drafting prose.** It says how a
+> module teaches: who the reader is, how to build intuition before the math with
+> sims, figures and analogies, what one module covers, the plain-language and
+> register rules, how to write a derivation, and what a course-owned simulation
+> must show and look like. This file covers mechanics; that one covers the
+> writing itself, and it is equally binding.
 >
 > Start a new course from `course-template/` (`npx degit
 > MartinSA04/StudyCompanion/course-template course-mycode`). It encodes
@@ -83,10 +84,10 @@ Reach for a widget by intent. All are global in MDX — **no imports**.
 | Recap at the end of a module | `<KeyTakeaways>` |
 | Add a note / tip / warning | `<Callout type="…">` |
 | Drop a short aside / cross-ref in the margin | `<Sidenote>` |
-| Hide a long derivation behind a toggle | `<Derivation>` |
+| Put a derivation (for rigor) or an application of a result behind a toggle | `<Derivation>` |
 | Pose a quick self-test or MCQ | `<SelfCheck>` / `<Quiz>` |
 | Show code (syntax-highlighted, copy button) | `` ```lang `` fence, or `<CodeBlock>` for a title/active line |
-| **Illustrate a dynamic / interactive concept** | a **course-owned `<Simulation>`** — see §5 |
+| **Let the reader watch a mechanism and try it** (the text tells them what to try) | a **course-owned `<Simulation>`** — see §5 |
 | **Animate stepping through code** | `<CodeBlock>` driven by a `<Simulation>` — see §5 |
 
 When in doubt, prefer the most specific widget: it carries the consistent design,
@@ -143,7 +144,7 @@ One hard rule, and three that decide which video:
    page (description, chapters) before you write about it. The caption says what
    the reader gets out of it for this module, and nothing you have not confirmed.
 
-Most modules have no video, and one is usually enough. `WRITING.md` §6 has the
+Most modules have no video, and one is usually enough. `WRITING.md` §8.1 has the
 rules for the caption's words.
 
 ### Exam tasks — quoted, cited, solvable here
@@ -189,9 +190,9 @@ whose *every* sub-question the module answers.
 
 Wrap it in `<Example label="Eksamensoppgave">` with the reference as the first
 line of the body, then the quoted text, then a `<Solution>` in the guide's own
-words (`WRITING.md` §3.7) whose final answer you have checked against the
+words (`WRITING.md` §4.7) whose final answer you have checked against the
 official solution where one exists. Place it right after the prose that teaches
-what it needs, not in a block at the end. `WRITING.md` §2 sets how many.
+what it needs, not in a block at the end. `WRITING.md` §3 sets how many.
 
 ```mdx
 <Example label="Eksamensoppgave" title="Totalrefleksjon i glass">
@@ -236,18 +237,26 @@ the paper's label, and slotted text overrides the label.
 ## 4. Module archetypes & section anatomy
 
 Three starting shapes — **not rigid rules**. Each ships as a worked example
-section in `course-template/content/sections/`.
+section in `course-template/content/sections/`. `WRITING.md` §2 is how to fill
+them; TFE4146 module 01 «Energibånd og ladningsbærere» (the October 2026 rewrite)
+is the reference concept module.
 
-### Concept module — introduce and explain one idea
+### Concept module — teach one idea
 
-`<LearningGoals>` → core prose with `<Formula>` / `<Statement>` / `<Figure>` →
-(optional `<Simulation>` for a dynamic concept) → `<Example>` →
-`<SelfCheck>`/`<Quiz>` → `<KeyTakeaways>`. Usually `importance: core`.
+`<LearningGoals>` → a concrete case or problem the module answers → for each
+idea: something the reader sees (a `<Simulation>` the text tells them what to
+try in, a `<Figure>` it points at, a `<Stepper>`, or a case with numbers) → the
+reason in prose → `<Formula>` / `<Statement>`; any derivation in a
+`<Derivation>`; a `<Callout>` where a section makes a point to keep →
+`<Example>` → `<SelfCheck>`/`<Quiz>` → `<KeyTakeaways>`. Usually
+`importance: core`.
 
 ### Method / problem module — teach a procedure for a problem type
 
-`<Steps>` → a worked `<Example>` with `<Solution>`/`<Answer>` → a `<Hints>` ladder
-→ `<SelfCheck>`. Usually `importance: core`.
+A problem the reader cannot solve yet → the method run on one instance (a
+`<Stepper>` or a traced case) → `<Steps>` naming what they watched → a worked
+`<Example>` with `<Solution>`/`<Answer>` → a `<Hints>` ladder → `<SelfCheck>`.
+Usually `importance: core`.
 
 ### Reference / overview module — summarise and contrast
 
@@ -451,7 +460,7 @@ Keep `run(input)` deterministic for a given input (shuffle re-calls
 - **Strict schema.** `course.yaml` is validated against a strict schema: an
   unknown or misspelled top-level or nested key **fails the build** naming the
   key. `course.yaml` also requires `schemaVersion` (no default) — set it to the
-  framework's `SCHEMA_VERSION` (currently **4**); a mismatch fails the build with
+  framework's `SCHEMA_VERSION` (currently **5**); a mismatch fails the build with
   a migrate/bump-the-pin message (see `MIGRATIONS.md`).
 
 ---
@@ -533,9 +542,13 @@ The polish bar is **library-grade**. A module is done when:
       `<Steps>`, `<Statement>`, …).
 - [ ] **No unknown frontmatter keys** — the schema is strict, so a typo'd key
       fails the build; keep the frontmatter to the documented fields.
-- [ ] **`WRITING.md` §7 passed** — length budget measured and met, scope limited to
-      the week, one word per concept, no coined metaphors, register budgets held in
-      prose *and* in reader-visible props, `course.yaml` entries swept too.
+- [ ] **`WRITING.md` §10 passed** — taught, not stated: every idea starts from
+      something the reader can see and gets its reason before its formula; the sims
+      and figures carry the steps and match what the text says about them;
+      derivations give rigor in one place; one topic per module, scope limited to
+      what the course teaches, one word per concept, no coined names, §6 register
+      read against the finished text in prose *and* in reader-visible props,
+      `course.yaml` entries swept too.
 
 Per-course (in addition): **`site`** set in `astro.config.mjs` (canonical / social
 cards / sitemap); `courseUrl` set; exam metadata + `formulaSheetUrl` where the exam

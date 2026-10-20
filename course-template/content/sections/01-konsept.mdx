@@ -7,11 +7,15 @@ part: "Del 1: Eksempler"
 ---
 
 {/*
-  ARKETYPE: KONSEPTMODUL — introduserer og forklarer ett begrep eller resultat.
+  ARKETYPE: KONSEPTMODUL — lærer bort ett begrep eller resultat (WRITING.md §2).
   Anbefalt skjelett (juster fritt):
-    <LearningGoals> → kjerneteori med <Formula>/<Statement>/<Figure>
-    → (valgfritt) <Simulation> → <Example> → <SelfCheck>/<Quiz> → <KeyTakeaways>
-  Se AUTHORING.md i rammeverk-repoet for valg av widget og kvalitetskravene.
+    <LearningGoals> → et konkret tilfelle modulen svarer på
+    → for hver idé: noe leseren ser (en <Simulation> teksten sier hva de skal prøve,
+      en <Figure> teksten peker på, en <Stepper> eller et tilfelle med tall)
+      → grunnen med ord → <Formula>/<Statement>; en eventuell utledning i <Derivation>;
+      en <Callout> der seksjonen har et poeng leseren skal ta med seg
+    → <Example> → <SelfCheck>/<Quiz> → <KeyTakeaways>
+  Se AUTHORING.md og WRITING.md i rammeverk-repoet for widgetvalg og kvalitetskrav.
 */}
 
 <LearningGoals>
@@ -20,14 +24,13 @@ part: "Del 1: Eksempler"
 - Kjenne igjen <Term name="Hypotenus">hypotenusen</Term> i en figur
 </LearningGoals>
 
-En rettvinklet trekant har én vinkel på $90^\circ$. Den lengste siden, som ligger
-motstående den rette vinkelen, kalles <Term name="Hypotenus" />. Sammenhengen
-mellom de tre sidene er gitt av <FormulaRef id="pytagoras" />.
+En stige på 5 m som står med foten 3 m fra en vegg, når nøyaktig 4 m opp på veggen.
+Stigen, veggen og bakken danner en rettvinklet trekant, og sidene i en slik trekant
+henger alltid sammen på samme måte.
 
-<Statement kind="theorem" name="Pytagoras' setning">
-I en rettvinklet trekant med kateter $a$ og $b$ og hypotenus $c$ gjelder
-$a^2 + b^2 = c^2$.
-</Statement>
+En rettvinklet trekant har én vinkel på $90^\circ$. De to sidene som danner den rette
+vinkelen, kalles kateter, og den lengste siden, som ligger motstående den rette
+vinkelen, kalles <Term name="Hypotenus" />. Figur 1 viser de tre sidene.
 
 <Figure
   src="/figures/example.svg"
@@ -38,14 +41,47 @@ $a^2 + b^2 = c^2$.
   height={200}
 />
 
+I simuleringen nedenfor er kateten $a$ fast på 3. Sett kateten $b$ til 4, og
+hypotenusen blir $c = 5$, som stigen. Øk $b$ til 8, og $c$ blir bare 8,54. Når den ene
+kateten er mye lengre enn den andre, ligger hypotenusen nesten langs den lange
+kateten, og den korte legger lite til lengden.
+
 {/* Course-owned canvas simulation. The module lives in THIS repo's
    public/sims/ — never in the framework. See AUTHORING.md → "Simulations". */}
 <Simulation
   src="/sims/example.js"
   title="Dra i kateten"
-  caption="Endre $b$ og se hvordan hypotenusen $c$ vokser."
+  caption="En rettvinklet trekant der kateten $a$ er fast på 3."
   height={220}
 />
+
+Den eksakte sammenhengen ser du med kvadrater. Tegner du et kvadrat på hver side av
+trekanten, har kvadratet på hypotenusen like stort areal som de to andre til sammen.
+For stigen er $3^2 + 4^2 = 9 + 16 = 25 = 5^2$, og det samme gjelder i enhver rettvinklet
+trekant.
+
+<Statement kind="theorem" name="Pytagoras' setning">
+I en rettvinklet trekant med kateter $a$ og $b$ og hypotenus $c$ gjelder
+$a^2 + b^2 = c^2$.
+</Statement>
+
+<Derivation title="Hvorfor setningen holder">
+
+Legg fire kopier av trekanten inn i et kvadrat med side $a + b$, med den rette vinkelen
+i hvert sitt hjørne. I midten blir det igjen et kvadrat med side $c$. Hele kvadratet har
+arealet $(a + b)^2$, og det er de fire trekantene, med arealet $\tfrac12 ab$ hver, pluss
+kvadratet i midten:
+
+$$
+(a + b)^2 = 4 \cdot \tfrac12 ab + c^2 \quad\Rightarrow\quad a^2 + 2ab + b^2 = 2ab + c^2
+\quad\Rightarrow\quad a^2 + b^2 = c^2
+$$
+
+</Derivation>
+
+<Callout title="Pytagoras">
+Kvadratet på hypotenusen har like stort areal som kvadratene på de to katetene til sammen, <FormulaRef id="pytagoras" />.
+</Callout>
 
 <Example title="Finn hypotenusen">
 En rettvinklet trekant har kateter $a = 3$ og $b = 4$. Hvor lang er hypotenusen?

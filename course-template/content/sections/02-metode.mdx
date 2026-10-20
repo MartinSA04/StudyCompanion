@@ -9,12 +9,16 @@ part: "Del 1: Eksempler"
 {/*
   ARKETYPE: METODE-/OPPGAVEMODUL — lærer en framgangsmåte for en oppgavetype.
   Anbefalt skjelett:
-    <Steps> → gjennomregnet <Example> med <Solution>/<Answer>
-    → <Hints> (stige) → <SelfCheck>
+    et problem leseren ikke kan løse ennå → metoden kjørt på ett tilfelle
+    (<Stepper> eller et gjennomgått tilfelle) → <Steps> som navngir det leseren så
+    → gjennomregnet <Example> med <Solution>/<Answer> → <Hints> (stige) → <SelfCheck>
 */}
 
-Andregradslikninger $ax^2 + bx + c = 0$ løses med <FormulaRef id="andregrad" />.
-Antall reelle løsninger styres av <Term name="Diskriminant">diskriminanten</Term>.
+Likningen $x^2 - 3x + 2 = 0$ har løsningene $x = 1$ og $x = 2$, fordi begge gir null
+når du setter dem inn. Å gjette løsningene går bare når de er pene tall.
+<FormulaRef id="andregrad">Løsningsformelen</FormulaRef> gir løsningene for enhver andregradslikning
+$ax^2 + bx + c = 0$, og <Term name="Diskriminant">diskriminanten</Term> avgjør hvor
+mange reelle løsninger det er.
 
 <Steps>
 <Step title="Skriv likningen på standardform">

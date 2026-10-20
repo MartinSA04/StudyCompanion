@@ -27,10 +27,15 @@ This is study-companion: an Astro 6 integration + component library for course s
   - kvantemekanikk I — `~/School/FY2045/companion`
 - Never add per-course logic here. Keep everything data-driven off the schema.
 - Architecture, contracts & widget reference: see README.md; planned work: see ROADMAP.md.
-- Writing course prose: AUTHORING.md (mechanics) + WRITING.md (the words — reader,
-  length budget, plain language, register, sim design). Both are binding on course
-  repos and live ONLY here, never copied into a course. When the maintainer corrects
-  prose, write the general rule into WRITING.md, not only into agent memory.
+- Writing course prose: AUTHORING.md (mechanics) + WRITING.md (how a module teaches:
+  reader, intuition before the math, scope, plain language, derivations, register,
+  sims). Both are binding on course repos and live ONLY here, never copied into a
+  course. When the maintainer corrects prose, write the general rule into WRITING.md,
+  not only into agent memory.
+- Module rewrites follow WRITING.md §9, the way TFE4146 module 01 was done (October
+  2026): from a blank page, intuition first, and shown to the maintainer side by side
+  with the current page (an artifact with both built pages) for critique before
+  anything is committed. Each course repo's `REWRITES.md` tracks which modules remain.
 - In chat replies, write math with Unicode symbols (ṙ, ∇, ×, ∂U/∂ṙ, ⇒), never LaTeX
   source: the terminal does not render it.
 - A kitchen-sink demo course lives at content/ (srcDir=demo/). Run `pnpm dev`/`pnpm build`
