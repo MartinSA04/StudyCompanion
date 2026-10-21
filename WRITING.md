@@ -248,6 +248,12 @@ The main text stays the line of argument; the reader opens the applications they
 Cover **exactly** what the course teaches for this topic, and nothing adjacent. Do not pull in a later
 topic, and do not add material because it is interesting or because a source you read covered it.
 
+An example may borrow a problem that a later module formalises, but it speaks the words the reader
+already has. Before the course teaches graphs, the clique problem is a group of people who all know
+each other, not nodes joined by edges. A later topic's terms (graf, node, kant) stay out of the
+module's prose, pseudocode, widgets, captions and glossary definitions until the module that teaches
+them.
+
 If you believe the scope is wrong, say so to the maintainer. Do not fix it by writing more.
 
 ### Exam tasks: the paper's words, this module's scope
