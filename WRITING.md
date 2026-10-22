@@ -661,7 +661,9 @@ The modules written before October 2026 read like encyclopedia articles, and edi
 sentence keeps that shape. Every module is therefore rewritten the way TFE4146 module 01 was:
 
 1. **Start from a blank page.** Read the syllabus, the lecture material and the problem sets, and
-   decide how the topic is best taught (§2.1). Do not start from the current text.
+   decide how the topic is best taught (§2.1). Do not start from the current text, and do not take
+   another rewritten module as a template: its opening, order and pictures fit its own topic. Other
+   modules supply only course-level facts, such as notation and glossary terms.
 2. **Write it by §2**, with its sims and figures designed alongside the text: a spec for each sim,
    then the sim built and looked at, then the text about it written from what it shows.
 3. **Independent review.** A separate, read-only agent that did not write the module checks it
