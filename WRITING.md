@@ -36,7 +36,9 @@ paragraph the reader skips, and it pushes what they came for further down the pa
 who knows it, it also reads as condescending: deriving $1 + 2 + \cdots + (n - 1) = n(n - 1)/2$ for
 students in their third year of mathematics is an insult, so state the sum and use it. The same
 holds for pictures: a sim of something the reader can already picture teaches nothing («every
-physics student knows a double slit»).
+physics student knows a double slit»). A topic on the lecture plan can still be one the prerequisites
+taught: terminal velocity is on TFY4345's week-34 plan, but the students have had mechanics courses
+before, so module 01 leaves it out.
 
 ---
 
@@ -147,7 +149,9 @@ section, and the examples that name «module 01» come from it.
   a hole moves, two sound waves cancelling in noise-cancelling headphones for bonding and antibonding
   levels, a guitar string's overtones for the levels in a band, and an air bubble in a bottle for why
   holes collect at the top of the valence band. Coupled pendulums were correct for bonding and
-  antibonding and still did not land: pick what the reader already has a feel for. What §4.3 forbids
+  antibonding and still did not land: pick what the reader already has a feel for. Keep every object
+  in the scene everyday: a spoon held in stirred coffee is something the reader has felt, a float
+  carried round the cup is not, and one unfamiliar object spoils the familiar scene. What §4.3 forbids
   is made-up names and decorative imagery, never an analogy that teaches.
 
 ### 2.3 Let the reader do something
@@ -271,6 +275,9 @@ decide which tasks qualify and how they are written:
 - **None beats a poor fit.** The table above says *at least one where the archive has one*; when it has
   none that this module alone can solve, the module carries no exam task. Never pad with a task that is
   only loosely about the topic, needs a later topic, or comes from an exam on a different syllabus.
+  A paper set by an earlier lecturer can test a method this year's lectures never teach: TFY4345's
+  2024 and 2025 papers classify fixed points with a trace–determinant chart that neither this year's
+  lectures nor Tong cover.
 
 ### Never point at the course's structure
 
@@ -397,6 +404,12 @@ not a reason for the real system: «fordi bindingene står lenger fra hverandre�
 chain and false for silicon, where every bond has the same length. Never assert what the rest of the
 course does («resten av emnet bruker Galilei-transformasjonen», in a course whose last three weeks are
 special relativity); state facts about the subject instead.
+
+### 4.10 The words a student uses
+
+Name a thing with the word a student would use when talking about it. «Skovlhjul» is a word nobody
+says, and «et lite hjul» does the job. Old-fashioned words read as stiff: «et dusin sekunder» is
+«rundt ti sekunder».
 
 ---
 
@@ -584,6 +597,12 @@ All of these are real, from a rewrite the maintainer rejected.
   dots drawn most opaque are the lightest, and «jo tydeligere prikken er» holds in both. Point at a
   place in a sim by what it is in the physics («der kurven går over fra å bue oppover til å bue
   nedover»), not by how it is drawn («der det tonede området begynner»).
+- **Every state the reader can reach shows the right physics.** A drag, a tap or a slider takes the
+  reader to places the text never mentions, and the model has to hold there too. TFY4345's wheel in
+  the field round an axis stood still wherever it was dragged, also over the axis, where the work
+  round its rim is $2\pi$, and so told the reader the opposite of the physics. Moving parts move like
+  the real ones: a damper's piston slides in and out of a cylinder that keeps its length, and only a
+  spring stretches.
 - **Legible at phone width first.** Verify every sim at ≈390 px in both themes, including the slider
   extremes: axis titles short enough not to clip, few enough ticks that labels cannot collide, and
   in-drawing labels that shorten or drop when their region gets too narrow. If a label does not fit
