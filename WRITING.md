@@ -364,6 +364,11 @@ gir …». A «dette» that points forward at a formula the reader has not seen 
 either: say what it is in the sentence itself. And a thing that stands on its own needs no
 back-reference: «den plane pendelen», not «den plane pendelen fra starten av seksjonen».
 
+A formal «det» right after a fronted noun reads first as a pronoun for that noun. «Hull har det
+bare $2{,}25 \times 10^5$ av per cm³» seems to say that the holes have something; «I valensbåndet
+er det speilvendt» leaves the reader asking what is mirrored. Give the sentence its real subject:
+«Hullene er bare … per cm³», «Valensbåndet er speilvendt».
+
 An antecedent the reader must scroll back for does not resolve. «De tre tallene som er igjen» stood
 after a callout, a tensor paragraph and an exam task, twenty lines below «tre tall er igjen». Past
 the previous paragraph, restate the fact: «Ortogonaliteten binder seks av de ni elementene i R, så
@@ -490,6 +495,9 @@ that you notice it as a device, it is doing the damage described here, whatever 
 - **Bold in running prose.** Terminology belongs in `<Term>`, emphasis in the sentence structure.
 - **Explicit conclusion markers** (Oppsummert, Kort sagt, Til slutt) and **signposting** that announces
   what the text is about to do. `<KeyTakeaways>` handles the recap structurally.
+- **Emphatic tails and intensifiers** that restate what the sentence already says: «lar elektronene
+  hoppe etter disse to reglene og ingen andre», «kommer rett fra», «krever nettopp». Cut them; the
+  plain sentence makes the claim.
 
 **Positive habits:**
 
