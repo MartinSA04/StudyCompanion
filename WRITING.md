@@ -518,10 +518,16 @@ that you notice it as a device, it is doing the damage described here, whatever 
 - **Everyday words and word order.** «ett av femti millioner silisiumatomer», not «ett silisiumatom av
   femti millioner»; «svært sjeldent», not «bare sjelden». Bookish words no lecturer would say out loud
   («især») go too.
-- **Modern word order and plain verbs.** «og forlater den så» reads as old-fashioned; «lette» means
-  lifting upwards, not leaving a surface («mister kontakten med overflaten»).
+- **Modern word order and plain verbs.** Let the subject come first. Moving an object, a complement
+  or an «at»-clause to the front, with the verb before the subject, reads as old-fashioned: «Om
+  søsken sier kravet ingenting» → «Kravet sier ingenting om søsken»; «Lavere kan treet ikke bli» →
+  «Treet kan ikke bli lavere»; «At utskriften blir sortert, følger med induksjon» → «Induksjon viser
+  at utskriften blir sortert». An ordinary adverbial in front («I figur 1 …», «Med en million
+  nøkler …») is fine. «og forlater den så» reads as old-fashioned too; «lette» means lifting upwards,
+  not leaving a surface («mister kontakten med overflaten»).
 - **A sentence parses on the first read.** «for» meaning *fordi*, «når» meaning *rekker*, «under»
-  meaning *nedenfor* and «til» meaning *inntil* each read first as the commoner word. When the
+  meaning *nedenfor*, «til» meaning *inntil* and «holder» meaning *er nok* each read first as the
+  commoner word. When the
   sentence does not force the intended reading, the reader has to go back and decode it. «Omvendt er
   … en rotasjon, for Eulervinklene under når den med tre dreininger etter hverandre» stacks three of
   them. Before rewording such a sentence, ask whether the module needs it at all (§3, every claim has
@@ -547,6 +553,8 @@ All of these are real, from a rewrite the maintainer rejected.
 | en **tekstur** som gjentar seg | invented term for a periodic function | en **funksjon** som gjentar seg |
 | der motprøvene bor | personification for its own sake | Gå til en av de nærmeste naboene |
 | Bravais-egenskapen **ryker** i det øyeblikket forskyvningen forlater null | colloquial + overwrought | mønsteret er bare et Bravais-gitter når forskyvningen er nøyaktig null |
+| Trenger du bare det største elementet, holder en svakere orden, en haug. | «holder en svakere orden» reads first as *keeps a weaker order*; a vague description stands where the name belongs, and the name trails behind | Hvis du bare trenger det største elementet, er en haug nok. |
+| Om søsken og om noder i ulike deltrær sier kravet ingenting. | inverted word order; old-fashioned | Kravet sier ingenting om søsken eller om noder i ulike deltrær. |
 
 ---
 
