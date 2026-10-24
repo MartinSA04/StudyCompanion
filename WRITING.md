@@ -205,7 +205,8 @@ section, and the examples that name «module 01» come from it.
   and skips a step is harder than a longer one that develops one idea beside a figure. Do not count
   words; read the module as the student will and find where they would stall. Length is still a
   check for bloat, never a target: a long run of prose with nothing to look at is where a reader gives
-  up. Shorter is not easier by itself: «Tilnærmingen med gradvis kanal» was rated harder to follow
+  up. A long section broken up by sims, figures and tasks is fine; measure the runs of prose between
+  them. Shorter is not easier by itself: «Tilnærmingen med gradvis kanal» was rated harder to follow
   (6 → 8 on a 9-point scale) after a rewrite made it shorter and denser.
 - **The test for every paragraph:** does it claim how or why something happens without a picture, a
   case or a reason the reader already has? Then it is encyclopedia text. Give it one, or cut it.
@@ -377,6 +378,11 @@ after a callout, a tensor paragraph and an exam task, twenty lines below «tre t
 the previous paragraph, restate the fact: «Ortogonaliteten binder seks av de ni elementene i R, så
 orienteringen er gitt ved tre tall.» A sim referred to from another section is named: «I
 simuleringen «Fra bindinger til bånd» …».
+
+The places and nodes of a sim's scene resolve only where the reader can see the scene. «Setra trenger
+avstanden til kaia» means nothing three screens below the sim that drew the map. Use the scene's names
+next to the sim, stepper or figure that shows them. Elsewhere, state the point in general terms, or give
+the example a figure of its own when it is worth keeping.
 
 ### 4.6 Be willing to be plain
 
@@ -686,7 +692,8 @@ sentence keeps that shape. Every module is therefore rewritten the way TFE4146 m
 3. **Independent review.** A separate, read-only agent that did not write the module checks it
    against this file and `AUTHORING.md`, and against the running sims. Apply the findings that hold.
 4. **Side by side.** Build the new module and the current one and show them to the maintainer next to
-   each other, linked section by section. The maintainer critiques; iterate on every comment, and
+   each other, linked section by section. A module whose topic has no page yet is shown alone, since
+   there is nothing to compare it with. The maintainer critiques; iterate on every comment, and
    write each general rule the maintainer states into this file.
 5. **Commit only when the maintainer approves.**
 
