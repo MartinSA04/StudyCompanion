@@ -136,7 +136,10 @@ section, and the examples that name «module 01» come from it.
 - **Say which way.** A sign or direction the reader must use is stated in words, with its reason, not
   left to sign bookkeeping. «Båndene følger potensialet» says the opposite of the truth; write that
   the band edge is the electron's potential energy, so the bands lie lowest where the potential is
-  highest. A flow of carriers gets the direction of its electric current in the same sentence. A
+  highest. A direction relative to the reader's body holds for one posture only, so give it relative
+  to the system first: the Euler force on a roundabout that starts points along the circle, against
+  the rotation, and a rider facing the centre is pushed to the side, not «bakover». A flow of carriers
+  gets the direction of its electric current in the same sentence. A
   classical picture of a quantum state (a vector on a cone) says what it draws, the possible
   outcomes, not where the vector points.
 - **Tie the pictures together.** When the course describes one thing in two ways (bonds and bands, a
@@ -414,7 +417,8 @@ special relativity); state facts about the subject instead.
 
 Name a thing with the word a student would use when talking about it. «Skovlhjul» is a word nobody
 says, and «et lite hjul» does the job. Old-fashioned words read as stiff: «et dusin sekunder» is
-«rundt ti sekunder».
+«rundt ti sekunder». English words read as slips: a pendulum hangs in a «ståltråd», not a «wire»,
+even though «wire» is in the dictionary. Use the Norwegian word wherever one exists.
 
 ---
 
@@ -532,6 +536,11 @@ that you notice it as a device, it is doing the damage described here, whatever 
   … en rotasjon, for Eulervinklene under når den med tre dreininger etter hverandre» stacks three of
   them. Before rewording such a sentence, ask whether the module needs it at all (§3, every claim has
   a job); this one was cut.
+- **One inserted clause at a time.** A clause wedged inside another makes the reader hold the subject
+  across it: «Simuleringen viser kastet ovenfra, så tyngden, som virker loddrett, ikke synes». Split
+  the sentence: «Simuleringen viser kastet ovenfra. Tyngden virker loddrett og synes derfor ikke.» A
+  chain of appended clauses has the same cost («…, mot sør, altså mot høyre, og opp»); give the last
+  step its own sentence.
 - **No abstract noun doing a person's thing.** «Argumentet spør hvilke systemer …»: arguments do not
   ask. Say what the reader does or what follows.
 
