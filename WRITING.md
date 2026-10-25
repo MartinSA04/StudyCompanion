@@ -262,6 +262,13 @@ each other, not nodes joined by edges. A later topic's terms (graf, node, kant) 
 module's prose, pseudocode, widgets, captions and glossary definitions until the module that teaches
 them.
 
+Stay inside the course's subject. A device course's lecture may put the device in a circuit to show
+what it is for, but the module teaches the device, not the circuit, when circuits are neither a
+prerequisite nor examined. TFE4146's «Transistoren i en krets» keeps the book's load line,
+amplification and switching, and leaves out the lecture's CMOS inverter, its switching time and the
+amplifier's bias network. A topic the syllabus gives two pages gets a short module, and a short module
+is fine.
+
 If you believe the scope is wrong, say so to the maintainer. Do not fix it by writing more.
 
 ### Exam tasks: the paper's words, this module's scope
