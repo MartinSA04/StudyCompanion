@@ -579,6 +579,13 @@ All of these are real, from a rewrite the maintainer rejected.
 
 - **One system and one line of argument per sim.** A sim is designed with the module (§2.3), so its
   controls are the levers the text talks about, and the text may come back to it for several steps.
+- **Each sim is mounted once.** A later section that needs another setting of a sim names the sim and
+  the setting («Velg «Sterkt dopet» i simuleringen «Strømmen gjennom kontakten»») and sends the reader
+  back to it (§4.5). It never mounts a second copy with another default, and the one caption covers
+  every setting the module uses. TFE4146 module 08 mounted its contact sim a second time with heavy
+  doping preselected, although the first copy already had the switch; the copy added nothing but a
+  second scene to recognise. A sim of a different system, or with different controls, is a different
+  sim.
 - **A sim explains; it never merely plots.** The reader must be able to do something that changes
   their understanding: move a lever the theory talks about and watch the consequence. A graph is
   allowed when the graph *is* the concept (a plateau, a crossover, a resonance), but an interactive
@@ -712,7 +719,8 @@ In addition to the definition-of-done in `AUTHORING.md` §8:
       concrete case or problem and answers it; every formalism enters on its smallest case.
 - [ ] **The pictures carry it** (§2.3, §8.1): every mechanism the reader has not met before is shown
       in a figure, stepper or sim that draws the system; the text tells the reader what to try and
-      every such sentence matches the sim at the settings named; figures share the sims' drawing.
+      every such sentence matches the sim at the settings named; each sim is mounted once; figures
+      share the sims' drawing.
 - [ ] **Derivations give rigor, in one place** (§5): fully in the text or fully in a `<Derivation>`,
       in the text only when doing it is what the section teaches; every formula with a specific shape
       constructed (§2.2); every «ettersom» checked for direction; every side claim checked (§4.9).
