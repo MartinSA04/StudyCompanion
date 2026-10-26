@@ -269,6 +269,14 @@ amplification and switching, and leaves out the lecture's CMOS inverter, its swi
 amplifier's bias network. A topic the syllabus gives two pages gets a short module, and a short module
 is fine.
 
+A syllabus topic that was neither lectured nor examined is in the guide for completeness. With no
+lecture to set what goes inside, the book does: give the topic the book's content at the book's depth,
+taught as §2 says, and stop there. Add no derivation and no estimate of a quantity the book does not
+discuss, not even in a dropdown, and no quiz on such a step. Numbers that put the book's results to
+work on the module's own case stay. TFE4146's «MESFET-en» (§6.3.1 and §6.3.3, with no lecture and no
+exam task in the archive) lost its derivation of the saturation condition, its estimate of the
+stretch at the drain and a quiz that computed the current.
+
 If you believe the scope is wrong, say so to the maintainer. Do not fix it by writing more.
 
 ### Exam tasks: the paper's words, this module's scope
