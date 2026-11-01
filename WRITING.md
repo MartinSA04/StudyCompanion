@@ -430,9 +430,11 @@ notation the exam does not use.
 Check every side claim before writing it. «Friksjonen har ingen Lagrangefunksjon» is false
 ($L = e^{\gamma t}(T - V)$ gives damped motion). A reason that holds only in the module's toy model is
 not a reason for the real system: «fordi bindingene står lenger fra hverandre» was true of the drawn
-chain and false for silicon, where every bond has the same length. Never assert what the rest of the
-course does («resten av emnet bruker Galilei-transformasjonen», in a course whose last three weeks are
-special relativity); state facts about the subject instead.
+chain and false for silicon, where every bond has the same length. «Er» claims that two things are the
+same, so check it like any other claim: a table of the cheapest trip between every pair of airports is
+not «korteste vei fra alle til alle», which is a problem; the table «beskriver» it. Never assert what
+the rest of the course does («resten av emnet bruker Galilei-transformasjonen», in a course whose last
+three weeks are special relativity); state facts about the subject instead.
 
 ### 4.10 The words a student uses
 
@@ -585,6 +587,8 @@ All of these are real, from a rewrite the maintainer rejected.
 | Bravais-egenskapen **ryker** i det øyeblikket forskyvningen forlater null | colloquial + overwrought | mønsteret er bare et Bravais-gitter når forskyvningen er nøyaktig null |
 | Trenger du bare det største elementet, holder en svakere orden, en haug. | «holder en svakere orden» reads first as *keeps a weaker order*; a vague description stands where the name belongs, and the name trails behind | Hvis du bare trenger det største elementet, er en haug nok. |
 | Om søsken og om noder i ulike deltrær sier kravet ingenting. | inverted word order; old-fashioned | Kravet sier ingenting om søsken eller om noder i ulike deltrær. |
+| Fem flyplasser, nummerert fra Oslo i sør til Tromsø i nord, har direktefly mellom noen av parene, og du kjøper én billett per flytur. | reads as generated: one sentence packs the numbering, the route network and the ticket rule, with an inserted clause and an appended one, before the reader has a question | Fra Bergen til Tromsø går det ikke noe direktefly. Den billigste reisen går via Trondheim og Bodø og koster 1200 + 600 + 500 = 2300 kr. |
+| En tabell med den billigste reisen mellom hvert av de 20 parene er korteste vei fra alle til alle. | a table is not a problem; «er» says they are the same thing | En tabell med den billigste reisen mellom hvert av parene beskriver korteste vei fra alle til alle. |
 
 ---
 
@@ -615,6 +619,10 @@ All of these are real, from a rewrite the maintainer rejected.
   case over one panel per case. The same holds for static figures: a
   TDT4120 figure of the four DFS edge classes as interval bars on a time axis was rejected and
   redrawn as one snapshot of a DFS tree with one edge of each kind.
+- **Real places sit where they are.** A scene built on real places draws each one at its true
+  position, with the same scale across and up, so the reader recognises the map. TDT4120 module 12
+  first placed five Norwegian airports wherever its routes drew cleanly, with Trondheim far west of
+  Oslo, and was redrawn from the airports' latitude and longitude.
 - **Draw a quantity the way the reader already pictures it.** A wave function is a wave: draw it as
   one continuous curve over the atoms, positive above the line and negative below. Stems on each
   atom held the same numbers, and the reader did not see a wave in them.
