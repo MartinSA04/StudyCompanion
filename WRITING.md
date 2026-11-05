@@ -194,7 +194,11 @@ section, and the examples that name «module 01» come from it.
   restated in a `<Callout>` of one or two sentences, placed where the text has made that point. The
   callout repeats the running text and explains nothing new. A long section with two results can
   carry two. Keep them few enough to stand out: if most paragraphs end in one, they no longer show
-  what matters. §4.4 applies here too, so the callout states the point, not a slogan.
+  what matters. §4.4 applies here too, so the callout states the point, not a slogan. A point that
+  already stands in a `<Statement>` is not restated in a callout, because the box already shows it. A
+  callout in that section says only what the statement leaves out, or the section has none. In
+  TFY4345 «Virialteoremet» the closing callout repeated the theorem box almost word for word; it now
+  gives only the consequence for gravity, $E = -\langle T\rangle$ in every bound orbit.
 - **Improving an explanation means a better picture, not more scaffolding.** The common failure is
   reading "explain this better" as "explain every step": ten paragraphs of scaffolding around a
   four-line argument. What pays is a picture of the mechanism, a concrete case with numbers, an
@@ -767,7 +771,7 @@ In addition to the definition-of-done in `AUTHORING.md` §8:
       mistakes.
 - [ ] **Nothing the text relies on lives only in small print** (§2.4): no definition, rule or reason
       only in a caption, quiz explanation, glossary entry or dropdown. Each point a returning reader
-      needs is restated in a short `<Callout>`.
+      needs is restated in a short `<Callout>`, except what a `<Statement>` already shows.
 - [ ] **One account per object** (§4.1): no two descriptions of one thing left unreconciled, a toy
       model reconciled with the real system, and no later passage that quietly breaks an earlier
       statement.
